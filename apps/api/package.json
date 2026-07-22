@@ -1,0 +1,42 @@
+{
+  "name": "@saas/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --import ./src/preload.ts src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@saas/config": "workspace:*",
+    "@saas/database": "workspace:*",
+    "@saas/shared": "workspace:*",
+    "better-auth": "^1.2.4",
+    "cors": "^2.8.5",
+    "css-tree": "^3.2.1",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "multer": "^2.2.0",
+    "sharp": "^0.35.3",
+    "stripe": "^17.5.0",
+    "uuid": "^14.0.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-serve-static-core": "^5.1.2",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^22.12.0",
+    "@types/uuid": "^11.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

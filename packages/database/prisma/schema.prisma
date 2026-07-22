@@ -1,0 +1,426 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Better Auth Models ──────────────────────────────────────────────────────
+
+model user {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  session       session[]
+  account       account[]
+  profile       profile?
+  membership    membership[]
+  invitation    invitation[]
+  auditLog      auditLog[]
+  billingCustomer billingCustomer?
+  brandProfile    brandProfile?
+  scans           scan[]
+  usageRecords    usageRecord[]
+
+  @@map("users")
+}
+
+model session {
+  id            String   @id @default(cuid())
+  expiresAt     DateTime
+  token         String   @unique
+  ipAddress     String?
+  userAgent     String?
+  userId        String
+  user          user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model account {
+  id                String  @id @default(cuid())
+  accountId         String
+  providerId        String
+  userId            String
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+  password          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([accountId, providerId])
+  @@map("accounts")
+}
+
+model verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verifications")
+}
+
+// ─── SaaS Foundation Models ──────────────────────────────────────────────────
+
+model profile {
+  id                   String   @id @default(cuid())
+  authUserId           String   @unique
+  user                 user     @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  displayName          String?
+  avatar               String?
+  onboardingCompleted  Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+model workspace {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  ownerId   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  membership membership[]
+  invitation invitation[]
+  subscription subscription[]
+  billingCustomer billingCustomer?
+  auditLog   auditLog[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("workspaces")
+}
+
+model membership {
+  id          String   @id @default(cuid())
+  userId      String
+  user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        String   @default("member")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("memberships")
+}
+
+model invitation {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  workspace       workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email           String
+  role            String   @default("member")
+  token           String   @unique
+  status          String   @default("pending")
+  invitedById     String
+  user            user     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([token])
+  @@index([email])
+  @@map("invitations")
+}
+
+model billingCustomer {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId      String?   @unique
+  workspace        workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  stripeCustomerId String    @unique
+  billingEmail     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([stripeCustomerId])
+  @@map("billing_customers")
+}
+
+model subscription {
+  id                    String   @id @default(cuid())
+  workspaceId           String
+  workspace             workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stripeSubscriptionId  String   @unique
+  stripeCustomerId      String
+  stripePriceId         String
+  planKey               String
+  status                String
+  billingInterval       String
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([stripeSubscriptionId])
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
+model webhookEvent {
+  id              String    @id @default(cuid())
+  provider        String
+  externalEventId String
+  eventType       String
+  status          String    @default("pending")
+  failureReason   String?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@unique([provider, externalEventId])
+  @@index([status])
+  @@map("webhook_events")
+}
+
+model auditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String?
+  workspace   workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Brand Guard Models ─────────────────────────────────────────────────────
+
+model brandProfile {
+  id               String      @id @default(cuid())
+  userId           String      @unique
+  user             user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  headingFont      String?
+  bodyFont         String?
+  buttonRadius     Int         @default(8)
+  borderRadius     Int         @default(8)
+  spacingPreference String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  colors           brandColor[]
+  fonts            brandFont[]
+  logos            brandLogo[]
+  gradients        brandGradient[]
+  rules            brandRule[]
+  scans            scan[]
+
+  @@index([userId])
+  @@map("brand_profiles")
+}
+
+model brandColor {
+  id              String      @id @default(cuid())
+  brandProfileId  String
+  brandProfile    brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  name            String
+  hexValue        String
+  role            String      @default("additional")
+  createdAt       DateTime    @default(now())
+
+  @@index([brandProfileId])
+  @@map("brand_colors")
+}
+
+model brandFont {
+  id              String      @id @default(cuid())
+  brandProfileId  String
+  brandProfile    brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  name            String
+  family          String
+  role            String      @default("body")
+  weight          Int         @default(400)
+  url             String?
+  createdAt       DateTime    @default(now())
+
+  @@index([brandProfileId])
+  @@map("brand_fonts")
+}
+
+model brandLogo {
+  id              String      @id @default(cuid())
+  brandProfileId  String
+  brandProfile    brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  fileUrl         String
+  storageKey      String
+  logoType        String      @default("primary")
+  backgroundType  String      @default("any")
+  width           Int?
+  height          Int?
+  createdAt       DateTime    @default(now())
+
+  @@index([brandProfileId])
+  @@map("brand_logos")
+}
+
+model brandGradient {
+  id              String      @id @default(cuid())
+  brandProfileId  String
+  brandProfile    brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  name            String
+  role            String      @default("unknown")
+  gradientType    String      @default("linear")
+  repeating       Boolean     @default(false)
+  originalValue   String
+  normalizedValue String
+  angle           Float?
+  shape           String?
+  position        String?
+  stops           Json
+  usageCount      Int         @default(1)
+  pageCount       Int         @default(1)
+  sourceType      String      @default("stylesheet")
+  cssVariableName String?
+  confidence      Float       @default(0.9)
+  isApproved      Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([brandProfileId])
+  @@map("brand_gradients")
+}
+
+model brandRule {
+  id              String      @id @default(cuid())
+  brandProfileId  String
+  brandProfile    brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  category        String
+  name            String
+  value           String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([brandProfileId])
+  @@map("brand_rules")
+}
+
+model scan {
+  id                String      @id @default(cuid())
+  userId            String
+  user              user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandProfileId    String
+  brandProfile      brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  scanType          String
+  status            String      @default("pending")
+  sourceUrl         String?
+  sourceFileUrl     String?
+  platform          String?
+  overallScore      Float?
+  scoringVersion    String      @default("1.0")
+  startedAt         DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorCode         String?
+  errorMessage      String?
+  createdAt         DateTime    @default(now())
+  scores            scanScore[]
+  issues            scanIssue[]
+  pages             scanPage[]
+  usageRecords      usageRecord[]
+
+  @@index([userId])
+  @@index([brandProfileId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("scans")
+}
+
+model scanScore {
+  id              String      @id @default(cuid())
+  scanId          String
+  scan            scan        @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  category        String
+  score           Float
+  weight          Float
+  createdAt       DateTime    @default(now())
+
+  @@index([scanId])
+  @@map("scan_scores")
+}
+
+model scanIssue {
+  id              String      @id @default(cuid())
+  scanId          String
+  scan            scan        @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  category        String
+  severity        String
+  title           String
+  description     String
+  recommendation  String?
+  metadataJson    Json?
+  createdAt       DateTime    @default(now())
+
+  @@index([scanId])
+  @@index([severity])
+  @@map("scan_issues")
+}
+
+model scanPage {
+  id                      String      @id @default(cuid())
+  scanId                  String
+  scan                    scan        @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  url                     String
+  pageTitle               String?
+  desktopScreenshotUrl    String?
+  mobileScreenshotUrl     String?
+  status                  String      @default("pending")
+  createdAt               DateTime    @default(now())
+
+  @@index([scanId])
+  @@map("scan_pages")
+}
+
+model usageRecord {
+  id                  String      @id @default(cuid())
+  userId              String
+  user                user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scanId              String?
+  scan                scan?       @relation(fields: [scanId], references: [id], onDelete: SetNull)
+  usageType           String
+  quantity            Int         @default(1)
+  billingPeriodStart  DateTime
+  billingPeriodEnd    DateTime
+  idempotencyKey      String      @unique
+  createdAt           DateTime    @default(now())
+
+  @@index([userId])
+  @@index([usageType])
+  @@index([billingPeriodStart])
+  @@map("usage_records")
+}
