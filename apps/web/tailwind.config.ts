@@ -4,7 +4,7 @@ import tailwindAnimate from "tailwindcss-animate";
 const config = {
   darkMode: ["class"],
   content: [
-    "./index.html",
+    "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
   theme: {

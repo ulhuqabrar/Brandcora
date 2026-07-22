@@ -1,4 +1,7 @@
-import { Navigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Spinner } from '@phosphor-icons/react';
 
@@ -8,6 +11,13 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { session, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.replace('/login');
+    }
+  }, [loading, session, router]);
 
   if (loading) {
     return (
@@ -18,7 +28,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />;
+    return null;
   }
 
   return <>{children}</>;
