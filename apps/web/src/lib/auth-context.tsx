@@ -49,13 +49,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signInSocial(provider: SocialProvider, callbackURL = '/auth/complete') {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const absoluteCallbackURL = `${origin}${callbackURL}`;
+    const errorCallbackURL = `${origin}/login?error=google_auth_failed`;
+
     const { error } = await authClient.signIn.social({
       provider,
-      callbackURL,
-      errorCallbackURL: '/login?error=google_auth_failed',
+      callbackURL: absoluteCallbackURL,
+      errorCallbackURL,
     });
     if (error) {
-      throw new Error(error.message || 'Social sign-in failed');
+      console.error('Google sign-in error:', {
+        code: error.code,
+        message: error.message,
+        status: error.status,
+      });
+      throw new Error(
+        error.message || error.code || 'Google sign-in could not be started.'
+      );
     }
   }
 

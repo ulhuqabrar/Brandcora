@@ -109,7 +109,7 @@ export default function LoginPage() {
               try {
                 await signInSocial('google', '/auth/complete');
               } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : 'Google sign-in failed');
+                setError(err instanceof Error ? err.message : 'Google sign-in could not be started.');
               }
             }}
           >
