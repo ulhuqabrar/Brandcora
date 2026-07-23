@@ -53,20 +53,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const absoluteCallbackURL = `${origin}${callbackURL}`;
     const errorCallbackURL = `${origin}/login?error=google_auth_failed`;
 
-    const { error } = await authClient.signIn.social({
+    console.log(`[Auth] Starting ${provider} sign-in...`);
+    console.log(`[Auth] callbackURL: ${absoluteCallbackURL}`);
+
+    const result = await authClient.signIn.social({
       provider,
       callbackURL: absoluteCallbackURL,
       errorCallbackURL,
     });
-    if (error) {
-      console.error('Google sign-in error:', {
-        code: error.code,
-        message: error.message,
-        status: error.status,
-      });
-      throw new Error(
-        error.message || error.code || 'Google sign-in could not be started.'
-      );
+
+    console.log('[Auth] signIn.social result:', {
+      hasData: !!result.data,
+      hasError: !!result.error,
+      url: result.data?.url,
+      errorCode: result.error?.code,
+      errorMessage: result.error?.message,
+      errorStatus: result.error?.status,
+    });
+
+    if (result.error) {
+      const msg = result.error.message || result.error.code || 'Google sign-in failed.';
+      console.error(`[Auth] Sign-in error: ${msg}`, result.error);
+      throw new Error(msg);
+    }
+
+    if (result.data?.url) {
+      console.log(`[Auth] Redirecting to: ${result.data.url.substring(0, 80)}...`);
+      window.location.href = result.data.url;
     }
   }
 
