@@ -37,6 +37,7 @@ export default function RegisterPage() {
       await signUp(name, email, password);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign up failed');
+    } finally {
       setSubmitting(false);
     }
   }
