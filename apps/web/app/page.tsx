@@ -162,7 +162,6 @@ export default function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-16 min-h-[calc(100vh-4rem)] items-center py-16 lg:py-0">
             <div className="max-w-xl">
-              <div className="section-label mb-6 animate-fade-up">Brand extraction</div>
               <h1 className="text-[2.75rem] md:text-[3.5rem] lg:text-[4.25rem] font-bold tracking-[-0.03em] text-foreground mb-6 text-balance leading-[1.05] animate-fade-up-delay-1">
                 Keep every design{' '}
                 <span className="gradient-text">on-brand</span>
@@ -326,7 +325,6 @@ export default function LandingPage() {
         <div className="mx-auto max-w-[1200px]">
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-16 lg:gap-20 items-center">
             <div>
-              <div className="section-label mb-4">The problem</div>
               <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-6 text-balance leading-tight tracking-[-0.02em]">
                 Brand drift happens silently
               </h2>
@@ -404,7 +402,6 @@ export default function LandingPage() {
       <section id="extraction" className="py-20 lg:py-28 px-6 lg:px-8">
         <div className="mx-auto max-w-[1200px]">
           <div className="max-w-2xl mb-16">
-            <div className="section-label mb-4">What we extract</div>
             <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
               Your brand, decoded
             </h2>
@@ -505,7 +502,6 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-20 lg:py-28 px-6 lg:px-8 bg-background-warm">
         <div className="mx-auto max-w-[1200px]">
           <div className="max-w-2xl mb-16">
-            <div className="section-label mb-4">How it works</div>
             <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
               Three steps to brand consistency
             </h2>
@@ -533,7 +529,6 @@ export default function LandingPage() {
       <section className="py-20 lg:py-28 px-6 lg:px-8">
         <div className="mx-auto max-w-[1200px]">
           <div className="max-w-2xl mb-16">
-            <div className="section-label mb-4">Before & after</div>
             <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
               See exactly what changes
             </h2>
@@ -621,7 +616,6 @@ export default function LandingPage() {
         <div className="mx-auto max-w-[1200px]">
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-16 items-center">
             <div>
-              <div className="section-label mb-4">Brand score</div>
               <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-6 text-balance leading-tight tracking-[-0.02em]">
                 Measured, not guessed
               </h2>
@@ -675,7 +669,6 @@ export default function LandingPage() {
       <section id="pricing" className="py-20 lg:py-28 px-6 lg:px-8">
         <div className="mx-auto max-w-[800px]">
           <div className="text-center mb-16">
-            <div className="section-label mb-4">Pricing</div>
             <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
               Simple, transparent
             </h2>
