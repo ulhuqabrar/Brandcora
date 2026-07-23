@@ -154,33 +154,27 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
-        <div className="mx-auto max-w-[900px] flex items-center justify-between px-6 h-14 bg-white rounded-2xl shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border/50">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-[#7C3AED] flex items-center justify-center shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="white"/>
-              </svg>
-            </div>
-            <span className="text-base font-bold text-foreground tracking-tight">Brand Studio</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="mx-auto max-w-[1200px] flex items-center justify-between px-6 lg:px-8 h-16">
+          <Link href="/" className="flex items-center">
+            <img src="/logo.png" alt="Brand Guard" className="h-8 w-auto" />
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#extraction" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Features</a>
-            <a href="#how-it-works" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">How it Works</a>
+            <a href="#how-it-works" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">How it works</a>
+            <a href="#extraction" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Extraction</a>
             <a href="#pricing" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Pricing</a>
-            <a href="#faq" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-foreground-secondary hover:text-foreground transition-colors hidden sm:block">Log in</Link>
             <Link href="/register">
-              <Button size="sm" className="gradient-accent text-white px-4 h-9 rounded-xl">Get started</Button>
+              <Button size="sm" className="gradient-accent text-white px-4 h-9">Get started</Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-24">
+      <section className="relative pt-16">
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-16 min-h-[calc(100vh-4rem)] items-center py-16 lg:py-0">
             <div className="max-w-xl">
@@ -747,37 +741,6 @@ export default function LandingPage() {
                 <Button className="w-full gradient-accent text-white">Start free trial</Button>
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-20 lg:py-28 px-6 lg:px-8 bg-background-warm">
-        <div className="mx-auto max-w-[800px]">
-          <div className="text-center mb-16">
-            <div className="section-label mb-4">FAQ</div>
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-              Frequently asked questions
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {[
-              { q: 'What is Brandcora?', a: 'Brandcora extracts your brand identity from any website — colors, fonts, logos, spacing, gradients — and creates a complete brand profile you can use to check every design for consistency.' },
-              { q: 'How does brand extraction work?', a: 'Enter your website URL and Brandcora opens it, analyzing every pixel. Colors, typography, logos, components, and gradients are detected and cataloged automatically using visual AI.' },
-              { q: 'Can I check designs against my brand profile?', a: 'Yes. Once your brand profile is extracted, you can run brand checks on social media posts, website screenshots, and marketing materials. Brandcora scores each design and highlights violations.' },
-              { q: 'Is there a free plan?', a: 'Yes. The free plan includes 1 brand profile, 3 social checks per month, and 1 website scan per month. Upgrade to Pro for unlimited access.' },
-              { q: 'What file formats are supported?', a: 'Brandcora works with websites (any public URL), social media posts (Instagram, Facebook, LinkedIn), and website screenshots (PNG, JPG). We\'re adding more formats regularly.' },
-            ].map((item, i) => (
-              <details key={i} className="bg-surface rounded-2xl border border-border group" open={i === 0}>
-                <summary className="flex items-center justify-between px-6 py-5 cursor-pointer list-none text-foreground font-semibold text-sm hover:text-primary transition-colors">
-                  {item.q}
-                  <span className="ml-4 shrink-0 text-foreground-muted group-open:rotate-45 transition-transform text-lg">+</span>
-                </summary>
-                <div className="px-6 pb-5 text-sm text-foreground-secondary leading-relaxed">
-                  {item.a}
-                </div>
-              </details>
-            ))}
           </div>
         </div>
       </section>
