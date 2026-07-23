@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { apiFetch } from '@/lib/api';
 
 interface User {
   id: string;
@@ -50,13 +51,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('bg_session');
-    if (saved) {
+    async function loadSession() {
       try {
-        setSession(JSON.parse(saved));
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/get-session`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.session && data?.user) {
+            const sessionData = { user: data.user, session: data.session };
+            setSession(sessionData);
+            localStorage.setItem('bg_session', JSON.stringify(sessionData));
+            setLoading(false);
+            return;
+          }
+        }
       } catch { /* ignore */ }
+
+      // Fallback to localStorage (for admin demo)
+      const saved = localStorage.getItem('bg_session');
+      if (saved) {
+        try {
+          setSession(JSON.parse(saved));
+        } catch { /* ignore */ }
+      }
+      setLoading(false);
     }
-    setLoading(false);
+    loadSession();
   }, []);
 
   async function signIn(email: string, password: string) {
@@ -66,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const res = await fetch('/api/auth/sign-in/email', {
+    const res = await apiFetch('/api/auth/sign-in/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -89,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const res = await fetch('/api/auth/sign-up/email', {
+    const res = await apiFetch('/api/auth/sign-up/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
@@ -108,8 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signInSocial(provider: SocialProvider) {
     const { error } = await authClient.signIn.social({
       provider,
-      callbackURL: '/dashboard',
-      errorCallbackURL: '/login',
+      callbackURL: `${window.location.origin}/dashboard`,
+      errorCallbackURL: `${window.location.origin}/login`,
     });
     if (error) {
       throw new Error(error.message || 'Social sign-in failed');
@@ -118,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      await fetch('/api/auth/sign-out', { method: 'POST' });
+      await apiFetch('/api/auth/sign-out', { method: 'POST' });
     } catch { /* ignore */ }
     setSession(null);
     localStorage.removeItem('bg_session');

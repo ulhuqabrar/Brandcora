@@ -35,8 +35,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="glass-strong rounded-2xl p-8 shadow-elevated">
           <div className="text-center mb-6">
-            <Link href="/" className="text-2xl font-extrabold">
-              <span className="gradient-text">Brand Guard</span>
+            <Link href="/" className="flex justify-center">
+              <img src="/logo.png" alt="Brand Guard" className="h-10 w-auto" />
             </Link>
             <h1 className="mt-4 text-xl font-semibold text-foreground">Sign in to your account</h1>
             <p className="mt-1 text-sm text-muted-foreground">

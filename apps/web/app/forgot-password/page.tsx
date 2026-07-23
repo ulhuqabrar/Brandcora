@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CheckCircle } from '@phosphor-icons/react';
+import { apiFetch } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ export default function ForgotPasswordPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -61,7 +62,7 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <Link href="/" className="text-2xl font-extrabold"><span className="gradient-text">Brand Guard</span></Link>
+          <Link href="/" className="flex justify-center"><img src="/logo.png" alt="Brand Guard" className="h-10 w-auto" /></Link>
           <CardTitle className="mt-4">Forgot your password?</CardTitle>
           <CardDescription>
             Enter your email and we&apos;ll send you a reset link.

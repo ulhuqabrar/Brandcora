@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Receipt, CreditCard, Warning, CheckCircle, Lightning, Star, MagnifyingGlass } from '@phosphor-icons/react';
+import { apiFetch } from '@/lib/api';
 
 const plans = [
-  { key: 'starter', name: 'Starter', monthlyPrice: '$19', yearlyPrice: '$190' },
-  { key: 'pro', name: 'Pro', monthlyPrice: '$49', yearlyPrice: '$490' },
-  { key: 'business', name: 'Business', monthlyPrice: '$99', yearlyPrice: '$990' },
+  { key: 'free', name: 'Free', monthlyPrice: '$0', yearlyPrice: '$0' },
+  { key: 'pro', name: 'Pro', monthlyPrice: '$5', yearlyPrice: '$50' },
 ];
 
 export default function SubscriptionPage() {
@@ -24,7 +24,7 @@ export default function SubscriptionPage() {
 
   async function fetchSubscription() {
     try {
-      const res = await fetch('/api/v1/billing/subscription');
+      const res = await apiFetch('/api/v1/billing/subscription');
       const data = await res.json();
       setSubscription(data.data);
     } finally {
@@ -61,7 +61,7 @@ export default function SubscriptionPage() {
   async function handleManageBilling() {
     setActionLoading(true);
     try {
-      const res = await fetch('/api/v1/billing/portal');
+      const res = await apiFetch('/api/v1/billing/portal');
       const data = await res.json();
       if (data.data?.url) {
         window.location.href = data.data.url;

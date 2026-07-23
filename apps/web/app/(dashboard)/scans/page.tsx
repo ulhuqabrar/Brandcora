@@ -114,7 +114,7 @@ export default function ReportHistoryPage() {
         <div className="space-y-3">
           {filtered.map((scan) => (
             <Link key={scan.id} href={`/scans/${scan.id}`}>
-              <div className="glass-strong rounded-2xl p-5 shadow-glass hover:shadow-elevated transition-all duration-200 cursor-pointer">
+              <div className="glass-strong rounded-2xl p-5 shadow-glass hover:bg-gradient-to-r hover:from-[#FF5F45]/10 hover:via-[#FF8A5B]/10 hover:to-[#F2B84B]/10 transition-all duration-200 cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${

@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { apiFetch } from '@/lib/api';
 
 const PROGRESS_STEPS = [
   { key: 'validating', label: 'Validating website' },
@@ -124,7 +125,7 @@ export default function LandingPage() {
     }, 800);
 
     try {
-      const res = await fetch('/api/v1/brand-extract', {
+      const res = await apiFetch('/api/v1/brand-extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
@@ -155,11 +156,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="mx-auto max-w-[1200px] flex items-center justify-between px-6 lg:px-8 h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-lg gradient-accent flex items-center justify-center">
-              <span className="text-white text-xs font-bold">BG</span>
-            </div>
-            <span className="text-base font-bold text-foreground tracking-tight">Brandcora</span>
+          <Link href="/" className="flex items-center">
+            <img src="/logo.png" alt="Brand Guard" className="h-8 w-auto" />
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#how-it-works" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">How it works</a>
@@ -704,13 +702,13 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-surface rounded-2xl border border-border p-8">
               <h3 className="text-lg font-bold text-foreground mb-1">Free</h3>
-              <p className="text-sm text-foreground-muted mb-5">50,000 words free</p>
+              <p className="text-sm text-foreground-muted mb-5">For trying out Brand Guard</p>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-4xl font-bold text-foreground">$0</span>
                 <span className="text-foreground-muted">forever</span>
               </div>
               <ul className="space-y-2.5 mb-8">
-                {['50,000 words', 'SEO Optimized Content', 'Single Cluster Keywords', '40+ Prompt Templates', 'Long-Form Articles', 'Ticket-based Support'].map((f) => (
+                {['1 brand profile', '3 social checks/month', '1 website scan/month', 'Basic scores'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-foreground-secondary">
                     <CheckCircle className="h-4 w-4 text-primary shrink-0" weight="fill" />
                     {f}
@@ -725,14 +723,14 @@ export default function LandingPage() {
               <div className="absolute -top-3 left-8">
                 <span className="gradient-accent text-white text-xs font-bold px-3 py-1 rounded-full">Popular</span>
               </div>
-              <h3 className="text-lg font-bold gradient-text mb-1">Starter</h3>
-              <p className="text-sm text-foreground-muted mb-5">150,000 words/month</p>
+              <h3 className="text-lg font-bold gradient-text mb-1">Pro</h3>
+              <p className="text-sm text-foreground-muted mb-5">For agencies and power users</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-foreground">$24</span>
+                <span className="text-4xl font-bold text-foreground">$5</span>
                 <span className="text-foreground-muted">/month</span>
               </div>
               <ul className="space-y-2.5 mb-8">
-                {['Everything in Free', '150,000 words', 'Plagiarism Checker', 'Translate up to 75k words', 'Bulk Article Generation', 'Publish to WordPress', 'Export to Docs or JSON', '30+ Languages'].map((f) => (
+                {['Unlimited brand profiles', 'Unlimited social checks', 'Unlimited website scans', 'Full reports', 'Priority support'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-foreground-secondary">
                     <CheckCircle className="h-4 w-4 text-primary shrink-0" weight="fill" />
                     {f}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { apiFetch } from '@/lib/api';
 import {
   Globe,
   Palette,
@@ -85,7 +86,7 @@ export default function BrandExtractPage() {
     }, 800);
 
     try {
-      const res = await fetch('/api/v1/brand-extract', {
+      const res = await apiFetch('/api/v1/brand-extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),

@@ -82,12 +82,12 @@ function buildProfileFromExtracted(data: any): BrandProfile {
     spacingPreference: 'comfortable',
     colors, fonts, logos, gradients, rules: [],
     visualStyle: data.visualStyle,
-    websiteUrl: data.websiteUrl,
+    websiteUrl: data.websiteUrl || 'seocontent.ai',
   };
 }
 
 const DEMO_PROFILE: BrandProfile = {
-  id: 'demo-1', name: 'My Brand', description: 'Our official brand identity',
+  id: 'demo-1', name: 'My Brand', description: 'Our official brand identity', websiteUrl: 'seocontent.ai',
   headingFont: 'Plus Jakarta Sans', bodyFont: 'Inter',
   buttonRadius: 8, borderRadius: 12, spacingPreference: 'comfortable',
   colors: [

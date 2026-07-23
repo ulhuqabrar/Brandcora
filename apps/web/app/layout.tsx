@@ -5,6 +5,9 @@ import { Providers } from './providers';
 export const metadata: Metadata = {
   title: 'Brandcora',
   description: 'Keep every design on-brand',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

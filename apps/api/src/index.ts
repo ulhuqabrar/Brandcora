@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { getServerEnv } from '@saas/config';
 import { prisma } from '@saas/database';
+import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { userRoutes } from './modules/users/routes.js';
@@ -39,21 +40,21 @@ app.use(rateLimit({
   legacyHeaders: false,
 }));
 
-// ─── Body Parsing (raw for webhooks, json for everything else) ────────────────
+// ─── Health Check ─────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ─── Auth Routes (Better Auth MUST be before body parsing) ────────────────────
+app.all('/api/auth/*', toNodeHandler(auth));
+
+// ─── Body Parsing (after Better Auth) ────────────────────────────────────────
 app.use('/api/v1/webhooks', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 app.use(requestLogger);
-
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// ─── Auth Routes (Better Auth handles its own paths) ──────────────────────────
-app.use('/api/auth', auth.handler);
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);

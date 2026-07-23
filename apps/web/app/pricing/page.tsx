@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Check } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
+import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 const plans = [
   {
@@ -20,12 +22,11 @@ const plans = [
   {
     name: 'Pro',
     description: 'For agencies and power users',
-    monthlyPrice: '$49',
-    monthlyPriceId: 'price_1TvGaZEDJ4VGAa6T5qwFE7D6',
+    monthlyPrice: '$5',
     features: [
-      '1 brand profile',
-      '500 social checks/month',
-      '50 website scans/month',
+      'Unlimited brand profiles',
+      'Unlimited social checks',
+      'Unlimited website scans',
       '10 pages per scan',
       'Full reports',
       'Downloadable reports',
@@ -37,6 +38,7 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const { session } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
   async function handleCheckout(plan: typeof plans[0]) {
@@ -47,10 +49,12 @@ export default function PricingPage() {
 
     setLoading(plan.name);
     try {
-      const res = await fetch('/api/v1/billing/checkout', {
+      const res = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: plan.monthlyPriceId }),
+        body: JSON.stringify({
+          email: session?.user?.email || 'guest@brandguard.io',
+        }),
       });
       const data = await res.json();
       if (data.data?.url) {
@@ -110,7 +114,7 @@ export default function PricingPage() {
                   onClick={() => handleCheckout(plan)}
                   disabled={loading === plan.name}
                 >
-                  {loading === plan.name ? 'Redirecting...' : plan.name === 'Free' ? 'Get started' : 'Subscribe'}
+                  {loading === plan.name ? 'Redirecting...' : plan.name === 'Free' ? 'Get started' : 'Get unlimited access'}
                 </Button>
               </div>
             </div>

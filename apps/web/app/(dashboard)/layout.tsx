@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   House,
   GearSix,
-  CreditCard,
   Receipt,
   SignOut,
   User,
@@ -20,10 +19,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/brand', icon: <ShieldCheck className="h-5 w-5" weight="bold" />, label: 'Brand Profile' },
-  { to: '/scans', icon: <MagnifyingGlass className="h-5 w-5" weight="bold" />, label: 'Reports' },
-  { to: '/billing', icon: <CreditCard className="h-5 w-5" weight="bold" />, label: 'Billing' },
-  { to: '/settings/profile', icon: <GearSix className="h-5 w-5" weight="bold" />, label: 'Settings' },
+  { to: '/brand', icon: ShieldCheck, label: 'Brand Profile' },
+  { to: '/scans', icon: MagnifyingGlass, label: 'Reports' },
+  { to: '/settings', icon: GearSix, label: 'Settings' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -37,36 +35,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 glass-strong border-r shadow-glass lg:relative lg:translate-x-0 transition-transform duration-200",
+            "fixed inset-y-0 left-0 z-50 w-64 glass-strong shadow-glass lg:relative lg:translate-x-0 transition-transform duration-200",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center border-b px-6">
-              <Link href="/dashboard" className="text-xl font-extrabold tracking-tight text-foreground">
-                Brand Guard
+            <div className="flex h-16 items-center px-6">
+              <Link href="/dashboard" className="flex items-center">
+                <img src="/logo.png" alt="Brand Guard" className="h-8 w-auto" />
               </Link>
             </div>
-            <nav className="flex-1 space-y-1 p-3">
-              {navItems.map((item) => {
-                const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
-                return (
-                  <Link
-                    key={item.to}
-                    href={item.to}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-glass"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 p-4">
+              <div className="space-y-0.5">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.to}
+                      href={item.to}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 outline-none",
+                        isActive
+                          ? "text-accent gradient-bg-50 font-bold gradient-border"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <Icon className="h-5 w-5" weight="bold" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
             <div className="border-t p-3">
               <button

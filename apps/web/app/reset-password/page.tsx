@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Warning } from '@phosphor-icons/react';
+import { apiFetch } from '@/lib/api';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -31,7 +32,7 @@ function ResetPasswordForm() {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password, token }),
@@ -91,7 +92,7 @@ function ResetPasswordForm() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <Link href="/" className="text-2xl font-extrabold"><span className="gradient-text">Brand Guard</span></Link>
+          <Link href="/" className="flex justify-center"><img src="/logo.png" alt="Brand Guard" className="h-10 w-auto" /></Link>
           <CardTitle className="mt-4">Reset your password</CardTitle>
         </CardHeader>
         <CardContent>

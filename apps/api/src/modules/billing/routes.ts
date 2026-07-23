@@ -17,59 +17,30 @@ function getStripeClient() {
   });
 }
 
-router.post('/checkout', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/checkout', async (req, res) => {
   try {
     const stripe = getStripeClient();
-    const { priceId, interval } = req.body;
+    const { priceId, email } = req.body;
 
-    // Get or create Stripe customer
-    let customer: Stripe.Customer;
+    const selectedPriceId = priceId || env.STRIPE_PRICE_ID_PRO_MONTHLY;
 
-    const existingCustomer = await prisma.billingCustomer.findUnique({
-      where: { userId: req.userId! },
-    });
-
-    if (existingCustomer?.stripeCustomerId) {
-      customer = await stripe.customers.retrieve(existingCustomer.stripeCustomerId) as Stripe.Customer;
-    } else {
-      const user = await prisma.user.findUnique({ where: { id: req.userId! } });
-      customer = await stripe.customers.create({
-        email: user?.email,
-        metadata: { userId: req.userId! },
-      });
-
-      await prisma.billingCustomer.create({
-        data: {
-          userId: req.userId!,
-          stripeCustomerId: customer.id,
-          billingEmail: user?.email,
-        },
-      });
-    }
-
-    // Determine the price ID based on interval
-    let selectedPriceId = priceId;
-    if (!selectedPriceId && interval) {
-      if (interval === 'monthly') {
-        selectedPriceId = env.STRIPE_PRICE_ID_PRO_MONTHLY;
-      } else {
-        selectedPriceId = env.STRIPE_PRICE_ID_PRO_YEARLY;
-      }
+    if (!selectedPriceId) {
+      return res.status(400).json({ success: false, error: 'No price ID configured' });
     }
 
     const session = await stripe.checkout.sessions.create({
-      customer: customer.id,
       mode: 'subscription',
-      line_items: [{ price: selectedPriceId!, quantity: 1 }],
+      line_items: [{ price: selectedPriceId, quantity: 1 }],
       success_url: `${env.WEB_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.WEB_APP_URL}/checkout/cancelled`,
-      metadata: { userId: req.userId! },
+      customer_email: email || undefined,
+      metadata: { email: email || '' },
     });
 
     res.json({ success: true, data: { url: session.url } });
   } catch (error: any) {
     console.error('Checkout error:', error);
-    res.status(500).json({ success: false, error: 'Failed to create checkout' });
+    res.status(500).json({ success: false, error: error.message || 'Failed to create checkout' });
   }
 });
 
