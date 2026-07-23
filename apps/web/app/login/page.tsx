@@ -121,6 +121,10 @@ export default function LoginPage() {
             </svg>
             Continue with Google
           </Button>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Demo: admin123@admin.com / admin
+          </p>
         </div>
       </div>
     </div>
