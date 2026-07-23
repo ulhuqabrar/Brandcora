@@ -127,13 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signInSocial(provider: SocialProvider) {
-    const { error } = await authClient.signIn.social({
+    const { data, error } = await authClient.signIn.social({
       provider,
       callbackURL: `${window.location.origin}/dashboard`,
       errorCallbackURL: `${window.location.origin}/login`,
     });
     if (error) {
       throw new Error(error.message || 'Social sign-in failed');
+    }
+    if (data?.url) {
+      window.location.href = data.url;
     }
   }
 
