@@ -3,5 +3,5 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @saas/shared build && pnpm --filter @saas/ui build && pnpm --filter @saas/web build",
   "framework": "nextjs",
-  "outputDirectory": "apps/web/.next"
+  "outputDirectory": "../web/.next"
 }
