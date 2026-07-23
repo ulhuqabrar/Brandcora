@@ -2,47 +2,68 @@ services:
   - type: web
     name: brandcora-api
     runtime: docker
+    plan: free
+    branch: master
+
     dockerfilePath: apps/api/Dockerfile
     dockerContext: .
+
     healthCheckPath: /health
-    branch: master
-    instanceType: free
+
     envVars:
       - key: NODE_ENV
         value: production
+
       - key: PORT
         value: "10000"
+
       - key: WEB_APP_URL
         sync: false
+
       - key: API_BASE_URL
         sync: false
+
       - key: BETTER_AUTH_URL
         sync: false
+
       - key: BETTER_AUTH_SECRET
         sync: false
+
       - key: DATABASE_URL
         sync: false
+
       - key: DIRECT_URL
         sync: false
+
       - key: GOOGLE_CLIENT_ID
         sync: false
+
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+
       - key: STRIPE_SECRET_KEY
         sync: false
+
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+
       - key: STRIPE_PRICE_ID_STARTER_MONTHLY
         sync: false
+
       - key: STRIPE_PRICE_ID_STARTER_YEARLY
         sync: false
+
       - key: STRIPE_PRICE_ID_PRO_MONTHLY
         sync: false
+
       - key: STRIPE_PRICE_ID_PRO_YEARLY
         sync: false
+
       - key: STRIPE_PRICE_ID_BUSINESS_MONTHLY
         sync: false
+
       - key: STRIPE_PRICE_ID_BUSINESS_YEARLY
         sync: false
+
       - key: STRIPE_PRICE_ID_BRAND_GUARD_LITE_MONTHLY
         sync: false
