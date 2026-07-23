@@ -1,22 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@phosphor-icons/react';
 
 export default function RegisterPage() {
-  const { signUp, signInSocial } = useAuth();
+  const { session, loading, signUp, signInSocial } = useAuth();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && session) {
+      router.replace('/dashboard');
+    }
+  }, [loading, session, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,15 +32,27 @@ export default function RegisterPage() {
       setError('Passwords do not match');
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     try {
       await signUp(name, email, password);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign up failed');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center gradient-hero">
+        <Spinner className="h-8 w-8 animate-spin text-primary" weight="bold" />
+      </div>
+    );
+  }
+
+  if (session) {
+    return null;
   }
 
   return (
@@ -76,8 +95,8 @@ export default function RegisterPage() {
               <Input id="confirmPassword" type="password" placeholder="admin" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
             </div>
 
-            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting}>
+              {submitting ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
 

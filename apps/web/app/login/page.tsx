@@ -1,33 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@phosphor-icons/react';
 
 export default function LoginPage() {
-  const { signIn, signInSocial } = useAuth();
+  const { session, loading, signIn, signInSocial } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && session) {
+      router.replace('/dashboard');
+    }
+  }, [loading, session, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSubmitting(true);
     try {
       await signIn(email, password);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign in failed');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center gradient-hero">
+        <Spinner className="h-8 w-8 animate-spin text-primary" weight="bold" />
+      </div>
+    );
+  }
+
+  if (session) {
+    return null;
   }
 
   return (
@@ -76,8 +95,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting}>
+              {submitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 

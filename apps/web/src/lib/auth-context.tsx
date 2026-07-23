@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { apiFetch } from '@/lib/api';
 
@@ -50,35 +50,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadSession() {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/get-session`, {
-          credentials: 'include',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.session && data?.user) {
-            const sessionData = { user: data.user, session: data.session };
-            setSession(sessionData);
-            localStorage.setItem('bg_session', JSON.stringify(sessionData));
-            setLoading(false);
-            return;
-          }
+  const loadSession = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/auth/get-session');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.session && data?.user) {
+          const sessionData = { user: data.user, session: data.session };
+          setSession(sessionData);
+          setLoading(false);
+          return;
         }
-      } catch { /* ignore */ }
-
-      // Fallback to localStorage (for admin demo)
-      const saved = localStorage.getItem('bg_session');
-      if (saved) {
-        try {
-          setSession(JSON.parse(saved));
-        } catch { /* ignore */ }
       }
-      setLoading(false);
+    } catch { /* ignore */ }
+
+    const saved = localStorage.getItem('bg_session');
+    if (saved) {
+      try {
+        setSession(JSON.parse(saved));
+      } catch { /* ignore */ }
     }
-    loadSession();
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadSession();
+  }, [loadSession]);
 
   async function signIn(email: string, password: string) {
     if (email === 'admin' && password === 'admin') {
@@ -129,8 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signInSocial(provider: SocialProvider) {
     const { data, error } = await authClient.signIn.social({
       provider,
-      callbackURL: `${window.location.origin}/dashboard`,
-      errorCallbackURL: `${window.location.origin}/login`,
+      callbackURL: '/dashboard',
+      errorCallbackURL: '/login',
     });
     if (error) {
       throw new Error(error.message || 'Social sign-in failed');
