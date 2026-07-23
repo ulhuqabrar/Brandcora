@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = Boolean(bypassUser || session?.user);
 
   async function signIn(email: string, password: string) {
-    if (email === 'admin123@admin.com' && password === 'admin') {
+    if (email.toLowerCase() === 'admin123@admin.com' && password === 'admin') {
       setBypassUser(ADMIN_BYPASS);
       return;
     }
