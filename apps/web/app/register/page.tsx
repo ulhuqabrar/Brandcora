@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@phosphor-icons/react';
 
 export default function RegisterPage() {
-  const { session, loading, signUp, signInSocial } = useAuth();
+  const { isAuthenticated, isLoading, signUp, signInSocial } = useAuth();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -20,10 +20,10 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && session) {
+    if (!isLoading && isAuthenticated) {
       router.replace('/dashboard');
     }
-  }, [loading, session, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,23 +35,13 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await signUp(name, email, password);
-      router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign up failed');
-    } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center gradient-hero">
-        <Spinner className="h-8 w-8 animate-spin text-primary" weight="bold" />
-      </div>
-    );
-  }
-
-  if (session) {
+  if (isAuthenticated) {
     return null;
   }
 
@@ -70,11 +60,11 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium">{error}</div>
-            )}
+          {error && (
+            <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-4">{error}</div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
@@ -82,20 +72,20 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="text" placeholder="admin" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="admin" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
+              <Input id="password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" placeholder="admin" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
+              <Input id="confirmPassword" type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
             </div>
 
-            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting}>
+            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
               {submitting ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
@@ -113,10 +103,11 @@ export default function RegisterPage() {
             type="button"
             variant="outline"
             className="w-full border-border"
+            disabled={isLoading}
             onClick={async () => {
               setError('');
               try {
-                await signInSocial('google');
+                await signInSocial('google', '/auth/complete');
               } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Google sign-in failed');
               }
@@ -130,10 +121,6 @@ export default function RegisterPage() {
             </svg>
             Sign up with Google
           </Button>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo: admin / admin
-          </p>
         </div>
       </div>
     </div>

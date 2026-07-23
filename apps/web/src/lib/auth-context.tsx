@@ -1,152 +1,88 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
-import { apiFetch } from '@/lib/api';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  image?: string;
-}
-
-interface Session {
-  user: User;
-  session: {
-    id: string;
-    expiresAt: string;
-  };
-}
 
 type SocialProvider = 'github' | 'google' | 'apple';
 
 interface AuthContextType {
-  session: Session | null;
-  loading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
-  signInSocial: (provider: SocialProvider) => Promise<void>;
+  signInSocial: (provider: SocialProvider, callbackURL?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const ADMIN_SESSION: Session = {
-  user: {
-    id: 'admin-001',
-    name: 'Admin',
-    email: 'admin@brandguard.io',
-    emailVerified: true,
-  },
-  session: {
-    id: 'admin-session-001',
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
 
-  const loadSession = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/auth/get-session');
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.session && data?.user) {
-          const sessionData = { user: data.user, session: data.session };
-          setSession(sessionData);
-          setLoading(false);
-          return;
-        }
-      }
-    } catch { /* ignore */ }
-
-    const saved = localStorage.getItem('bg_session');
-    if (saved) {
-      try {
-        setSession(JSON.parse(saved));
-      } catch { /* ignore */ }
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    loadSession();
-  }, [loadSession]);
+  const isAuthenticated = Boolean(session?.user);
 
   async function signIn(email: string, password: string) {
-    if (email === 'admin' && password === 'admin') {
-      setSession(ADMIN_SESSION);
-      localStorage.setItem('bg_session', JSON.stringify(ADMIN_SESSION));
-      return;
-    }
-
-    const res = await apiFetch('/api/auth/sign-in/email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    const { error } = await authClient.signIn.email({
+      email,
+      password,
     });
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Sign in failed');
-    }
-    const data = await res.json();
-    if (data.data) {
-      setSession(data.data);
-      localStorage.setItem('bg_session', JSON.stringify(data.data));
+    if (error) {
+      throw new Error(error.message || 'Sign in failed');
     }
   }
 
   async function signUp(name: string, email: string, password: string) {
-    if (email === 'admin' && password === 'admin') {
-      setSession(ADMIN_SESSION);
-      localStorage.setItem('bg_session', JSON.stringify(ADMIN_SESSION));
-      return;
-    }
-
-    const res = await apiFetch('/api/auth/sign-up/email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
+    const { error } = await authClient.signUp.email({
+      name,
+      email,
+      password,
     });
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Sign up failed');
-    }
-    const data = await res.json();
-    if (data.data) {
-      setSession(data.data);
-      localStorage.setItem('bg_session', JSON.stringify(data.data));
+    if (error) {
+      throw new Error(error.message || 'Sign up failed');
     }
   }
 
-  async function signInSocial(provider: SocialProvider) {
-    const { data, error } = await authClient.signIn.social({
+  async function signInSocial(provider: SocialProvider, callbackURL = '/auth/complete') {
+    const { error } = await authClient.signIn.social({
       provider,
-      callbackURL: '/dashboard',
-      errorCallbackURL: '/login',
+      callbackURL,
+      errorCallbackURL: '/login?error=google_auth_failed',
     });
     if (error) {
       throw new Error(error.message || 'Social sign-in failed');
     }
-    if (data?.url) {
-      window.location.href = data.url;
-    }
   }
 
   async function signOut() {
-    try {
-      await apiFetch('/api/auth/sign-out', { method: 'POST' });
-    } catch { /* ignore */ }
-    setSession(null);
-    localStorage.removeItem('bg_session');
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace('/login');
+          router.refresh();
+        },
+      },
+    });
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signIn, signUp, signInSocial, signOut }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        isLoading: isPending,
+        isAuthenticated,
+        signIn,
+        signUp,
+        signInSocial,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -25,7 +25,7 @@ const navItems = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { session, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -94,7 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="flex-1" />
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground hidden sm:block">{session?.user.email}</span>
+              <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
               <div className="h-8 w-8 rounded-full gradient-accent flex items-center justify-center shadow-glass">
                 <User className="h-4 w-4 text-white" weight="bold" />
               </div>

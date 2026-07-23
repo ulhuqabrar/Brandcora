@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@phosphor-icons/react';
 
 export default function LoginPage() {
-  const { session, loading, signIn, signInSocial } = useAuth();
+  const { isAuthenticated, isLoading, signIn, signInSocial } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,10 +18,10 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && session) {
+    if (!isLoading && isAuthenticated) {
       router.replace('/dashboard');
     }
-  }, [loading, session, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,23 +29,13 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await signIn(email, password);
-      router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign in failed');
-    } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center gradient-hero">
-        <Spinner className="h-8 w-8 animate-spin text-primary" weight="bold" />
-      </div>
-    );
-  }
-
-  if (session) {
+  if (isAuthenticated) {
     return null;
   }
 
@@ -64,17 +54,17 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium">{error}</div>
-            )}
+          {error && (
+            <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-4">{error}</div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                type="text"
-                placeholder="admin"
+                type="email"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -87,7 +77,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="admin"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -95,7 +85,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting}>
+            <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
               {submitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
@@ -113,10 +103,11 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             className="w-full border-border"
+            disabled={isLoading}
             onClick={async () => {
               setError('');
               try {
-                await signInSocial('google');
+                await signInSocial('google', '/auth/complete');
               } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : 'Google sign-in failed');
               }
@@ -130,10 +121,6 @@ export default function LoginPage() {
             </svg>
             Continue with Google
           </Button>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo: admin / admin
-          </p>
         </div>
       </div>
     </div>

@@ -10,16 +10,16 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { session, loading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !session) {
+    if (!isLoading && !isAuthenticated) {
       router.replace('/login');
     }
-  }, [loading, session, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner className="h-8 w-8 animate-spin text-primary" weight="bold" />
@@ -27,7 +27,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!session) {
+  if (!isAuthenticated) {
     return null;
   }
 

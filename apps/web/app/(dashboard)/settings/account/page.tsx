@@ -22,7 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function AccountSettingsPage() {
-  const { session, signOut, signInSocial } = useAuth();
+  const { user, signOut, signInSocial } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -226,7 +226,7 @@ export default function AccountSettingsPage() {
                     size="sm"
                     onClick={() => {
                       if (!account.connected) {
-                        signInSocial(account.provider as any);
+                        signInSocial(account.provider as any, '/settings/account');
                       }
                     }}
                   >
