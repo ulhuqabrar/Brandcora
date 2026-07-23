@@ -87,8 +87,9 @@ app.use('/api/v1/webhooks', webhookRoutes);
 app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
-app.listen(env.PORT, () => {
-  console.log(`🚀 API server running on port ${env.PORT}`);
+const port = Number(process.env.PORT || 10000);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 API server running on port ${port}`);
   console.log(`📊 Environment: ${env.NODE_ENV}`);
   console.log(`🔗 API URL: ${env.API_BASE_URL}`);
 });
