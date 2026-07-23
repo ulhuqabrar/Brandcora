@@ -23,8 +23,9 @@ router.post('/sign-up/email', async (req, res) => {
       },
     });
     res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Sign up failed';
+    res.status(400).json({ success: false, error: message });
   }
 });
 
@@ -37,8 +38,9 @@ router.post('/sign-in/email', async (req, res) => {
       },
     });
     res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Sign in failed';
+    res.status(400).json({ success: false, error: message });
   }
 });
 
@@ -48,18 +50,16 @@ router.post('/sign-out', async (req, res) => {
       headers: toHeaders(req.headers as Record<string, string | string[] | undefined>),
     });
     res.json({ success: true });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Sign out failed';
+    res.status(400).json({ success: false, error: message });
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', async (_req, res) => {
   try {
-    // Better Auth password reset - send reset email
-    // Note: The exact API may vary by version
     res.json({ success: true, message: 'If an account exists, a password reset email has been sent' });
-  } catch (error: any) {
-    // Always return success to prevent email enumeration
+  } catch {
     res.json({ success: true, message: 'If an account exists, a password reset email has been sent' });
   }
 });
@@ -73,8 +73,9 @@ router.post('/reset-password', async (req, res) => {
       },
     });
     res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Reset password failed';
+    res.status(400).json({ success: false, error: message });
   }
 });
 
@@ -96,7 +97,7 @@ router.get('/verify-email', async (req, res) => {
       query: { token },
     });
     res.redirect(`${process.env.WEB_APP_URL}/email-verified`);
-  } catch (error: any) {
+  } catch {
     res.redirect(`${process.env.WEB_APP_URL}/email-verification-failed`);
   }
 });

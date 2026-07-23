@@ -30,7 +30,12 @@ const app = express();
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: env.WEB_APP_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowed = origin === env.WEB_APP_URL ||
+      /^https:\/\/brandcora-.*\.vercel\.app$/.test(origin);
+    callback(null, allowed);
+  },
   credentials: true,
 }));
 app.use(rateLimit({

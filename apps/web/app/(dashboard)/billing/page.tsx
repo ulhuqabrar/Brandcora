@@ -14,7 +14,14 @@ const plans = [
 ];
 
 export default function SubscriptionPage() {
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscription, setSubscription] = useState<{
+    workspaceId: string;
+    planKey: string;
+    status: string;
+    billingInterval: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 

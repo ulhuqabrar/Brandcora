@@ -144,9 +144,9 @@ export default function LandingPage() {
       setTimeout(() => {
         router.push('/brand');
       }, 800);
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearInterval(progressInterval);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Extraction failed');
       setExtracting(false);
     }
   }
