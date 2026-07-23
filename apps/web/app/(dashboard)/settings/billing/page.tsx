@@ -91,7 +91,7 @@ export default function BillingSettingsPage() {
       const res = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interval: 'monthly' }),
+        body: JSON.stringify({ planKey, interval: 'monthly' }),
       });
       const data = await res.json();
       if (data.data?.url) {

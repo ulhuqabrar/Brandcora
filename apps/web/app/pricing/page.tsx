@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context';
 const plans = [
   {
     name: 'Free',
+    key: 'free',
     description: 'For trying out Brand Guard',
     monthlyPrice: '$0',
     features: [
@@ -21,6 +22,7 @@ const plans = [
   },
   {
     name: 'Pro',
+    key: 'pro',
     description: 'For agencies and power users',
     monthlyPrice: '$5',
     features: [
@@ -53,7 +55,8 @@ export default function PricingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: session?.user?.email || 'guest@brandguard.io',
+          planKey: plan.key,
+          interval: 'monthly',
         }),
       });
       const data = await res.json();

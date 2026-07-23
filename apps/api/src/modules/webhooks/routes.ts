@@ -17,12 +17,12 @@ router.post('/stripe', async (req, res) => {
   let event: Stripe.Event;
 
   try {
-    // We need the raw body for signature verification
-    const rawBody = (req as any).rawBody;
+    const rawBody = req.body;
     event = stripe.webhooks.constructEvent(rawBody, sig, env.STRIPE_WEBHOOK_SECRET);
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Webhook signature verification failed:', message);
+    return res.status(400).json({ error: `Webhook Error: ${message}` });
   }
 
   // Idempotent processing
@@ -87,7 +87,8 @@ router.post('/stripe', async (req, res) => {
     });
 
     res.status(200).json({ received: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Webhook processing error:', error);
 
     await prisma.webhookEvent.update({
@@ -97,7 +98,7 @@ router.post('/stripe', async (req, res) => {
           externalEventId: event.id,
         },
       },
-      data: { status: 'failed', failureReason: error.message },
+      data: { status: 'failed', failureReason: message },
     });
 
     res.status(500).json({ error: 'Webhook processing failed' });
@@ -106,7 +107,10 @@ router.post('/stripe', async (req, res) => {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
-  if (!userId) return;
+  if (!userId) {
+    console.error('Checkout session missing userId in metadata:', session.id);
+    return;
+  }
 
   const stripeSubscriptionId = session.subscription as string;
   if (!stripeSubscriptionId) return;
@@ -114,7 +118,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const stripe = getStripeClient();
   const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
-  // Find workspace from user
   const membership = await prisma.membership.findFirst({
     where: { userId },
     include: { workspace: true },
@@ -122,15 +125,32 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   if (!membership?.workspace) return;
 
+  // Ensure billingCustomer exists
+  const stripeCustomerId = session.customer as string;
+  const existingCustomer = await prisma.billingCustomer.findUnique({
+    where: { userId },
+  });
+
+  if (!existingCustomer && stripeCustomerId) {
+    await prisma.billingCustomer.create({
+      data: {
+        userId,
+        workspaceId: membership.workspace.id,
+        stripeCustomerId,
+        billingEmail: session.customer_email || null,
+      },
+    });
+  }
+
   await prisma.subscription.create({
     data: {
       workspaceId: membership.workspace.id,
       stripeSubscriptionId: subscription.id,
-      stripeCustomerId: session.customer as string,
+      stripeCustomerId: stripeCustomerId || '',
       stripePriceId: subscription.items.data[0]?.price.id || '',
-      planKey: determinePlanKey(subscription.items.data[0]?.price.id || ''),
+      planKey: session.metadata?.planKey || determinePlanKey(subscription.items.data[0]?.price.id || ''),
       status: subscription.status,
-      billingInterval: subscription.items.data[0]?.plan.interval === 'year' ? 'yearly' : 'monthly',
+      billingInterval: session.metadata?.interval === 'yearly' ? 'yearly' : subscription.items.data[0]?.plan.interval === 'year' ? 'yearly' : 'monthly',
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
