@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiFetch } from '@/lib/api';
+import { Header } from '@/components/layout/header';
 
 const PROGRESS_STEPS = [
   { key: 'validating', label: 'Validating website' },
@@ -154,27 +155,10 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="mx-auto max-w-[1200px] flex items-center justify-between px-6 lg:px-8 h-16">
-          <Link href="/" className="flex items-center">
-            <img src="/logo.png" alt="Brand Guard" className="h-8 w-auto" />
-          </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#how-it-works" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">How it works</a>
-            <a href="#extraction" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Extraction</a>
-            <a href="#pricing" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Pricing</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-foreground-secondary hover:text-foreground transition-colors hidden sm:block">Log in</Link>
-            <Link href="/register">
-              <Button size="sm" className="gradient-accent text-white px-4 h-9">Get started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero */}
-      <section className="relative pt-16">
+      <section className="relative pt-24 sm:pt-28">
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-16 min-h-[calc(100vh-4rem)] items-center py-16 lg:py-0">
             <div className="max-w-xl">
