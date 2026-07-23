@@ -69,10 +69,7 @@ export function Header({ navItems, showAuth = true }: HeaderProps) {
             className="flex items-center gap-2.5 shrink-0"
             aria-label="Brandcora home"
           >
-            <img src="/logo.png" alt="" className="h-7 w-auto" aria-hidden="true" />
-            <span className="text-base font-bold text-foreground tracking-tight hidden sm:block">
-              Brandcora
-            </span>
+            <img src="/logo.png" alt="Brandcora" className="h-7 w-auto" />
           </Link>
 
           {/* Desktop nav */}
