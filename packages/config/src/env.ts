@@ -4,14 +4,14 @@ const serverEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3001),
 
-  WEB_APP_URL: z.string().url().default('http://localhost:5173'),
+  WEB_APP_URL: z.string().url().default('http://localhost:3000'),
   API_BASE_URL: z.string().url().default('http://localhost:3001'),
 
   DATABASE_URL: z.string().url(),
   DIRECT_URL: z.string().url(),
 
   BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url().default('http://localhost:3001'),
+  BETTER_AUTH_URL: z.string().url().default('http://localhost:3001/api/auth'),
 
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),

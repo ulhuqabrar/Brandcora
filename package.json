@@ -5,7 +5,7 @@
     "dev": "pnpm --filter @saas/web dev & pnpm --filter @saas/api dev",
     "dev:web": "pnpm --filter @saas/web dev",
     "dev:api": "pnpm --filter @saas/api dev",
-    "build": "pnpm --filter @saas/shared build && pnpm --filter @saas/ui build && pnpm --filter @saas/database build && pnpm --filter @saas/web build && pnpm --filter @saas/api build",
+    "build": "pnpm db:generate && pnpm --filter @saas/shared build && pnpm --filter @saas/ui build && pnpm --filter @saas/database build && pnpm --filter @saas/web build && pnpm --filter @saas/api build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
