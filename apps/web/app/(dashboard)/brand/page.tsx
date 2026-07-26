@@ -269,11 +269,7 @@ export default function BrandProfilePage() {
           <Button asChild className="gradient-accent text-white shadow-glass">
             <Link href="/brand/extract"><Globe className="mr-1.5 h-4 w-4" weight="bold" />Extract from website</Link>
           </Button>
-          {!editing && (
-            <Button variant="outline" onClick={() => setEditing(true)} className="glass">
-              <Pencil className="mr-1.5 h-4 w-4" weight="bold" />Edit profile
-            </Button>
-          )}
+
         </div>
       </div>
 
