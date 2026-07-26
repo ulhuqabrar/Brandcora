@@ -54,3 +54,5 @@ Client Secret - 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/
 
 # Misc
 *.local
+
+.vercel
