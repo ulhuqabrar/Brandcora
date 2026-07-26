@@ -50,8 +50,158 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── Auth Routes (Better Auth MUST be before body parsing) ────────────────────
-app.all('/api/auth/*', toNodeHandler(auth));
+// ─── STEP 1: Instrument Better Auth ───────────────────────────────────────────
+// This middleware logs EVERY request to /api/auth/* before Better Auth sees it
+
+const betterAuthHandler = toNodeHandler(auth);
+
+app.all('/api/auth/*', (req, res) => {
+  const timestamp = new Date().toISOString();
+  const isCallback = req.path.includes('/callback/');
+  const isSignIn = req.path.includes('/sign-in/');
+  const isGetSession = req.path.includes('/get-session') || req.path.includes('/session');
+
+  // ─── STEP 1: AUTH START ────────────────────────────────────────────────────
+  console.log('\n' + '='.repeat(60));
+  console.log('AUTH START');
+  console.log('='.repeat(60));
+  console.log(`Timestamp: ${timestamp}`);
+  console.log(`Method: ${req.method}`);
+  console.log(`Path: ${req.path}`);
+  console.log(`Full URL: ${req.originalUrl}`);
+  console.log(`Origin: ${req.headers.origin || 'NONE'}`);
+  console.log(`Host: ${req.headers.host}`);
+  console.log(`Referer: ${req.headers.referer || 'NONE'}`);
+  console.log(`Remote IP: ${req.ip || req.socket.remoteAddress}`);
+
+  // ─── STEP 6: Incoming Cookies ──────────────────────────────────────────────
+  console.log('\n--- Incoming Cookies ---');
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').map(c => c.trim());
+    cookies.forEach(c => {
+      const [name, ...rest] = c.split('=');
+      const value = rest.join('=');
+      console.log(`  ${name} = (length: ${value.length}, starts: ${value.substring(0, 20)}...)`);
+    });
+  } else {
+    console.log('  No cookies received');
+  }
+
+  // ─── STEP 1: Headers ──────────────────────────────────────────────────────
+  console.log('\n--- Headers ---');
+  console.log(`  Origin: ${req.headers.origin || 'NONE'}`);
+  console.log(`  Host: ${req.headers.host}`);
+  console.log(`  Cookie: ${req.headers.cookie ? `present (${req.headers.cookie.length} bytes)` : 'MISSING'}`);
+  console.log(`  X-Forwarded-Host: ${req.headers['x-forwarded-host'] || 'NONE'}`);
+  console.log(`  X-Forwarded-Proto: ${req.headers['x-forwarded-proto'] || 'NONE'}`);
+  console.log(`  X-Forwarded-For: ${req.headers['x-forwarded-for'] || 'NONE'}`);
+
+  // ─── STEP 1: Environment ──────────────────────────────────────────────────
+  console.log('\n--- Environment ---');
+  console.log(`  BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
+  console.log(`  WEB_APP_URL: ${env.WEB_APP_URL}`);
+  console.log(`  NODE_ENV: ${env.NODE_ENV}`);
+
+  // ─── STEP 2: Callback-specific logging ─────────────────────────────────────
+  if (isCallback) {
+    console.log('\n--- Callback Query Parameters ---');
+    console.log(`  code: ${req.query.code ? `present (length: ${(req.query.code as string).length})` : 'MISSING'}`);
+    console.log(`  state: ${req.query.state ? `present (length: ${(req.query.state as string).length})` : 'MISSING'}`);
+    console.log(`  error: ${req.query.error || 'NONE'}`);
+    console.log(`  error_description: ${req.query.error_description || 'NONE'}`);
+
+    // ─── STEP 2: State cookie check ──────────────────────────────────────────
+    console.log('\n--- State Cookie Check ---');
+    if (cookieHeader) {
+      const stateCookie = cookieHeader.split(';').find(c => c.trim().startsWith('better-auth.state='));
+      if (stateCookie) {
+        const value = stateCookie.split('=').slice(1).join('=');
+        console.log(`  better-auth.state: PRESENT (length: ${value.length})`);
+      } else {
+        console.log('  better-auth.state: MISSING !!!');
+        console.log('  THIS IS WHY STATE_MISMATCH OCCURS');
+        console.log('  The OAuth state cookie was not sent back by the browser.');
+        console.log('  Possible causes:');
+        console.log('    1. Cookie domain mismatch');
+        console.log('    2. Cookie was cleared');
+        console.log('    3. Cookie SameSite/Secure attributes prevented it');
+        console.log('    4. Cookie was set for a different domain');
+      }
+    } else {
+      console.log('  better-auth.state: NO COOKIES AT ALL !!!');
+    }
+  }
+
+  // ─── STEP 1: Redirect URLs ────────────────────────────────────────────────
+  if (isSignIn) {
+    console.log('\n--- Redirect URLs ---');
+    console.log(`  BETTER_AUTH_URL (baseURL): ${env.BETTER_AUTH_URL}`);
+    console.log(`  Google redirect_uri will be: ${env.BETTER_AUTH_URL}/callback/google`);
+  }
+
+  // ─── STEP 3: Wrap Better Auth handler ──────────────────────────────────────
+  console.log('\n--- Entering Better Auth handler ---');
+
+  // Intercept res.end to capture response
+  const originalEnd = res.end;
+  let responseCaptured = false;
+  res.end = function(this: any, ...args: any[]) {
+    if (!responseCaptured) {
+      responseCaptured = true;
+      console.log('\n--- Exited Better Auth handler ---');
+      console.log(`  Response status: ${res.statusCode}`);
+
+      // ─── STEP 6: Outgoing Set-Cookie ─────────────────────────────────────
+      const setCookie = res.getHeader('set-cookie');
+      console.log('\n--- Outgoing Set-Cookie ---');
+      if (setCookie) {
+        const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+        cookies.forEach((c: string | number) => {
+          const cookieStr = String(c);
+          const parts = cookieStr.split(';').map(p => p.trim());
+          const [nameValue, ...attrs] = parts;
+          const [name, ...valParts] = nameValue.split('=');
+          const value = valParts.join('=');
+          console.log(`  Cookie: ${name}`);
+          console.log(`    Value length: ${value.length}`);
+          console.log(`    Attributes: ${attrs.join('; ')}`);
+          attrs.forEach((a: string) => {
+            const [k, v] = a.split('=');
+            if (k.toLowerCase() === 'domain') console.log(`    Domain: ${v}`);
+            if (k.toLowerCase() === 'path') console.log(`    Path: ${v}`);
+            if (k.toLowerCase() === 'secure') console.log(`    Secure: true`);
+            if (k.toLowerCase() === 'samesite') console.log(`    SameSite: ${v}`);
+            if (k.toLowerCase() === 'httponly') console.log(`    HttpOnly: true`);
+            if (k.toLowerCase() === 'max-age') console.log(`    Max-Age: ${v}`);
+          });
+        });
+      } else {
+        console.log('  No Set-Cookie header in response');
+      }
+
+      // ─── STEP 7: Redirect URLs ──────────────────────────────────────────
+      const location = res.getHeader('location');
+      if (location) {
+        console.log('\n--- Redirect ---');
+        console.log(`  Location: ${location}`);
+      }
+    }
+    return originalEnd.apply(this, args as any);
+  };
+
+  // ─── STEP 3: Execute handler with error catching ──────────────────────────
+  try {
+    betterAuthHandler(req, res);
+  } catch (err: any) {
+    console.log('\n' + '='.repeat(60));
+    console.log('EXCEPTION IN BETTER AUTH HANDLER');
+    console.log('='.repeat(60));
+    console.log(`  Name: ${err.name}`);
+    console.log(`  Message: ${err.message}`);
+    console.log(`  Stack: ${err.stack}`);
+  }
+});
 
 // ─── Body Parsing (after Better Auth) ────────────────────────────────────────
 app.use('/api/v1/webhooks', express.raw({ type: 'application/json' }));
@@ -92,6 +242,8 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 API server running on port ${port}`);
   console.log(`📊 Environment: ${env.NODE_ENV}`);
   console.log(`🔗 API URL: ${env.API_BASE_URL}`);
+  console.log(`🔐 BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
+  console.log(`🌐 WEB_APP_URL: ${env.WEB_APP_URL}`);
 });
 
 export default app;
