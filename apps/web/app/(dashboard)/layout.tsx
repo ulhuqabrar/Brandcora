@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 glass-strong shadow-elevated lg:relative lg:translate-x-0 transition-transform duration-200",
+            "fixed inset-y-0 left-0 z-50 w-64 bg-background shadow-elevated lg:relative lg:translate-x-0 transition-transform duration-200",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
