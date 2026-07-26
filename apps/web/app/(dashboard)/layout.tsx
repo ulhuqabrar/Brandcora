@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 glass-strong shadow-glass lg:relative lg:translate-x-0 transition-transform duration-200",
+            "fixed inset-y-0 left-0 z-50 w-64 glass-strong shadow-elevated lg:relative lg:translate-x-0 transition-transform duration-200",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -95,13 +95,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
-              <div className="h-8 w-8 rounded-full gradient-accent flex items-center justify-center shadow-glass">
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center shadow-md">
                 <User className="h-4 w-4 text-white" weight="bold" />
               </div>
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto p-6 gradient-bg-50">
             {children}
           </main>
         </div>

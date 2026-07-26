@@ -65,7 +65,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild className="gradient-accent text-white shadow-glass">
+          <Button asChild className="bg-primary text-primary-foreground shadow-md hover:bg-primary/90">
             <Link href="/scans/new-social">
               <Plus className="mr-1.5 h-4 w-4" weight="bold" />
               New social check
@@ -81,7 +81,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <div className="glass-strong rounded-2xl p-6 shadow-glass">
+      <div className="glass-strong rounded-2xl p-6 shadow-elevated">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 shrink-0">
             <ShieldCheck className="h-6 w-6 text-primary" weight="bold" />
@@ -100,7 +100,7 @@ export default function DashboardPage() {
 
       {/* Stats grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass-strong rounded-2xl p-5 shadow-glass">
+        <div className="glass-strong rounded-2xl p-5 shadow-elevated">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Lightning className="h-5 w-5 text-primary" weight="bold" />
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        <div className="glass-strong rounded-2xl p-5 shadow-glass">
+        <div className="glass-strong rounded-2xl p-5 shadow-elevated">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <MagnifyingGlass className="h-5 w-5 text-primary" weight="bold" />
@@ -123,7 +123,7 @@ export default function DashboardPage() {
           <div className="text-2xl font-extrabold">{data.stats.totalScans}</div>
         </div>
 
-        <div className="glass-strong rounded-2xl p-5 shadow-glass">
+        <div className="glass-strong rounded-2xl p-5 shadow-elevated">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <TrendUp className="h-5 w-5 text-primary" weight="bold" />
@@ -135,7 +135,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="glass-strong rounded-2xl p-5 shadow-glass">
+        <div className="glass-strong rounded-2xl p-5 shadow-elevated">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <ChartBar className="h-5 w-5 text-primary" weight="bold" />
@@ -150,7 +150,7 @@ export default function DashboardPage() {
 
       {/* Usage + Recent */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="glass-strong rounded-2xl p-6 shadow-glass">
+        <div className="glass-strong rounded-2xl p-6 shadow-elevated">
           <h3 className="text-lg font-semibold mb-4">Usage this month</h3>
           <div className="space-y-5">
             <div>
@@ -162,7 +162,7 @@ export default function DashboardPage() {
               </div>
               <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full gradient-accent rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${(data.usage.socialChecks.used / data.usage.socialChecks.limit) * 100}%` }}
                 />
               </div>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
               </div>
               <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full gradient-accent rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${(data.usage.websiteScans.used / data.usage.websiteScans.limit) * 100}%` }}
                 />
               </div>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="glass-strong rounded-2xl p-6 shadow-glass">
+        <div className="glass-strong rounded-2xl p-6 shadow-elevated">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Recent Reports</h3>
             <Button size="sm" variant="ghost" asChild>
