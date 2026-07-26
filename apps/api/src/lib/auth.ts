@@ -5,10 +5,6 @@ import { getServerEnv } from '@saas/config';
 
 const env = getServerEnv();
 
-console.log("BETTER_AUTH_URL =", env.BETTER_AUTH_URL);
-console.log("WEB_APP_URL =", env.WEB_APP_URL);
-console.log("NODE_ENV =", env.NODE_ENV);
-
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
