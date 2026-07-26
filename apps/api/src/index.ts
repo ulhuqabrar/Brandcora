@@ -103,6 +103,14 @@ app.all('/api/auth/*', (req, res) => {
   console.log(`  WEB_APP_URL: ${env.WEB_APP_URL}`);
   console.log(`  NODE_ENV: ${env.NODE_ENV}`);
 
+  // ─── STEP 2: Sign-in specific logging ───────────────────────────────────────
+  if (isSignIn) {
+    console.log('\n--- Sign-In Request ---');
+    console.log(`  Provider: ${req.body?.provider || 'UNKNOWN'}`);
+    console.log(`  callbackURL: ${req.body?.callbackURL || 'NONE'}`);
+    console.log(`  errorCallbackURL: ${req.body?.errorCallbackURL || 'NONE'}`);
+  }
+
   // ─── STEP 2: Callback-specific logging ─────────────────────────────────────
   if (isCallback) {
     console.log('\n--- Callback Query Parameters ---');
@@ -152,32 +160,39 @@ app.all('/api/auth/*', (req, res) => {
       console.log('\n--- Exited Better Auth handler ---');
       console.log(`  Response status: ${res.statusCode}`);
 
-      // ─── STEP 6: Outgoing Set-Cookie ─────────────────────────────────────
+      // ─── STEP 6: ALL Response Headers ──────────────────────────────────────
+      console.log('\n--- ALL Response Headers ---');
+      const headers = res.getHeaders();
+      for (const [key, value] of Object.entries(headers)) {
+        console.log(`  ${key}: ${value}`);
+      }
+
+      // ─── STEP 6: Outgoing Set-Cookie (detailed) ──────────────────────────
       const setCookie = res.getHeader('set-cookie');
-      console.log('\n--- Outgoing Set-Cookie ---');
+      console.log('\n--- Outgoing Set-Cookie (detailed) ---');
       if (setCookie) {
         const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
-        cookies.forEach((c: string | number) => {
+        console.log(`  Total cookies: ${cookies.length}`);
+        cookies.forEach((c: string | number, i: number) => {
           const cookieStr = String(c);
+          console.log(`\n  Cookie #${i + 1}:`);
+          console.log(`    Raw: ${cookieStr}`);
           const parts = cookieStr.split(';').map(p => p.trim());
           const [nameValue, ...attrs] = parts;
           const [name, ...valParts] = nameValue.split('=');
           const value = valParts.join('=');
-          console.log(`  Cookie: ${name}`);
+          console.log(`    Name: ${name}`);
           console.log(`    Value length: ${value.length}`);
-          console.log(`    Attributes: ${attrs.join('; ')}`);
-          attrs.forEach((a: string) => {
-            const [k, v] = a.split('=');
-            if (k.toLowerCase() === 'domain') console.log(`    Domain: ${v}`);
-            if (k.toLowerCase() === 'path') console.log(`    Path: ${v}`);
-            if (k.toLowerCase() === 'secure') console.log(`    Secure: true`);
-            if (k.toLowerCase() === 'samesite') console.log(`    SameSite: ${v}`);
-            if (k.toLowerCase() === 'httponly') console.log(`    HttpOnly: true`);
-            if (k.toLowerCase() === 'max-age') console.log(`    Max-Age: ${v}`);
-          });
+          console.log(`    Domain: ${attrs.find(a => a.toLowerCase().startsWith('domain=')) || 'NOT SET (browser will use request domain)'}`);
+          console.log(`    Path: ${attrs.find(a => a.toLowerCase().startsWith('path=')) || 'NOT SET'}`);
+          console.log(`    Secure: ${attrs.some(a => a.toLowerCase() === 'secure')}`);
+          console.log(`    SameSite: ${attrs.find(a => a.toLowerCase().startsWith('samesite=')) || 'NOT SET'}`);
+          console.log(`    HttpOnly: ${attrs.some(a => a.toLowerCase() === 'httponly')}`);
+          console.log(`    Max-Age: ${attrs.find(a => a.toLowerCase().startsWith('max-age=')) || 'NOT SET'}`);
         });
       } else {
-        console.log('  No Set-Cookie header in response');
+        console.log('  NO SET-COOKIE HEADER IN RESPONSE !!!');
+        console.log('  This means the backend did not issue any cookies.');
       }
 
       // ─── STEP 7: Redirect URLs ──────────────────────────────────────────
@@ -186,6 +201,8 @@ app.all('/api/auth/*', (req, res) => {
         console.log('\n--- Redirect ---');
         console.log(`  Location: ${location}`);
       }
+
+      console.log('='.repeat(60) + '\n');
     }
     return originalEnd.apply(this, args as any);
   };
