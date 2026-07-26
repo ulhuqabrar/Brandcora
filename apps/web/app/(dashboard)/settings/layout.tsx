@@ -28,7 +28,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-8">
       <aside className="w-56 shrink-0">
         <div className="sticky top-6">
           <div className="flex items-center gap-2 mb-6">
@@ -44,9 +44,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                   key={item.to}
                   href={item.to}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "text-accent font-bold"
+                      ? "text-accent bg-accent/10 font-bold"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
