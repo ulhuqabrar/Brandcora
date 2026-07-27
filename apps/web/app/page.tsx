@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Copy, Download, Check, ChevronRight, Upload, Shield, Lock, Eye, FileJson, Layers, Palette, Type, Ruler, Square, MousePointer, Search, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, Upload, Shield, Lock, Eye, FileJson, Layers, Palette, Type, Square, Search, ArrowUpRight } from 'lucide-react';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,48 +46,6 @@ function LogoMark({ className = '' }: { className?: string }) {
   );
 }
 
-/* ─── URL Input Component ─── */
-function URLInput({ size = 'large', onSubmit }: { size?: 'large' | 'default'; onSubmit?: (url: string) => void }) {
-  const [url, setUrl] = useState('');
-  const [focused, setFocused] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (url.trim() && onSubmit) onSubmit(url);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className={`relative ${size === 'large' ? 'w-full max-w-xl' : 'w-full max-w-md'}`}>
-      <div className={`relative flex items-center rounded-2xl border transition-all duration-300 ${
-        focused
-          ? 'border-brand-orange/40 shadow-[0_0_0_4px_rgba(255,95,69,0.08)] bg-white'
-          : 'border-border-strong bg-white/80 hover:border-border-strong/80'
-      } ${size === 'large' ? 'px-5 py-4' : 'px-4 py-3'}`}>
-        <Search className={`${size === 'large' ? 'w-5 h-5' : 'w-4 h-4'} text-foreground-muted shrink-0`} />
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder="https://yourbrand.com"
-          className={`flex-1 bg-transparent border-none outline-none ml-3 font-mono ${
-            size === 'large' ? 'text-base' : 'text-sm'
-          } text-foreground placeholder:text-foreground-subtle`}
-        />
-        <button
-          type="submit"
-          className={`shrink-0 gradient-accent text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5 ${
-            size === 'large' ? 'px-6 py-2.5 text-sm' : 'px-4 py-2 text-xs'
-          }`}
-        >
-          Analyze brand
-        </button>
-      </div>
-    </form>
-  );
-}
-
 /* ─── Navigation ─── */
 function Navigation() {
   const [scrolled, setScrolled] = useState(false);
@@ -99,32 +57,32 @@ function Navigation() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'py-3' : 'py-5'}`}>
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 transition-all duration-500">
-        <nav className={`flex items-center justify-between rounded-2xl px-6 py-3 transition-all duration-500 ${
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12 transition-all duration-500">
+        <nav className={`flex items-center justify-between rounded-xl px-5 py-2.5 transition-all duration-500 ${
           scrolled
             ? 'bg-white/80 backdrop-blur-xl border border-black/[0.04] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'
             : 'bg-transparent'
         }`}>
-          <Link href="/" className="flex items-center gap-3">
-            <LogoMark className="w-8 h-8" />
-            <span className="font-bold text-lg tracking-tight text-graphite">Brandcora</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <LogoMark className="w-7 h-7" />
+            <span className="font-semibold text-base tracking-tight text-graphite">Brandcora</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-7">
             {['How it works', 'Extraction', 'Validation', 'Developers'].map(item => (
               <a key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-                className="text-sm font-medium text-foreground-muted hover:text-foreground transition-colors duration-300">
+                className="text-[13px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200">
                 {item}
               </a>
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth" className="text-sm font-medium text-foreground-muted hover:text-foreground transition-colors duration-300">
+            <Link href="/auth" className="text-[13px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200">
               Sign in
             </Link>
             <Link href="/auth"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-accent hover:shadow-lg hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5">
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-white gradient-accent hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200">
               Scan a website
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -137,151 +95,247 @@ function Navigation() {
 
 /* ─── Hero Section ─── */
 function HeroSection() {
-  const [scanPhase, setScanPhase] = useState(0);
+  const [url, setUrl] = useState('');
+  const [focused, setFocused] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [scanComplete, setScanComplete] = useState(false);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setScanPhase(p => (p < 5 ? p + 1 : p));
-    }, 800);
-    return () => clearInterval(timer);
-  }, []);
+  const normalizeUrl = (input: string): string => {
+    let v = input.trim();
+    if (!v) return v;
+    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    try { new URL(v); } catch { return v; }
+    return v;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!url.trim()) {
+      setError('Enter a website URL to continue.');
+      return;
+    }
+    const normalized = normalizeUrl(url);
+    try {
+      new URL(normalized);
+    } catch {
+      setError('Enter a valid website address.');
+      return;
+    }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setScanComplete(true);
+    }, 2200);
+  };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden grain" style={{ background: 'linear-gradient(180deg, #FAF8F5 0%, #F0EBF5 40%, #FAF8F5 100%)' }}>
-      <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full opacity-60 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.08) 0%, rgba(242,184,75,0.04) 50%, transparent 70%)' }} />
+    <section className="relative overflow-hidden" style={{ background: '#FAF8F5' }}>
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12 pt-24 md:pt-28 pb-16 md:pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
 
-      <div className="relative z-10 mx-auto max-w-[1440px] w-full px-6 md:px-12 lg:px-16 pt-32 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Left: Editorial content */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="animate-fade-up">
-              <span className="section-label">Brand Intelligence Platform</span>
-            </div>
-
-            <h1 className="animate-fade-up-delay-1">
-              <span className="block text-display font-extrabold text-graphite leading-[0.92]">
-                Turn any website
-              </span>
-              <span className="block text-display font-extrabold leading-[0.92]">
-                into a complete
-              </span>
-              <span className="block text-display font-extrabold leading-[0.92]">
-                <span className="gradient-text">brand system.</span>
-              </span>
-            </h1>
-
-            <p className="animate-fade-up-delay-2 text-lg text-foreground-secondary max-w-md leading-relaxed">
-              Paste a website URL and automatically discover its logos, colors, typography, icons, spacing, radius, components, and design tokens. Export as JSON, then validate every new creative asset against it.
+          {/* Left column — 5 cols */}
+          <div className="lg:col-span-5 space-y-6 lg:pt-4">
+            <p className="text-[13px] font-medium text-foreground-muted tracking-wide">
+              Brand intelligence for creative teams
             </p>
 
-            <div className="animate-fade-up-delay-3">
-              <URLInput size="large" onSubmit={() => {}} />
-              <p className="mt-3 text-xs text-foreground-muted font-mono">No setup required. Start with any public website.</p>
+            <h1 className="text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold text-graphite leading-[1.05] tracking-[-0.03em] max-w-[520px]">
+              Turn your website into a usable brand system.
+            </h1>
+
+            <p className="text-[17px] text-foreground-secondary leading-[1.6] max-w-[480px]">
+              Paste a website URL to identify its colors, typography, logos, icons, spacing, radius, and reusable design tokens. Store the identity, export it as JSON, and check future creative assets for brand consistency.
+            </p>
+
+            {/* URL form */}
+            <form onSubmit={handleSubmit} className="max-w-[520px]">
+              <div className={`flex items-center gap-2 rounded-[11px] border transition-all duration-200 bg-white ${
+                focused
+                  ? 'border-brand-orange/30 shadow-[0_0_0_3px_rgba(255,95,69,0.06)]'
+                  : error
+                    ? 'border-red-300'
+                    : 'border-border-strong hover:border-foreground-subtle'
+              }`}>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => { setUrl(e.target.value); setError(''); }}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  placeholder="https://yourwebsite.com"
+                  disabled={loading}
+                  aria-label="Website URL"
+                  aria-describedby={error ? 'url-error' : undefined}
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none px-4 text-[15px] text-foreground placeholder:text-foreground-subtle h-12 disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="shrink-0 h-12 px-5 rounded-[10px] gradient-accent text-white text-[14px] font-semibold hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200 disabled:opacity-70 flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Analyzing…
+                    </>
+                  ) : (
+                    'Analyze website'
+                  )}
+                </button>
+              </div>
+              {error && (
+                <p id="url-error" className="mt-2 text-[13px] text-red-600" role="alert">{error}</p>
+              )}
+            </form>
+
+            <div className="flex items-center gap-4">
+              <p className="text-[12px] text-foreground-muted flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-foreground-subtle" />
+                No signup required for the initial scan.
+              </p>
             </div>
+
+            <Link href="/pricing" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-foreground-secondary hover:text-graphite transition-colors duration-200 group">
+              View sample report
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
 
-          {/* Right: Scanning visualization */}
-          <div className="lg:col-span-7 animate-fade-up-delay-2">
-            <div className="relative">
-              {/* Browser frame */}
-              <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-elevated bg-white">
-                {/* Browser chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-warm-offwhite border-b border-border/40">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#FF5F5F]" />
-                    <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                    <div className="w-3 h-3 rounded-full bg-[#27CA40]" />
-                  </div>
-                  <div className="flex-1 mx-4 px-3 py-1.5 rounded-lg bg-white border border-border/40 text-xs font-mono text-foreground-muted text-center">
-                    yourbrand.com
-                  </div>
+          {/* Right column — 7 cols: product visual */}
+          <div className="lg:col-span-7">
+            <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-[0_8px_40px_rgba(0,0,0,0.06)] bg-white">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-warm-offwhite border-b border-border/40">
+                <div className="flex gap-1.5">
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#FF5F5F]" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#FFBD2E]" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#27CA40]" />
                 </div>
-
-                {/* Website preview with scan overlay */}
-                <div className="relative aspect-[16/10] bg-white overflow-hidden">
-                  {/* Simulated website content */}
-                  <div className="absolute inset-0 p-6 space-y-4">
-                    {/* Nav */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-graphite" />
-                        <div className="h-3 w-20 rounded bg-graphite/20" />
-                      </div>
-                      <div className="flex gap-3">
-                        <div className="h-2 w-12 rounded bg-graphite/10" />
-                        <div className="h-2 w-12 rounded bg-graphite/10" />
-                        <div className="h-2 w-12 rounded bg-graphite/10" />
-                      </div>
-                    </div>
-
-                    {/* Hero area */}
-                    <div className="space-y-2 pt-4">
-                      <div className="h-5 w-48 rounded bg-graphite/15" />
-                      <div className="h-5 w-36 rounded bg-graphite/10" />
-                      <div className="h-2 w-64 rounded bg-graphite/8 mt-2" />
-                      <div className="h-2 w-48 rounded bg-graphite/6" />
-                    </div>
-
-                    {/* Grid */}
-                    <div className="grid grid-cols-3 gap-3 pt-4">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="rounded-lg border border-border/40 p-3 space-y-2">
-                          <div className="h-12 rounded bg-lavender-soft" />
-                          <div className="h-2 w-full rounded bg-graphite/8" />
-                          <div className="h-2 w-2/3 rounded bg-graphite/6" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Scanning line */}
-                  <div className="scan-line" />
-
-                  {/* Detection regions */}
-                  {scanPhase >= 1 && (
-                    <div className="scan-region" style={{ top: '8%', left: '4%', width: '25%', height: '12%' }}>
-                      <span className="scan-label">Logo detected</span>
-                    </div>
-                  )}
-                  {scanPhase >= 2 && (
-                    <div className="scan-region" style={{ top: '28%', left: '4%', width: '50%', height: '18%' }}>
-                      <span className="scan-label">Typeface identified</span>
-                    </div>
-                  )}
-                  {scanPhase >= 3 && (
-                    <div className="scan-region" style={{ top: '20%', right: '4%', width: '30%', height: '10%' }}>
-                      <span className="scan-label">14 color tokens</span>
-                    </div>
-                  )}
-                  {scanPhase >= 4 && (
-                    <div className="scan-region" style={{ top: '56%', left: '4%', width: '92%', height: '36%' }}>
-                      <span className="scan-label">32 spacing tokens</span>
-                    </div>
-                  )}
-                  {scanPhase >= 5 && (
-                    <div className="scan-region" style={{ top: '56%', left: '4%', width: '28%', height: '36%' }}>
-                      <span className="scan-label">8 radius values</span>
-                    </div>
-                  )}
+                <div className="flex-1 mx-4 h-7 flex items-center justify-center rounded-md bg-white border border-border/40">
+                  <span className="text-[11px] font-mono text-foreground-muted">yourbrand.com</span>
                 </div>
               </div>
 
-              {/* Extracted tokens floating beside */}
-              <div className="absolute -right-4 top-1/2 -translate-y-1/2 space-y-2 hidden xl:block">
-                {[
-                  { label: 'Colors', count: '14', color: '#FF5F45' },
-                  { label: 'Fonts', count: '3', color: '#FF8A5B' },
-                  { label: 'Spacing', count: '32', color: '#F2B84B' },
-                  { label: 'Icons', count: '46', color: '#6B5CE7' },
-                ].map((token, i) => (
-                  <div key={token.label} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 backdrop-blur-sm border border-border/40 shadow-soft"
-                    style={{ animationDelay: `${i * 0.2}s` }}>
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: token.color }} />
-                    <span className="text-xs font-mono text-foreground-muted">{token.label}</span>
-                    <span className="text-xs font-bold text-graphite">{token.count}</span>
+              {/* Main content area */}
+              <div className="flex">
+                {/* Website preview */}
+                <div className="flex-1 relative min-h-[320px] md:min-h-[380px] p-5 space-y-3">
+                  {/* Nav */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-md bg-graphite" />
+                      <div className="h-2.5 w-16 rounded bg-graphite/15" />
+                    </div>
+                    <div className="flex gap-2.5">
+                      <div className="h-2 w-10 rounded bg-graphite/8" />
+                      <div className="h-2 w-10 rounded bg-graphite/8" />
+                      <div className="h-2 w-10 rounded bg-graphite/8" />
+                    </div>
                   </div>
-                ))}
+
+                  {/* Hero content */}
+                  <div className="space-y-2 pt-3">
+                    <div className="h-4 w-40 rounded bg-graphite/12" />
+                    <div className="h-4 w-28 rounded bg-graphite/8" />
+                    <div className="h-2 w-52 rounded bg-graphite/6 mt-1" />
+                    <div className="h-2 w-36 rounded bg-graphite/5" />
+                  </div>
+
+                  {/* Grid cards */}
+                  <div className="grid grid-cols-3 gap-2.5 pt-3">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="rounded-lg border border-border/30 p-2.5 space-y-1.5">
+                        <div className="h-10 rounded bg-lavender-soft" />
+                        <div className="h-1.5 w-full rounded bg-graphite/6" />
+                        <div className="h-1.5 w-2/3 rounded bg-graphite/4" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Scan line */}
+                  {!scanComplete && <div className="scan-line" style={{ animationDuration: '2.5s' }} />}
+
+                  {/* Detection regions — appear during scan */}
+                  {!scanComplete && (
+                    <>
+                      <div className="scan-region" style={{ top: '6%', left: '3%', width: '18%', height: '10%' }}>
+                        <span className="scan-label">Logo</span>
+                      </div>
+                      <div className="scan-region" style={{ top: '24%', left: '3%', width: '35%', height: '14%' }}>
+                        <span className="scan-label">Typeface</span>
+                      </div>
+                      <div className="scan-region" style={{ top: '18%', right: '3%', width: '22%', height: '8%' }}>
+                        <span className="scan-label">6 colors</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Extraction panel */}
+                <div className="hidden md:flex w-[200px] shrink-0 border-l border-border/40 bg-warm-offwhite/50 flex-col">
+                  <div className="px-4 py-3 border-b border-border/30">
+                    <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Extracted</span>
+                  </div>
+
+                  <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                    {/* Colors */}
+                    <div>
+                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Colors</span>
+                      <div className="mt-2 flex gap-1.5">
+                        {['#FF5F45','#FF8A5B','#F2B84B','#1A1918','#FAF8F5','#6B5CE7'].map(c => (
+                          <div key={c} className="w-5 h-5 rounded border border-border/40" style={{ backgroundColor: c }} title={c} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Typefaces */}
+                    <div>
+                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Typefaces</span>
+                      <div className="mt-2 space-y-1">
+                        <div className="text-[11px] font-semibold text-graphite">Manrope</div>
+                        <div className="text-[10px] text-foreground-muted">IBM Plex Mono</div>
+                      </div>
+                    </div>
+
+                    {/* Logo variants */}
+                    <div>
+                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Logos</span>
+                      <div className="mt-2 grid grid-cols-2 gap-1.5">
+                        {['Full','Mark','Light','Dark'].map(v => (
+                          <div key={v} className="h-8 rounded bg-white border border-border/30 flex items-center justify-center">
+                            <span className="text-[8px] font-mono text-foreground-muted">{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Spacing */}
+                    <div>
+                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Spacing</span>
+                      <div className="mt-2 flex items-end gap-1">
+                        {[4,8,12,16,24,32,48,64].map(v => (
+                          <div key={v} className="w-3 rounded-sm bg-brand-orange/15" style={{ height: Math.min(v * 0.4, 32) }} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Radius */}
+                    <div>
+                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Radius</span>
+                      <div className="mt-2 flex gap-1.5">
+                        {[4,8,12,16].map(v => (
+                          <div key={v} className="w-7 h-7 border border-brand-orange/30" style={{ borderRadius: v }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-4 py-3 border-t border-border/30">
+                    <span className="text-[9px] font-mono text-foreground-muted">128 tokens found</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -305,41 +359,36 @@ function ScanningSection() {
 
   return (
     <section id="how-it-works" className="py-24 md:py-32 bg-white border-y border-border/50">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
-          <span className="section-label">From website to brand system in seconds</span>
-          <h2 className="mt-4 text-section font-bold text-graphite max-w-2xl">
-            The platform analyzes the visible design language across your website and transforms recurring decisions into structured brand data.
+          <h2 className="text-section font-bold text-graphite max-w-2xl">
+            From website to brand system in seconds.
           </h2>
+          <p className="mt-4 text-lg text-foreground-secondary max-w-xl leading-relaxed">
+            The platform analyzes the visible design language across your website and transforms recurring decisions into structured brand data.
+          </p>
         </RevealSection>
 
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* Left: Website preview */}
           <RevealSection className="lg:col-span-7">
             <div className="relative rounded-2xl overflow-hidden border border-border/40 bg-warm-offwhite aspect-[4/3]">
               <div className="absolute inset-0 construction-grid opacity-50" />
-              {/* Simulated detected elements */}
               <div className="absolute inset-0 p-8">
                 <div className="space-y-6">
-                  {/* Logo detection */}
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg gradient-accent" />
                     <div className="scan-region !relative !top-auto !left-auto" style={{ width: 80, height: 12 }}>
                       <span className="scan-label">Logo</span>
                     </div>
                   </div>
-
-                  {/* Color detection */}
                   <div className="flex gap-2">
-                    {['#FF5F45', '#FF8A5B', '#F2B84B', '#1A1918', '#6B5CE7'].map((c, i) => (
+                    {['#FF5F45', '#FF8A5B', '#F2B84B', '#1A1918', '#6B5CE7'].map((c) => (
                       <div key={c} className="relative">
                         <div className="w-10 h-10 rounded-lg border border-border/40" style={{ backgroundColor: c }} />
                         <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-foreground-muted whitespace-nowrap">{c}</span>
                       </div>
                     ))}
                   </div>
-
-                  {/* Typography detection */}
                   <div className="space-y-2 pt-4">
                     <div className="flex items-center gap-3">
                       <div className="h-6 w-40 rounded bg-graphite/15" />
@@ -354,8 +403,6 @@ function ScanningSection() {
                       <span className="text-[9px] font-mono text-brand-orange">Body / 18px / 1.5</span>
                     </div>
                   </div>
-
-                  {/* Spacing detection */}
                   <div className="flex items-center gap-1 pt-2">
                     {[8, 16, 24, 32, 48, 64].map(v => (
                       <div key={v} className="flex flex-col items-center">
@@ -366,13 +413,10 @@ function ScanningSection() {
                   </div>
                 </div>
               </div>
-
-              {/* Scan line */}
               <div className="scan-line" style={{ animationDuration: '4s' }} />
             </div>
           </RevealSection>
 
-          {/* Right: Steps */}
           <RevealSection delay={0.2} className="lg:col-span-5">
             <div className="space-y-1">
               {steps.map((step, i) => (
@@ -422,20 +466,19 @@ function BrandSystemSection() {
   ];
 
   const typeStyles = [
-    { role: 'Display', sample: 'Brand Intelligence', font: 'Manrope', weight: '800', size: '72px', lh: '0.95' },
-    { role: 'Heading 01', sample: 'Extracted System', font: 'Manrope', weight: '700', size: '48px', lh: '1.05' },
+    { role: 'Display', sample: 'Brand System', font: 'Manrope', weight: '800', size: '72px', lh: '0.95' },
+    { role: 'Heading 01', sample: 'Extracted Identity', font: 'Manrope', weight: '700', size: '48px', lh: '1.05' },
     { role: 'Body', sample: 'The platform analyzes visible design language across your website.', font: 'Manrope', weight: '400', size: '18px', lh: '1.5' },
     { role: 'Label', sample: 'DESIGN TOKEN', font: 'IBM Plex Mono', weight: '500', size: '12px', lh: '1.4' },
   ];
 
   return (
     <section id="extraction" className="py-24 md:py-32 bg-background">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-16">
             <div>
-              <span className="section-label">Extracted Brand System</span>
-              <h2 className="mt-4 text-section font-bold text-graphite">
+              <h2 className="text-section font-bold text-graphite">
                 Every visual decision,<br />
                 <span className="text-foreground-muted">organized and named.</span>
               </h2>
@@ -446,12 +489,11 @@ function BrandSystemSection() {
           </div>
         </RevealSection>
 
-        {/* Color System */}
         <RevealSection>
           <div className="mb-16">
             <h3 className="text-sm font-bold text-graphite uppercase tracking-wider mb-6">Color System</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {colors.map((c, i) => (
+              {colors.map((c) => (
                 <div key={c.name} className="token-card group">
                   <div className="aspect-[4/3] rounded-xl border border-border/40 overflow-hidden relative">
                     <div className="absolute inset-0" style={{ backgroundColor: c.hex }} />
@@ -467,7 +509,6 @@ function BrandSystemSection() {
           </div>
         </RevealSection>
 
-        {/* Typography System */}
         <RevealSection>
           <div className="mb-16">
             <h3 className="text-sm font-bold text-graphite uppercase tracking-wider mb-6">Typography</h3>
@@ -491,7 +532,6 @@ function BrandSystemSection() {
           </div>
         </RevealSection>
 
-        {/* Spacing & Radius */}
         <RevealSection>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
@@ -578,11 +618,10 @@ function TokenSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full pointer-events-none opacity-30"
         style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.1) 0%, transparent 70%)' }} />
 
-      <div className="relative z-10 mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="relative z-10 mx-auto max-w-[1280px] px-8 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <RevealSection>
-            <span className="section-label text-white/40">Developer-Ready</span>
-            <h2 className="mt-4 text-editorial font-bold text-white leading-tight">
+            <h2 className="text-editorial font-bold text-white leading-tight">
               Every visual decision,<br />
               converted into <span className="gradient-text">usable data.</span>
             </h2>
@@ -593,7 +632,7 @@ function TokenSection() {
               {['Export JSON', 'Copy tokens', 'Send to Figma', 'Connect API'].map(action => (
                 <button key={action} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white/70 bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] transition-all duration-300">
                   {action === 'Export JSON' && <FileJson className="w-3.5 h-3.5" />}
-                  {action === 'Copy tokens' && <Copy className="w-3.5 h-3.5" />}
+                  {action === 'Copy tokens' && <span className="w-3.5 h-3.5 flex items-center justify-center text-[10px]">{copied ? '✓' : '⎘'}</span>}
                   {action === 'Send to Figma' && <Layers className="w-3.5 h-3.5" />}
                   {action === 'Connect API' && <ArrowUpRight className="w-3.5 h-3.5" />}
                   {action}
@@ -604,7 +643,6 @@ function TokenSection() {
 
           <RevealSection delay={0.2}>
             <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.03]">
-              {/* Terminal header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
@@ -615,12 +653,11 @@ function TokenSection() {
                   <span className="text-[10px] font-mono text-white/30 ml-2">brand-tokens.json</span>
                 </div>
                 <button onClick={handleCopy} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.06] hover:bg-white/[0.1] transition-colors">
-                  {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-white/40" />}
+                  {copied ? <Check className="w-3 h-3 text-green-400" /> : <span className="text-[10px] text-white/40">⎘</span>}
                   <span className="text-[9px] font-mono text-white/40">{copied ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
 
-              {/* JSON content */}
               <pre className="p-5 text-[11px] font-mono leading-relaxed overflow-x-auto">
                 <code>
                   {jsonExample.split('\n').map((line, i) => (
@@ -630,7 +667,6 @@ function TokenSection() {
                         __html: line
                           .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
                           .replace(/: "([^"]+)"/g, ': <span class="json-string">"$1"</span>')
-                          .replace(/: (\d+)/g, ': <span class="json-number">$1</span>')
                           .replace(/([{}])/g, '<span class="json-bracket">$1</span>')
                       }} />
                     </div>
@@ -651,10 +687,9 @@ function LibrarySection() {
 
   return (
     <section className="py-24 md:py-32 bg-warm-offwhite">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
-          <span className="section-label">Brand Library</span>
-          <h2 className="mt-4 text-section font-bold text-graphite">
+          <h2 className="text-section font-bold text-graphite">
             One source of truth for<br />
             <span className="text-foreground-muted">your visual identity.</span>
           </h2>
@@ -662,7 +697,6 @@ function LibrarySection() {
 
         <RevealSection delay={0.2}>
           <div className="mt-12 rounded-2xl overflow-hidden border border-border/40 bg-white shadow-soft">
-            {/* Library tabs */}
             <div className="flex items-center gap-1 px-4 py-3 border-b border-border/30 overflow-x-auto">
               {['Overview', 'Logos', 'Colors', 'Typography', 'Icons', 'Components', 'Tokens'].map(tab => (
                 <button
@@ -679,10 +713,8 @@ function LibrarySection() {
               ))}
             </div>
 
-            {/* Library content */}
             <div className="p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Brand overview card */}
                 <div className="md:col-span-2 rounded-xl bg-warm-offwhite border border-border/30 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-bold text-graphite">Brand Overview</h3>
@@ -704,7 +736,6 @@ function LibrarySection() {
                   </div>
                 </div>
 
-                {/* Version history */}
                 <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
                   <h3 className="text-sm font-bold text-graphite mb-4">Version History</h3>
                   <div className="space-y-3">
@@ -726,7 +757,6 @@ function LibrarySection() {
                 </div>
               </div>
 
-              {/* Multi-brand switcher */}
               <div className="mt-6 flex items-center gap-3">
                 <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Workspaces</span>
                 {['Brandcora', 'Client A', 'Client B'].map((brand, i) => (
@@ -763,10 +793,9 @@ function ValidationSection() {
 
   return (
     <section id="validation" className="py-24 md:py-32 bg-white border-y border-border/50">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
-          <span className="section-label">Brand Validation</span>
-          <h2 className="mt-4 text-section font-bold text-graphite max-w-2xl">
+          <h2 className="text-section font-bold text-graphite max-w-2xl">
             Check every creative before it goes live.
           </h2>
           <p className="mt-4 text-lg text-foreground-secondary max-w-xl leading-relaxed">
@@ -775,7 +804,6 @@ function ValidationSection() {
         </RevealSection>
 
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Upload / Preview area */}
           <RevealSection>
             <div className="relative rounded-2xl overflow-hidden border border-border/40 bg-warm-offwhite aspect-[4/3]">
               {uploadState === 'idle' && (
@@ -799,7 +827,6 @@ function ValidationSection() {
 
               {uploadState === 'done' && (
                 <>
-                  {/* Simulated uploaded creative */}
                   <div className="absolute inset-0 p-8">
                     <div className="w-full h-full rounded-xl bg-white border border-border/40 p-6 space-y-4">
                       <div className="flex items-center gap-3">
@@ -817,8 +844,6 @@ function ValidationSection() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Validation annotations */}
                   {annotations.map((a, i) => (
                     <div key={i} className="validation-annotation" style={{
                       top: a.top, left: a.left, right: a.right,
@@ -828,8 +853,6 @@ function ValidationSection() {
                       <span style={{ color: a.color }}>{a.text}</span>
                     </div>
                   ))}
-
-                  {/* Scan overlay */}
                   <div className="absolute inset-0 pointer-events-none">
                     <div className="scan-line" style={{ animationDuration: '2s' }} />
                   </div>
@@ -838,10 +861,8 @@ function ValidationSection() {
             </div>
           </RevealSection>
 
-          {/* Validation report */}
           <RevealSection delay={0.2}>
             <div className="space-y-6">
-              {/* Score */}
               <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
                 <div className="flex items-end gap-3 mb-4">
                   <span className="text-5xl font-extrabold gradient-text">86</span>
@@ -851,7 +872,6 @@ function ValidationSection() {
                 <p className="text-xs text-foreground-muted mt-1">Minor inconsistencies detected</p>
               </div>
 
-              {/* Category scores */}
               <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6 space-y-4">
                 {[
                   { label: 'Logo', score: 100, status: 'On brand' },
@@ -879,7 +899,6 @@ function ValidationSection() {
                 ))}
               </div>
 
-              {/* Recommendations */}
               <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
                 <h4 className="text-sm font-bold text-graphite mb-3">Recommendations</h4>
                 <div className="space-y-3">
@@ -921,11 +940,10 @@ function WorkflowSection() {
 
   return (
     <section className="py-24 md:py-32 bg-background">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
           <div className="text-center mb-16">
-            <span className="section-label">How It Works</span>
-            <h2 className="mt-4 text-section font-bold text-graphite">
+            <h2 className="text-section font-bold text-graphite">
               From discovery to validation in seven steps.
             </h2>
           </div>
@@ -933,13 +951,11 @@ function WorkflowSection() {
 
         <RevealSection>
           <div className="relative">
-            {/* Connecting gradient line */}
             <div className="absolute top-8 left-0 right-0 h-0.5 hidden md:block" style={{
               background: 'linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B, #FF5F45, #FF8A5B, #F2B84B, #FF5F45)',
             }} />
-
             <div className="grid grid-cols-2 md:grid-cols-7 gap-6 md:gap-4">
-              {steps.map((step, i) => (
+              {steps.map((step) => (
                 <div key={step.num} className="relative text-center">
                   <div className="relative z-10 w-16 h-16 mx-auto rounded-2xl bg-white border border-border/40 shadow-soft flex items-center justify-center mb-4">
                     <span className="text-sm font-mono font-bold gradient-text">{step.num}</span>
@@ -959,45 +975,20 @@ function WorkflowSection() {
 /* ─── Use Cases Section ─── */
 function UseCasesSection() {
   const useCases = [
-    {
-      title: 'Brand Teams',
-      desc: 'Maintain one authoritative identity system. Every stakeholder accesses the same verified brand data.',
-      tag: 'Identity',
-    },
-    {
-      title: 'Marketing Teams',
-      desc: 'Check campaign graphics before publication. No more guessing whether colors or fonts are correct.',
-      tag: 'Campaigns',
-    },
-    {
-      title: 'Agencies',
-      desc: 'Extract and manage brand systems across multiple clients from a single workspace.',
-      tag: 'Multi-client',
-    },
-    {
-      title: 'Developers',
-      desc: 'Export structured tokens and JSON for implementation. Design-to-code without translation errors.',
-      tag: 'Tokens',
-    },
-    {
-      title: 'Social Teams',
-      desc: 'Validate daily content without waiting for manual design reviews. Instant brand compliance.',
-      tag: 'Content',
-    },
-    {
-      title: 'Product Teams',
-      desc: 'Compare website implementation with established design rules. Catch drift early.',
-      tag: 'Quality',
-    },
+    { title: 'Brand Teams', desc: 'Maintain one authoritative identity system. Every stakeholder accesses the same verified brand data.', tag: 'Identity' },
+    { title: 'Marketing Teams', desc: 'Check campaign graphics before publication. No more guessing whether colors or fonts are correct.', tag: 'Campaigns' },
+    { title: 'Agencies', desc: 'Extract and manage brand systems across multiple clients from a single workspace.', tag: 'Multi-client' },
+    { title: 'Developers', desc: 'Export structured tokens and JSON for implementation. Design-to-code without translation errors.', tag: 'Tokens' },
+    { title: 'Social Teams', desc: 'Validate daily content without waiting for manual design reviews. Instant brand compliance.', tag: 'Content' },
+    { title: 'Product Teams', desc: 'Compare website implementation with established design rules. Catch drift early.', tag: 'Quality' },
   ];
 
   return (
     <section className="py-24 md:py-32 bg-warm-offwhite">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
           <div className="max-w-2xl mb-16">
-            <span className="section-label">Use Cases</span>
-            <h2 className="mt-4 text-section font-bold text-graphite">
+            <h2 className="text-section font-bold text-graphite">
               Built for every team responsible<br />
               <span className="text-foreground-muted">for the brand.</span>
             </h2>
@@ -1031,12 +1022,11 @@ function SecuritySection() {
 
   return (
     <section className="py-24 md:py-32 bg-background">
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
         <RevealSection>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div>
-              <span className="section-label">Security &amp; Control</span>
-              <h2 className="mt-4 text-section font-bold text-graphite">
+              <h2 className="text-section font-bold text-graphite">
                 Your brand systems remain organized inside private workspaces with configurable team access.
               </h2>
               <p className="mt-6 text-base text-foreground-secondary leading-relaxed">
@@ -1064,24 +1054,44 @@ function SecuritySection() {
 
 /* ─── Final CTA Section ─── */
 function FinalCTA() {
-  return (
-    <section className="py-24 md:py-40 relative overflow-hidden grain" style={{ background: 'linear-gradient(180deg, #FAF8F5 0%, #F0EBF5 50%, #FAF8F5 100%)' }}>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.1) 0%, rgba(242,184,75,0.05) 40%, transparent 70%)' }} />
+  const [url, setUrl] = useState('');
+  const [focused, setFocused] = useState(false);
 
-      <div className="relative z-10 mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 text-center">
+  return (
+    <section className="py-24 md:py-32 relative overflow-hidden" style={{ background: '#FAF8F5' }}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.06) 0%, rgba(242,184,75,0.03) 40%, transparent 70%)' }} />
+
+      <div className="relative z-10 mx-auto max-w-[1280px] px-8 md:px-12 text-center">
         <RevealSection>
-          <h2 className="text-editorial font-bold text-graphite leading-tight max-w-3xl mx-auto">
+          <h2 className="text-editorial font-bold text-graphite leading-tight max-w-2xl mx-auto">
             Discover the brand system<br />
             <span className="gradient-text">already inside your website.</span>
           </h2>
-          <p className="mt-6 text-lg text-foreground-secondary max-w-lg mx-auto leading-relaxed">
+          <p className="mt-5 text-lg text-foreground-secondary max-w-lg mx-auto leading-relaxed">
             Paste a URL to extract your visual identity, organize your design tokens, and validate every creative asset against one consistent system.
           </p>
-          <div className="mt-10 flex justify-center">
-            <URLInput size="large" onSubmit={() => {}} />
+          <div className="mt-8 flex justify-center">
+            <form onSubmit={(e) => { e.preventDefault(); if (url.trim()) window.location.href = '/scans/new-website'; }} className="max-w-[520px] w-full">
+              <div className={`flex items-center gap-2 rounded-[11px] border transition-all duration-200 bg-white ${
+                focused ? 'border-brand-orange/30 shadow-[0_0_0_3px_rgba(255,95,69,0.06)]' : 'border-border-strong'
+              }`}>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  placeholder="https://yourwebsite.com"
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none px-4 text-[15px] text-foreground placeholder:text-foreground-subtle h-12"
+                />
+                <button type="submit" className="shrink-0 h-12 px-5 rounded-[10px] gradient-accent text-white text-[14px] font-semibold hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200">
+                  Analyze website
+                </button>
+              </div>
+            </form>
           </div>
-          <p className="mt-3 text-xs text-foreground-muted font-mono">No credit card required. Start with any public website.</p>
+          <p className="mt-3 text-[12px] text-foreground-muted">No credit card required. Start with any public website.</p>
         </RevealSection>
       </div>
     </section>
@@ -1092,7 +1102,7 @@ function FinalCTA() {
 function Footer() {
   return (
     <footer className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #1A1918 0%, #141312 100%)' }}>
-      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 pt-20 pb-12">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12 pt-20 pb-12">
         <div className="mb-16">
           <h2 className="text-[clamp(3rem,10vw,8rem)] font-extrabold text-white/5 leading-none tracking-tight">
             Brandcora
