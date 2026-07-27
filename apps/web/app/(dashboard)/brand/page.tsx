@@ -10,10 +10,8 @@ import {
   CheckCircle,
   Warning,
   ArrowRight,
-  Clock,
   MagnifyingGlass,
   Plus,
-  GitBranch,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { BrandSubNav } from '@/components/brand-sub-nav';
@@ -70,12 +68,6 @@ const COMPONENTS = [
   { name: 'Input field', usage: 8 },
   { name: 'Card', usage: 15 },
   { name: 'Badge', usage: 6 },
-];
-
-const CHANGES = [
-  { title: 'Primary color updated', detail: '#E85D40 → #FF5F45', date: '2 hours ago', type: 'color' },
-  { title: 'Logo lockup repositioned', detail: 'Centered → left-aligned', date: '3 days ago', type: 'logo' },
-  { title: 'Spacing scale adjusted', detail: '8px base → 4px base', date: '1 week ago', type: 'spacing' },
 ];
 
 export default function BrandIdentityOverview() {
@@ -349,38 +341,7 @@ export default function BrandIdentityOverview() {
         </div>
       </div>
 
-      {/* Fourth Row: Recent Changes */}
-      <div className="dash-card">
-        <div className="dash-card-header">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
-              <GitBranch className="h-4 w-4 text-[#FF5F45]" weight="bold" />
-            </div>
-            <div className="dash-card-title">Recent identity changes</div>
-          </div>
-          <Link href="/brand/versions" className="btn-ghost text-[12px]">
-            View history <ArrowRight className="h-3 w-3" weight="bold" />
-          </Link>
-        </div>
-        <div className="space-y-0">
-          {CHANGES.map((change, i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5 border-b border-[#F5F5F3] last:border-0">
-              <div className="w-2 h-2 rounded-full bg-[#FF5F45] flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium text-[#1A1918]">{change.title}</span>
-                  <span className="text-[10px] font-medium text-[#8A8A85] uppercase bg-[#F5F5F3] px-1.5 py-0.5 rounded">{change.type}</span>
-                </div>
-                <span className="text-[12px] text-[#8A8A85]">{change.detail}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-[#C4C4BF] flex-shrink-0">
-                <Clock className="h-3 w-3" weight="bold" />
-                {change.date}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 }
