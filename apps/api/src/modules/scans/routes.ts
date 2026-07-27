@@ -9,17 +9,35 @@ const router = Router();
 
 router.post('/social', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { brandProfileId, fileUrl, platform } = req.body;
+    let { brandProfileId, fileUrl, platform } = req.body;
 
-    if (!brandProfileId || !fileUrl || !platform) {
-      return res.status(400).json({ success: false, error: 'brandProfileId, fileUrl, and platform are required' });
+    if (!fileUrl || !platform) {
+      return res.status(400).json({ success: false, error: 'fileUrl and platform are required' });
     }
 
-    const profile = await prisma.brandProfile.findFirst({
-      where: { id: brandProfileId, userId: req.userId! },
-    });
-    if (!profile) {
-      return res.status(404).json({ success: false, error: 'Brand profile not found' });
+    // Auto-create brand profile if not provided
+    if (!brandProfileId) {
+      let profile = await prisma.brandProfile.findUnique({
+        where: { userId: req.userId! },
+      });
+
+      if (!profile) {
+        profile = await prisma.brandProfile.create({
+          data: {
+            userId: req.userId!,
+            name: 'My Brand',
+          },
+        });
+      }
+
+      brandProfileId = profile.id;
+    } else {
+      const profile = await prisma.brandProfile.findFirst({
+        where: { id: brandProfileId, userId: req.userId! },
+      });
+      if (!profile) {
+        return res.status(404).json({ success: false, error: 'Brand profile not found' });
+      }
     }
 
     const remaining = await getRemainingUsage(req.userId!, 'socialChecks');
@@ -59,17 +77,43 @@ router.post('/social', requireAuth, async (req: AuthenticatedRequest, res) => {
 
 router.post('/website', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { brandProfileId, url } = req.body;
+    let { brandProfileId, url } = req.body;
 
-    if (!brandProfileId || !url) {
-      return res.status(400).json({ success: false, error: 'brandProfileId and url are required' });
+    if (!url) {
+      return res.status(400).json({ success: false, error: 'url is required' });
     }
 
-    const profile = await prisma.brandProfile.findFirst({
-      where: { id: brandProfileId, userId: req.userId! },
-    });
-    if (!profile) {
-      return res.status(404).json({ success: false, error: 'Brand profile not found' });
+    // Auto-create brand profile if not provided
+    if (!brandProfileId) {
+      let profile = await prisma.brandProfile.findUnique({
+        where: { userId: req.userId! },
+      });
+
+      if (!profile) {
+        // Derive brand name from URL
+        let brandName = 'My Brand';
+        try {
+          const hostname = new URL(url).hostname.replace('www.', '');
+          brandName = hostname.split('.')[0];
+          brandName = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+        } catch { /* use default */ }
+
+        profile = await prisma.brandProfile.create({
+          data: {
+            userId: req.userId!,
+            name: brandName,
+          },
+        });
+      }
+
+      brandProfileId = profile.id;
+    } else {
+      const profile = await prisma.brandProfile.findFirst({
+        where: { id: brandProfileId, userId: req.userId! },
+      });
+      if (!profile) {
+        return res.status(404).json({ success: false, error: 'Brand profile not found' });
+      }
     }
 
     const remaining = await getRemainingUsage(req.userId!, 'websiteScans');

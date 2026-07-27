@@ -76,21 +76,8 @@ export default function BrandScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanData, setScanData] = useState<ScanData | null>(null);
   const [previousScan, setPreviousScan] = useState<ScanData | null>(null);
-  const [brandProfileId, setBrandProfileId] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef(false);
-
-  // Fetch brand profile ID on mount
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success && d.data?.id) {
-          setBrandProfileId(d.data.id);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const fetchPreviousScan = useCallback(async () => {
     try {
@@ -165,11 +152,6 @@ export default function BrandScanPage() {
       return;
     }
 
-    if (!brandProfileId) {
-      setError('No brand profile found. Please create one first.');
-      return;
-    }
-
     setIsScanning(true);
     setScanData(null);
 
@@ -177,7 +159,7 @@ export default function BrandScanPage() {
       const res = await apiFetch('/api/v1/scans/website', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brandProfileId, url: normalized }),
+        body: JSON.stringify({ url: normalized }),
       });
       const data = await res.json();
 

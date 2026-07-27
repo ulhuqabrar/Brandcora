@@ -50,22 +50,6 @@ export default function NewReportPage() {
     setCurrentStage(0);
 
     try {
-      let brandProfileId = localStorage.getItem('brand-profile-id');
-
-      // Fallback: fetch from API if not in localStorage
-      if (!brandProfileId) {
-        const profileRes = await apiFetch('/api/v1/brand-profile');
-        const profileData = await profileRes.json();
-        if (profileData.success && profileData.data?.id) {
-          brandProfileId = profileData.data.id;
-          localStorage.setItem('brand-profile-id', brandProfileId!);
-        }
-      }
-
-      if (!brandProfileId) {
-        throw new Error('No brand profile found. Please set up your brand profile first.');
-      }
-
       if (mode === 'website') {
         // Website scan
         setCurrentStage(0);
@@ -76,7 +60,6 @@ export default function NewReportPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            brandProfileId,
             url: url.startsWith('http') ? url : `https://${url}`,
           }),
         });
@@ -115,7 +98,6 @@ export default function NewReportPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            brandProfileId,
             fileUrl: uploadData.data.fileUrl,
             platform: 'general',
           }),
