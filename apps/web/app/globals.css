@@ -242,6 +242,105 @@
     transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  /* ─── Scan line ─── */
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--brand-orange) 20%, var(--brand-peach) 50%, var(--brand-gold) 80%, transparent 100%);
+    box-shadow: 0 0 20px rgba(255, 95, 69, 0.4), 0 0 60px rgba(255, 95, 69, 0.15);
+    animation: scanLine 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    z-index: 20;
+  }
+
+  .scan-region {
+    position: absolute;
+    border: 1.5px solid rgba(255, 95, 69, 0.5);
+    border-radius: 4px;
+    animation: regionHighlight 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    pointer-events: none;
+  }
+
+  .scan-label {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    padding: 2px 6px;
+    background: var(--brand-orange);
+    color: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-radius: 3px;
+    white-space: nowrap;
+    animation: tokenExtract 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* ─── Token card ─── */
+  .token-card {
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .token-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ─── Score bar ─── */
+  .score-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-gold));
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ─── JSON panel ─── */
+  .json-key { color: #FF5F45; }
+  .json-string { color: #F2B84B; }
+  .json-number { color: #FF8A5B; }
+  .json-bracket { color: var(--foreground-muted); }
+
+  /* ─── Upload area ─── */
+  .upload-zone {
+    border: 2px dashed var(--border-strong);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .upload-zone:hover,
+  .upload-zone.active {
+    border-color: var(--brand-orange);
+    background: rgba(255, 95, 69, 0.03);
+  }
+
+  /* ─── Validation annotation ─── */
+  .validation-annotation {
+    position: absolute;
+    padding: 4px 8px;
+    background: white;
+    border-left: 3px solid;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: validateSlide 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* ─── Workflow connector ─── */
+  .workflow-line {
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-peach), var(--brand-gold));
+    height: 2px;
+    border-radius: 1px;
+  }
+
   /* ─── Magnetic button ─── */
   .btn-magnetic {
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -390,6 +489,69 @@
 @keyframes patternSlide {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
+}
+
+@keyframes scanLine {
+  0% { top: 0%; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes tokenExtract {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulseRing {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes validateSlide {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scoreCount {
+  from { --score: 0; }
+}
+
+@keyframes dataFlow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes regionHighlight {
+  0% { opacity: 0; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+  to { width: var(--target-width); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line-animate,
+  .token-extract-animate,
+  .validate-slide-animate,
+  .pulse-ring-animate,
+  .data-flow-animate,
+  .region-highlight-animate {
+    animation: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
