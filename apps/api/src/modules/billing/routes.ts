@@ -47,13 +47,30 @@ router.post('/checkout', requireAuth, async (req: AuthenticatedRequest, res) => 
       return res.status(400).json({ success: false, error: 'No price ID configured for this plan' });
     }
 
-    const membership = await prisma.membership.findFirst({
+    let membership = await prisma.membership.findFirst({
       where: { userId },
       include: { workspace: true },
     });
 
     if (!membership?.workspace) {
-      return res.status(400).json({ success: false, error: 'No workspace found' });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const slug = (user?.email || userId).split('@')[0].toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+      const workspace = await prisma.workspace.create({
+        data: {
+          name: user?.name || `${user?.email || 'User'}'s Workspace`,
+          slug,
+          ownerId: userId,
+          membership: { create: { userId, role: 'owner' } },
+        },
+      });
+      membership = await prisma.membership.findFirst({
+        where: { userId },
+        include: { workspace: true },
+      });
+    }
+
+    if (!membership?.workspace) {
+      return res.status(500).json({ success: false, error: 'Failed to create workspace' });
     }
 
     const existingBillingCustomer = await prisma.billingCustomer.findUnique({
