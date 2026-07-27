@@ -10,7 +10,6 @@ import {
   ArrowRight,
   ArrowClockwise,
   Download,
-  PencilSimple,
   Globe,
   MagnifyingGlass,
   Palette,
@@ -114,9 +113,6 @@ export default function BrandReviewPage() {
           </button>
           <button className="btn-ghost text-[12px]">
             <Download className="h-3.5 w-3.5" weight="bold" /> Export preview
-          </button>
-          <button className="btn-ghost text-[12px]">
-            <PencilSimple className="h-3.5 w-3.5" weight="bold" /> Edit name
           </button>
         </div>
       </div>
