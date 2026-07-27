@@ -94,9 +94,15 @@ export default function BillingSettingsPage() {
         body: JSON.stringify({ planKey, interval: 'monthly' }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        console.error('Checkout error:', data.error);
+        return;
+      }
       if (data.data?.url) {
         window.location.href = data.data.url;
       }
+    } catch (error) {
+      console.error('Checkout error:', error);
     } finally {
       setCheckoutLoading(null);
     }

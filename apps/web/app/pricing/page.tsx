@@ -42,10 +42,16 @@ const plans = [
 export default function PricingPage() {
   const { session } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   async function handleCheckout(plan: typeof plans[0]) {
     if (plan.name === 'Free') {
       window.location.href = '/register';
+      return;
+    }
+
+    if (!session?.user) {
+      window.location.href = '/auth';
       return;
     }
 
@@ -60,11 +66,18 @@ export default function PricingPage() {
         }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to start checkout. Please try again.');
+        return;
+      }
       if (data.data?.url) {
         window.location.href = data.data.url;
+      } else {
+        setError('No checkout URL received. Please try again.');
       }
     } catch (error) {
       console.error('Checkout error:', error);
+      setError('Network error. Please try again.');
     } finally {
       setLoading(null);
     }
@@ -127,6 +140,10 @@ export default function PricingPage() {
         <p className="mt-10 text-center text-sm text-muted-foreground">
           All paid plans include a 14-day free trial. No credit card required.
         </p>
+
+        {error && (
+          <div className="mt-6 max-w-md mx-auto rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium text-center">{error}</div>
+        )}
       </div>
     </div>
   );
