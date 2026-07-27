@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   Copy,
   Download,
-  MagnifyingGlass,
   CheckCircle,
   Warning,
   Spinner,
@@ -134,14 +133,13 @@ export default function TokensPage() {
 
       {/* Filters */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-[280px]">
-          <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#C4C4BF]" weight="bold" />
+        <div className="flex-1 max-w-[280px]">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tokens..."
-            className="input-compact pl-9"
+            className="input-compact"
           />
         </div>
         <div className="flex items-center gap-1">

@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   CheckCircle,
   X,
-  Globe,
   Warning,
   Spinner,
 } from '@phosphor-icons/react';
@@ -248,14 +247,13 @@ export default function BrandScanPage() {
           <div className="dash-card">
             <div className="dash-card-title mb-4">Website URL</div>
             <form onSubmit={handleScan} className="flex gap-3">
-              <div className="relative flex-1">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#C4C4BF]" weight="bold" />
+              <div className="flex-1">
                 <input
                   type="text"
                   value={url}
                   onChange={(e) => { setUrl(e.target.value); setError(''); }}
                   placeholder="https://yourwebsite.com"
-                  className="input-compact pl-9"
+                  className="input-compact"
                 />
               </div>
               <button

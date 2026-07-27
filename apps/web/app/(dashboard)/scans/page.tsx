@@ -6,7 +6,6 @@ import {
   FileText,
   Plus,
   Lock,
-  MagnifyingGlass,
   Fingerprint,
   TrendUp,
   CheckCircle,
@@ -117,16 +116,13 @@ export default function ReportsPage() {
         <div className="flex items-center justify-between p-4 border-b border-[#F5F5F3]">
           <div className="text-[13px] font-semibold text-[#1A1918]">Recent scans</div>
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search scans..."
-                className="input-compact pl-8 h-8 text-[12px] w-48"
-              />
-            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search scans..."
+              className="input-compact h-8 text-[12px] w-48"
+            />
           </div>
         </div>
         <table className="data-table">
