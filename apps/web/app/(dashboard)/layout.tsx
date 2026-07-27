@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
                 <span className="top-bar-separator" />
                 <div className="top-bar-workspace">
-                  <span className="top-bar-workspace-name">Acme Studio</span>
+                  <span className="top-bar-workspace-name">seocontent.ai</span>
                   <span className="hidden sm:inline text-xs">·</span>
                   <span className="hidden sm:inline text-xs">Approved · 2h ago</span>
                 </div>

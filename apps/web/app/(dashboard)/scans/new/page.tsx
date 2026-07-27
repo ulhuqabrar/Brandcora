@@ -183,7 +183,7 @@ export default function NewReportPage() {
             <span className="text-white text-[11px] font-bold">B</span>
           </div>
           <div className="flex-1">
-            <div className="text-[13px] font-medium text-[#1A1918]">Acme Corp</div>
+            <div className="text-[13px] font-medium text-[#1A1918]">seocontent.ai</div>
             <div className="text-[11px] text-[#8A8A85]">Approved · v2 · 12 tokens</div>
           </div>
           <span className="status-badge active text-[10px]">

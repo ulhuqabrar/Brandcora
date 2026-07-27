@@ -161,7 +161,7 @@ export default function BrandScanPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[13px] font-medium text-[#1A1918]">acme.com</div>
+                <div className="text-[13px] font-medium text-[#1A1918]">seocontent.ai</div>
                 <div className="text-[12px] text-[#8A8A85]">Scanned 2 hours ago · 18 pages · 24 assets</div>
               </div>
               <Link href="/brand/review" className="btn-ghost text-[12px]">

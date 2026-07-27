@@ -23,7 +23,7 @@ const REPORTS = [
   {
     id: 'rpt-1',
     name: 'Homepage redesign v3',
-    brand: 'Acme Corp',
+    brand: 'seocontent.ai',
     channel: 'Website',
     score: 92,
     issues: 2,
@@ -34,7 +34,7 @@ const REPORTS = [
   {
     id: 'rpt-2',
     name: 'Q3 social campaign',
-    brand: 'Acme Corp',
+    brand: 'seocontent.ai',
     channel: 'Instagram',
     score: 64,
     issues: 7,
@@ -45,7 +45,7 @@ const REPORTS = [
   {
     id: 'rpt-3',
     name: 'Product page audit',
-    brand: 'Acme Corp',
+    brand: 'seocontent.ai',
     channel: 'Website',
     score: 78,
     issues: 4,
@@ -56,7 +56,7 @@ const REPORTS = [
   {
     id: 'rpt-4',
     name: 'Email newsletter banner',
-    brand: 'Acme Corp',
+    brand: 'seocontent.ai',
     channel: 'Email',
     score: 88,
     issues: 1,
@@ -67,7 +67,7 @@ const REPORTS = [
   {
     id: 'rpt-5',
     name: 'LinkedIn ad creative',
-    brand: 'Acme Corp',
+    brand: 'seocontent.ai',
     channel: 'LinkedIn',
     score: 71,
     issues: 5,

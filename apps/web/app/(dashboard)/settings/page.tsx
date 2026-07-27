@@ -35,7 +35,7 @@ const SETTINGS_NAV = [
 export default function SettingsPage() {
   const pathname = usePathname();
   const [name, setName] = useState('Sajibur');
-  const [email, setEmail] = useState('sajibur@acme.com');
+  const [email, setEmail] = useState('sajibur@seocontent.ai');
   const [timezone, setTimezone] = useState('UTC');
   const [language, setLanguage] = useState('en');
 

@@ -36,7 +36,7 @@ const VERSIONS = [
   {
     version: 'v2',
     date: '2 hours ago',
-    source: 'acme.com',
+    source: 'seocontent.ai',
     changes: 3,
     approvedBy: 'Sajibur',
     status: 'active',
@@ -49,7 +49,7 @@ const VERSIONS = [
   {
     version: 'v1',
     date: '1 week ago',
-    source: 'acme.com',
+    source: 'seocontent.ai',
     changes: 12,
     approvedBy: 'Sajibur',
     status: 'archived',

@@ -22,8 +22,8 @@ import {
 } from '@phosphor-icons/react';
 
 const BRAND = {
-  name: 'Acme Corp',
-  url: 'acme.com',
+  name: 'seocontent.ai',
+  url: 'seocontent.ai',
   status: 'active',
   version: 2,
   lastScan: '2 hours ago',

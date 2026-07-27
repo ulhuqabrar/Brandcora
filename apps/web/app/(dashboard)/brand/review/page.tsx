@@ -37,7 +37,7 @@ const subNav = [
 ];
 
 const DETECTED = {
-  website: 'acme.com',
+  website: 'seocontent.ai',
   scanDate: 'Just now',
   pagesAnalyzed: 18,
   assetsFound: 24,

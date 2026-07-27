@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 const REPORT = {
   id: 'rpt-2',
   name: 'Q3 social campaign',
-  brand: 'Acme Corp',
+  brand: 'seocontent.ai',
   channel: 'Instagram',
   score: 64,
   status: 'needs_review',
