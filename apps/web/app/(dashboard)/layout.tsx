@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  House,
   Fingerprint,
   FileText,
   GearSix,
@@ -20,10 +19,9 @@ import { ProtectedRoute } from '@/lib/protected-route';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/dashboard', icon: House, label: 'Dashboard', locked: false },
   { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
   { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
-  { to: '/settings/profile', icon: GearSix, label: 'Settings', locked: false },
+  { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
 ];
 
 const bottomItems = [
@@ -42,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? 'Reports'
     : pathname.startsWith('/settings')
     ? 'Settings'
-    : 'Dashboard';
+    : 'Brand Identity';
 
   const initials = user?.name
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)

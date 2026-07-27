@@ -102,15 +102,6 @@ export default function ProfileSettingsPage() {
                 <p className="text-xs text-muted-foreground">Email cannot be changed here</p>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                value={avatar}
-                onChange={(e) => setAvatar(e.target.value)}
-                placeholder="https://example.com/avatar.jpg"
-              />
-            </div>
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={loading}>
                 {loading ? 'Saving...' : 'Save changes'}
