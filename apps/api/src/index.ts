@@ -126,14 +126,14 @@ async function ensureSchema() {
   }
 }
 
-ensureSchema().then(() => {
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 API server running on port ${port}`);
-    console.log(`📊 Environment: ${env.NODE_ENV}`);
-    console.log(`🔗 API URL: ${env.API_BASE_URL}`);
-    console.log(`🔐 BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
-    console.log(`🌐 WEB_APP_URL: ${env.WEB_APP_URL}`);
-  });
+ensureSchema().catch(() => {});
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 API server running on port ${port}`);
+  console.log(`📊 Environment: ${env.NODE_ENV}`);
+  console.log(`🔗 API URL: ${env.API_BASE_URL}`);
+  console.log(`🔐 BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
+  console.log(`🌐 WEB_APP_URL: ${env.WEB_APP_URL}`);
 });
 
 export default app;
