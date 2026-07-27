@@ -133,11 +133,7 @@ export default function ProfileSettingsPage() {
           <CardDescription>Read-only information about your account.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 max-w-lg">
-            <div>
-              <Label className="text-muted-foreground">User ID</Label>
-              <p className="text-sm font-mono mt-1">{session?.user.id}</p>
-            </div>
+          <div className="max-w-lg">
             <div>
               <Label className="text-muted-foreground">Email Status</Label>
               <p className="text-sm mt-1">
