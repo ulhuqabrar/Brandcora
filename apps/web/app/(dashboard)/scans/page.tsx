@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   FileText,
@@ -10,108 +10,68 @@ import {
   Fingerprint,
   TrendUp,
   CheckCircle,
-  Warning,
   WarningCircle,
   ArrowRight,
-  Clock,
-  Funnel,
-  Sliders,
+  Spinner,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
+import { apiFetch } from '@/lib/api';
 
-const REPORTS = [
-  {
-    id: 'rpt-1',
-    name: 'Homepage redesign v3',
-    brand: 'seocontent.ai',
-    channel: 'Website',
-    score: 92,
-    issues: 2,
-    status: 'approved',
-    createdBy: 'Sajibur',
-    date: '2 hours ago',
-  },
-  {
-    id: 'rpt-2',
-    name: 'Q3 social campaign',
-    brand: 'seocontent.ai',
-    channel: 'Instagram',
-    score: 64,
-    issues: 7,
-    status: 'needs_review',
-    createdBy: 'Sajibur',
-    date: '1 day ago',
-  },
-  {
-    id: 'rpt-3',
-    name: 'Product page audit',
-    brand: 'seocontent.ai',
-    channel: 'Website',
-    score: 78,
-    issues: 4,
-    status: 'needs_review',
-    createdBy: 'Sajibur',
-    date: '3 days ago',
-  },
-  {
-    id: 'rpt-4',
-    name: 'Email newsletter banner',
-    brand: 'seocontent.ai',
-    channel: 'Email',
-    score: 88,
-    issues: 1,
-    status: 'approved',
-    createdBy: 'Sajibur',
-    date: '5 days ago',
-  },
-  {
-    id: 'rpt-5',
-    name: 'LinkedIn ad creative',
-    brand: 'seocontent.ai',
-    channel: 'LinkedIn',
-    score: 71,
-    issues: 5,
-    status: 'changes_requested',
-    createdBy: 'Sajibur',
-    date: '1 week ago',
-  },
-];
-
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  approved: { label: 'Approved', className: 'active' },
-  needs_review: { label: 'Needs review', className: 'pending' },
-  changes_requested: { label: 'Changes requested', className: 'error' },
-  processing: { label: 'Processing', className: 'neutral' },
-};
-
-const SCORE_COLOR = (s: number) =>
-  s >= 80 ? '#16A34A' : s >= 60 ? '#D97706' : '#DC2626';
+interface ScanItem {
+  id: string;
+  status: string;
+  overallScore: number | null;
+  sourceUrl: string | null;
+  sourceFileUrl: string | null;
+  scanType: string;
+  platform: string | null;
+  createdAt: string;
+  issues: Array<{ id: string }>;
+  scores: Array<{ category: string; score: number }>;
+  brandProfile?: { name: string } | null;
+}
 
 export default function ReportsPage() {
-  const [hasIdentity] = useState(true);
+  const [scans, setScans] = useState<ScanItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const filtered = REPORTS.filter(r =>
-    !search || r.name.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    apiFetch(`/api/v1/scans?page=${page}&limit=20`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          setScans(d.data.scans || []);
+          setTotal(d.data.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [page]);
 
-  if (!hasIdentity) {
+  const filtered = scans.filter(s => {
+    if (!search) return true;
+    const hostname = s.sourceUrl ? (() => {
+      try { return new URL(s.sourceUrl).hostname.replace('www.', ''); }
+      catch { return s.sourceUrl; }
+    })() : '';
+    return hostname.toLowerCase().includes(search.toLowerCase()) ||
+           s.scanType.toLowerCase().includes(search.toLowerCase());
+  });
+
+  const completedScans = scans.filter(s => s.status === 'completed' || s.status === 'completed_with_warnings');
+  const avgScore = completedScans.length > 0
+    ? Math.round(completedScans.reduce((sum, s) => sum + (s.overallScore ?? 0), 0) / completedScans.length)
+    : 0;
+  const totalIssues = scans.reduce((sum, s) => sum + (s.issues?.length ?? 0), 0);
+
+  if (loading) {
     return (
       <div className="space-y-5">
-        <div className="dash-card">
-          <div className="empty-state">
-            <div className="empty-state-icon bg-[#FF5F45]/10">
-              <Lock className="h-6 w-6 text-[#FF5F45]" weight="bold" />
-            </div>
-            <div className="empty-state-title">Brand identity required</div>
-            <div className="empty-state-desc">
-              Create and approve a brand identity before analyzing creative assets.
-            </div>
-            <Link href="/brand" className="btn-primary">
-              <Fingerprint className="h-4 w-4" weight="bold" />
-              Create brand identity
-            </Link>
-          </div>
+        <div className="dash-card flex items-center justify-center py-12">
+          <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
         </div>
       </div>
     );
@@ -121,24 +81,24 @@ export default function ReportsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1A1918] tracking-tight">Creative reports</h1>
+          <h1 className="text-[26px] font-bold text-[#1A1918] tracking-tight">Scans</h1>
           <p className="text-[13px] text-[#8A8A85] mt-1">
-            Upload a creative asset and compare it with your approved brand identity.
+            Website and social media brand consistency scans.
           </p>
         </div>
         <Link href="/scans/new" className="btn-primary">
           <Plus className="h-4 w-4" weight="bold" />
-          New report
+          New scan
         </Link>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Reports this month', value: '12', icon: FileText, color: '#FF5F45', change: '+3' },
-          { label: 'Average score', value: '79', icon: TrendUp, color: '#16A34A', change: '+4' },
-          { label: 'Open issues', value: '8', icon: WarningCircle, color: '#D97706', change: '-2' },
-          { label: 'Approved assets', value: '7', icon: CheckCircle, color: '#16A34A', change: '+1' },
+          { label: 'Total scans', value: total.toString(), icon: FileText, color: '#FF5F45' },
+          { label: 'Average score', value: avgScore.toString(), icon: TrendUp, color: '#16A34A' },
+          { label: 'Open issues', value: totalIssues.toString(), icon: WarningCircle, color: '#D97706' },
+          { label: 'Completed', value: completedScans.length.toString(), icon: CheckCircle, color: '#16A34A' },
         ].map((card) => (
           <div key={card.label} className="dash-card">
             <div className="flex items-center gap-2 mb-2">
@@ -147,18 +107,15 @@ export default function ReportsPage() {
               </div>
               <span className="text-[12px] text-[#8A8A85]">{card.label}</span>
             </div>
-            <div className="flex items-end justify-between">
-              <div className="metric-value text-[24px]">{card.value}</div>
-              <span className="metric-change positive text-[11px]">{card.change}</span>
-            </div>
+            <div className="metric-value text-[24px]">{card.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Reports Table */}
+      {/* Scans Table */}
       <div className="dash-card p-0 overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-[#F5F5F3]">
-          <div className="text-[13px] font-semibold text-[#1A1918]">Recent reports</div>
+          <div className="text-[13px] font-semibold text-[#1A1918]">Recent scans</div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
@@ -166,68 +123,86 @@ export default function ReportsPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search reports..."
+                placeholder="Search scans..."
                 className="input-compact pl-8 h-8 text-[12px] w-48"
               />
             </div>
-            <button className="btn-ghost text-[12px]">
-              <Funnel className="h-3.5 w-3.5" weight="bold" /> Filter
-            </button>
           </div>
         </div>
         <table className="data-table">
           <thead>
             <tr>
-              <th>Report</th>
-              <th>Channel</th>
+              <th>Source</th>
+              <th>Type</th>
               <th>Score</th>
               <th>Issues</th>
               <th>Status</th>
-              <th>Created by</th>
               <th>Date</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((report) => {
-              const status = STATUS_MAP[report.status];
+            {filtered.map((scan) => {
+              const hostname = scan.sourceUrl ? (() => {
+                try { return new URL(scan.sourceUrl).hostname.replace('www.', ''); }
+                catch { return scan.sourceUrl; }
+              })() : scan.platform || 'Social';
+
+              const scoreColor = (scan.overallScore ?? 0) >= 80 ? '#16A34A' :
+                                 (scan.overallScore ?? 0) >= 60 ? '#D97706' : '#DC2626';
+
               return (
-                <tr key={report.id}>
+                <tr key={scan.id}>
                   <td>
-                    <Link href={`/scans/${report.id}`} className="text-[13px] font-medium text-[#1A1918] hover:text-[#FF5F45] transition-colors">
-                      {report.name}
+                    <Link href={`/scans/${scan.id}`} className="text-[13px] font-medium text-[#1A1918] hover:text-[#FF5F45] transition-colors">
+                      {hostname}
                     </Link>
-                    <div className="text-[11px] text-[#8A8A85]">{report.brand}</div>
+                    <div className="text-[11px] text-[#8A8A85]">{scan.brandProfile?.name || 'Brand'}</div>
                   </td>
                   <td>
-                    <span className="text-[12px] text-[#3D3D3A]">{report.channel}</span>
-                  </td>
-                  <td>
-                    <span className="text-[14px] font-bold" style={{ color: SCORE_COLOR(report.score) }}>
-                      {report.score}
+                    <span className={cn(
+                      'text-[11px] font-medium px-2 py-0.5 rounded',
+                      scan.scanType === 'website' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                    )}>
+                      {scan.scanType}
                     </span>
+                  </td>
+                  <td>
+                    {scan.overallScore != null ? (
+                      <span className="text-[14px] font-bold" style={{ color: scoreColor }}>
+                        {Math.round(scan.overallScore)}
+                      </span>
+                    ) : (
+                      <span className="text-[12px] text-[#C4C4BF]">—</span>
+                    )}
                   </td>
                   <td>
                     <span className={cn(
                       'text-[12px] font-medium',
-                      report.issues > 5 ? 'text-[#DC2626]' : report.issues > 2 ? 'text-[#D97706]' : 'text-[#8A8A85]'
+                      (scan.issues?.length ?? 0) > 5 ? 'text-[#DC2626]' :
+                      (scan.issues?.length ?? 0) > 2 ? 'text-[#D97706]' : 'text-[#8A8A85]'
                     )}>
-                      {report.issues}
+                      {scan.issues?.length ?? 0}
                     </span>
                   </td>
                   <td>
-                    <span className={cn('status-badge text-[10px]', status.className)}>
-                      {status.label}
+                    <span className={cn(
+                      'status-badge text-[10px]',
+                      scan.status === 'completed' ? 'active' :
+                      scan.status === 'failed' ? 'error' : 'pending'
+                    )}>
+                      {scan.status === 'completed' ? 'Completed' :
+                       scan.status === 'failed' ? 'Failed' :
+                       scan.status === 'running' ? 'Running' : 'Pending'}
                     </span>
                   </td>
                   <td>
-                    <span className="text-[12px] text-[#8A8A85]">{report.createdBy}</span>
+                    <span className="text-[12px] text-[#8A8A85]">
+                      {getTimeAgo(new Date(scan.createdAt))}
+                    </span>
                   </td>
                   <td>
-                    <span className="text-[12px] text-[#8A8A85]">{report.date}</span>
-                  </td>
-                  <td>
-                    <Link href={`/scans/${report.id}`} className="p-1 hover:bg-[#F5F5F3] rounded inline-flex">
+                    <Link href={`/scans/${scan.id}`} className="p-1 hover:bg-[#F5F5F3] rounded inline-flex">
                       <ArrowRight className="h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
                     </Link>
                   </td>
@@ -236,7 +211,23 @@ export default function ReportsPage() {
             })}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-[13px] text-[#8A8A85]">No scans found.</p>
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+function getTimeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

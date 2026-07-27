@@ -29,7 +29,7 @@ export async function runWebsiteCheck(
 ): Promise<WebsiteCheckResult> {
   await prisma.scan.update({
     where: { id: scanId },
-    data: { status: 'processing', startedAt: new Date() },
+    data: { status: 'processing', startedAt: new Date(), progress: 5, currentStage: 'connecting' },
   });
 
   try {
@@ -39,6 +39,11 @@ export async function runWebsiteCheck(
     }
 
     const normalizedUrl = normalizeUrl(url);
+
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 15, currentStage: 'crawling' },
+    });
 
     const brandProfile = await prisma.brandProfile.findUnique({
       where: { id: brandProfileId },
@@ -58,6 +63,11 @@ export async function runWebsiteCheck(
       status: 'completed',
     });
 
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 40, currentStage: 'extracting_colors', pagesDiscovered: 1, pagesAnalyzed: 1 },
+    });
+
     await prisma.scanPage.create({
       data: {
         scanId,
@@ -69,6 +79,12 @@ export async function runWebsiteCheck(
 
     const brandColors = brandProfile.colors.map(c => c.hexValue);
     const brandFonts = brandProfile.fonts.map(f => f.family);
+
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 55, currentStage: 'extracting_typography' },
+    });
+
     const brandGradients = (brandProfile.gradients || []).map(g => ({
       type: g.gradientType,
       angle: g.angle,
@@ -80,11 +96,22 @@ export async function runWebsiteCheck(
     const colorCheck = checkColorConsistency(pageResult.colors, brandColors);
     const typographyCheck = checkTypography(pageResult.fonts, brandFonts);
     const logoCheck = checkLogoUsage(pageResult.hasLogo, brandProfile.logos.length > 0);
+
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 70, currentStage: 'extracting_components' },
+    });
+
     const componentCheck = checkComponents(pageResult.buttons, brandProfile);
     const layoutCheck = checkLayout(pageResult);
     const accessibilityCheck = checkAccessibility(pageResult);
     const responsivenessCheck = checkResponsiveness(pageResult);
     const gradientCheck = checkGradientConsistency(pageResult.gradients, brandGradients);
+
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 85, currentStage: 'generating_tokens' },
+    });
 
     const scores = [
       { category: 'colors', score: colorCheck.score, weight: getWebsiteWeights().colors },
@@ -117,6 +144,11 @@ export async function runWebsiteCheck(
       data: scores.map(s => ({ scanId, ...s })),
     });
 
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 95, currentStage: 'saving_results' },
+    });
+
     if (allIssues.length > 0) {
       await prisma.scanIssue.createMany({
         data: allIssues.map(i => ({
@@ -134,6 +166,8 @@ export async function runWebsiteCheck(
       where: { id: scanId },
       data: {
         status: 'completed',
+        progress: 100,
+        currentStage: 'completed',
         overallScore,
         scoringVersion: SCORING_VERSION,
         completedAt: new Date(),
@@ -146,6 +180,8 @@ export async function runWebsiteCheck(
       where: { id: scanId },
       data: {
         status: 'failed',
+        progress: 0,
+        currentStage: 'failed',
         failedAt: new Date(),
         errorCode: 'SCAN_FAILED',
         errorMessage: error.message,

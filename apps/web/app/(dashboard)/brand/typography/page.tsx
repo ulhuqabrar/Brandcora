@@ -1,49 +1,55 @@
 'use client';
 
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import {
   Copy,
-  PencilSimple,
+  Spinner,
 } from '@phosphor-icons/react';
 import { BrandSubNav } from '@/components/brand-sub-nav';
+import { apiFetch } from '@/lib/api';
 
-const FONTS = [
-  {
-    name: 'Manrope',
-    role: 'Headings',
-    weights: ['400', '500', '600', '700', '800'],
-    usage: 32,
-    styles: [
-      { label: 'H1', size: '32px', weight: '800', lineHeight: '1.1', sample: 'Brand Identity' },
-      { label: 'H2', size: '24px', weight: '700', lineHeight: '1.2', sample: 'Design System' },
-      { label: 'H3', size: '18px', weight: '600', lineHeight: '1.3', sample: 'Color Palette' },
-    ],
-  },
-  {
-    name: 'IBM Plex Mono',
-    role: 'Code & Data',
-    weights: ['400', '500', '600'],
-    usage: 18,
-    styles: [
-      { label: 'Code', size: '14px', weight: '400', lineHeight: '1.5', sample: 'brand.primary = #FF5F45' },
-      { label: 'Token', size: '12px', weight: '500', lineHeight: '1.4', sample: 'spacing-4: 4px' },
-      { label: 'Meta', size: '11px', weight: '400', lineHeight: '1.3', sample: 'Weight 400 · 14px' },
-    ],
-  },
-  {
-    name: 'Inter',
-    role: 'Body',
-    weights: ['400', '500', '600'],
-    usage: 45,
-    styles: [
-      { label: 'Body', size: '14px', weight: '400', lineHeight: '1.6', sample: 'The quick brown fox jumps over the lazy dog' },
-      { label: 'Small', size: '13px', weight: '500', lineHeight: '1.5', sample: 'Secondary text and labels' },
-      { label: 'Caption', size: '12px', weight: '400', lineHeight: '1.4', sample: 'Metadata and timestamps' },
-    ],
-  },
-];
+interface BrandFont {
+  id: string;
+  name: string;
+  family: string;
+  role: string | null;
+  weight: number | null;
+  url: string | null;
+}
 
 export default function TypographyPage() {
+  const [fonts, setFonts] = useState<BrandFont[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/v1/brand-profile')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setFonts(d.data.fonts || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleCopyCSS = () => {
+    const css = fonts.map(f => `  --font-${f.role || f.name.toLowerCase().replace(/\s+/g, '-')}: '${f.family}', sans-serif;`).join('\n');
+    navigator.clipboard.writeText(`:root {\n${css}\n}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <BrandSubNav />
+        <div className="dash-card flex items-center justify-center py-12">
+          <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <BrandSubNav />
@@ -51,56 +57,61 @@ export default function TypographyPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Typography</h2>
-          <p className="text-[13px] text-[#8A8A85] mt-0.5">{FONTS.length} font families detected</p>
+          <p className="text-[13px] text-[#8A8A85] mt-0.5">{fonts.length} font families detected</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-[12px]">
-            <Copy className="h-3.5 w-3.5" weight="bold" /> Copy CSS
-          </button>
-          <button className="btn-secondary text-[12px]">
-            <PencilSimple className="h-3.5 w-3.5" weight="bold" /> Edit
+          <button onClick={handleCopyCSS} className="btn-secondary text-[12px]">
+            <Copy className="h-3.5 w-3.5" weight="bold" /> {copied ? 'Copied!' : 'Copy CSS'}
           </button>
         </div>
       </div>
 
-      {FONTS.map((font) => (
-        <div key={font.name} className="dash-card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-[15px] font-semibold text-[#1A1918]">{font.name}</div>
-              <div className="text-[12px] text-[#8A8A85]">{font.role} · {font.usage} uses</div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {font.weights.map((w) => (
-                <span key={w} className="text-[10px] font-mono text-[#8A8A85] bg-[#F5F5F3] px-1.5 py-0.5 rounded">
-                  {w}
+      {fonts.length === 0 ? (
+        <div className="dash-card text-center py-8">
+          <p className="text-[13px] text-[#8A8A85] mb-4">No fonts detected yet.</p>
+          <a href="/brand/scan" className="btn-primary text-[12px]">Run a scan</a>
+        </div>
+      ) : (
+        fonts.map((font) => (
+          <div key={font.id} className="dash-card">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-[15px] font-semibold text-[#1A1918]">{font.name}</div>
+                <div className="text-[12px] text-[#8A8A85]">{font.role || 'Body'} · Weight {font.weight || 400}</div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono text-[#8A8A85] bg-[#F5F5F3] px-1.5 py-0.5 rounded">
+                  {font.family}
                 </span>
-              ))}
+                {font.weight && (
+                  <span className="text-[10px] font-mono text-[#8A8A85] bg-[#F5F5F3] px-1.5 py-0.5 rounded">
+                    {font.weight}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="space-y-3">
-            {font.styles.map((style) => (
-              <div key={style.label} className="p-3 rounded-lg border border-[#F0F0EE]">
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg border border-[#F0F0EE]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-medium text-[#8A8A85] uppercase tracking-wider">{style.label}</span>
-                  <span className="text-[10px] font-mono text-[#C4C4BF]">{style.size} / {style.weight}</span>
+                  <span className="text-[11px] font-medium text-[#8A8A85] uppercase tracking-wider">Preview</span>
+                  <span className="text-[10px] font-mono text-[#C4C4BF]">{font.weight || 400}</span>
                 </div>
                 <div
                   style={{
-                    fontFamily: font.name,
-                    fontSize: style.size,
-                    fontWeight: style.weight,
-                    lineHeight: style.lineHeight,
+                    fontFamily: font.family,
+                    fontSize: '18px',
+                    fontWeight: font.weight || 400,
+                    lineHeight: '1.4',
                     color: '#1A1918',
                   }}
                 >
-                  {style.sample}
+                  The quick brown fox jumps over the lazy dog
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 }

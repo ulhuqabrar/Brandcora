@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   CheckCircle,
@@ -15,51 +15,150 @@ import {
   Palette,
   TextAa,
   CirclesFour,
+  Spinner,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-import { BrandSubNav } from '@/components/brand-sub-nav';
+import { apiFetch } from '@/lib/api';
 
-const DETECTED = {
-  website: 'seocontent.ai',
-  scanDate: 'Just now',
-  pagesAnalyzed: 18,
-  assetsFound: 24,
-  confidence: 94,
-  flagged: 2,
-  colors: [
-    { name: 'Primary', hex: '#FF5F45', confidence: 98 },
-    { name: 'Secondary', hex: '#FF8A5B', confidence: 96 },
-    { name: 'Accent', hex: '#F2B84B', confidence: 95 },
-    { name: 'Dark', hex: '#1A1918', confidence: 99 },
-    { name: 'Light', hex: '#FAFAF9', confidence: 97 },
-  ],
-  fonts: [
-    { name: 'Manrope', role: 'Headings', confidence: 99 },
-    { name: 'IBM Plex Mono', role: 'Code', confidence: 97 },
-    { name: 'Inter', role: 'Body', confidence: 95 },
-  ],
-  logos: [
-    { name: 'Primary mark', type: 'SVG', confidence: 99 },
-    { name: 'Wordmark dark', type: 'SVG', confidence: 96 },
-    { name: 'Icon only', type: 'PNG', confidence: 94 },
-  ],
-};
+interface ScanIssue {
+  id: string;
+  category: string;
+  severity: string;
+  title: string;
+  description: string;
+  recommendation: string | null;
+}
+
+interface ScanScore {
+  id: string;
+  category: string;
+  score: number;
+  weight: number;
+}
+
+interface ScanData {
+  id: string;
+  status: string;
+  sourceUrl: string | null;
+  overallScore: number | null;
+  pagesAnalyzed: number;
+  createdAt: string;
+  completedAt: string | null;
+  scores: ScanScore[];
+  issues: ScanIssue[];
+  pages: Array<{ id: string; url: string; pageTitle: string | null }>;
+}
 
 export default function BrandReviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const scanId = searchParams.get('scanId');
+
+  const [scan, setScan] = useState<ScanData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [approving, setApproving] = useState(false);
   const [approved, setApproved] = useState(false);
 
-  const handleApprove = () => {
-    setApproved(true);
-    setTimeout(() => {
-      router.push('/brand');
-    }, 1500);
+  const fetchScan = useCallback(async () => {
+    if (!scanId) {
+      setLoading(false);
+      setError('No scan ID provided. Start a scan from the Scan tab.');
+      return;
+    }
+
+    try {
+      const res = await apiFetch(`/api/v1/scans/${scanId}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to load scan');
+      }
+
+      setScan(data.data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load scan data');
+    } finally {
+      setLoading(false);
+    }
+  }, [scanId]);
+
+  useEffect(() => {
+    fetchScan();
+  }, [fetchScan]);
+
+  const handleApprove = async () => {
+    if (!scan) return;
+    setApproving(true);
+
+    try {
+      const res = await apiFetch(`/api/v1/brand-profile/approve-scan/${scan.id}`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to approve');
+      }
+
+      setApproved(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to approve brand identity');
+    } finally {
+      setApproving(false);
+    }
   };
+
+  const handleRescan = () => {
+    router.push('/brand/scan');
+  };
+
+  const handleExport = async () => {
+    if (!scan) return;
+    try {
+      const res = await apiFetch(`/api/v1/scans/${scan.id}`);
+      const data = await res.json();
+      if (data.success) {
+        const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `brand-scan-${scan.id}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch { /* ignore */ }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="dash-card max-w-[480px] mx-auto text-center py-12">
+          <Spinner className="h-8 w-8 text-[#FF5F45] animate-spin mx-auto mb-4" weight="bold" />
+          <p className="text-[13px] text-[#8A8A85]">Loading scan results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !scan) {
+    return (
+      <div className="space-y-5">
+        <div className="dash-card max-w-[480px] mx-auto text-center py-12">
+          <Warning className="h-8 w-8 text-[#F59E0B] mx-auto mb-4" weight="fill" />
+          <h2 className="text-[18px] font-bold text-[#1A1918] mb-2">No scan data</h2>
+          <p className="text-[13px] text-[#8A8A85] mb-6">{error}</p>
+          <Link href="/brand/scan" className="btn-primary">
+            <MagnifyingGlass className="h-4 w-4" weight="bold" /> Start a scan
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (approved) {
     return (
       <div className="space-y-5">
-        <BrandSubNav />
         <div className="dash-card max-w-[480px] mx-auto text-center py-12">
           <div className="w-16 h-16 rounded-full bg-[#16A34A]/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-[#16A34A]" weight="bold" />
@@ -68,7 +167,7 @@ export default function BrandReviewPage() {
             Brand identity ready
           </h2>
           <p className="text-[13px] text-[#8A8A85] mb-6 max-w-[320px] mx-auto">
-            You can now export the system or analyze creative assets against it.
+            Your brand identity has been saved. You can now analyze creative assets against it.
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link href="/scans/new" className="btn-primary">
@@ -83,10 +182,20 @@ export default function BrandReviewPage() {
     );
   }
 
+  const hostname = scan?.sourceUrl ? (() => {
+    try { return new URL(scan.sourceUrl).hostname.replace('www.', ''); }
+    catch { return scan.sourceUrl; }
+  })() : '';
+
+  const colorIssues = scan?.issues.filter(i => i.category === 'colors') || [];
+  const typographyIssues = scan?.issues.filter(i => i.category === 'typography') || [];
+  const logoIssues = scan?.issues.filter(i => i.category === 'logo') || [];
+  const componentIssues = scan?.issues.filter(i => i.category === 'components') || [];
+
+  const overallScore = scan?.overallScore ?? 0;
+
   return (
     <div className="space-y-5">
-      <BrandSubNav />
-
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -97,38 +206,53 @@ export default function BrandReviewPage() {
             <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Brand identity detected</h2>
             <div className="flex items-center gap-3 mt-0.5">
               <Globe className="h-3.5 w-3.5 text-[#8A8A85]" weight="bold" />
-              <span className="text-[12px] text-[#8A8A85]">{DETECTED.website}</span>
+              <span className="text-[12px] text-[#8A8A85]">{hostname}</span>
               <span className="text-[12px] text-[#8A8A85]">·</span>
-              <span className="text-[12px] text-[#8A8A85]">{DETECTED.scanDate}</span>
-              <span className="text-[12px] text-[#8A8A85]">·</span>
-              <span className="text-[12px] text-[#8A8A85]">{DETECTED.pagesAnalyzed} pages</span>
-              <span className="text-[12px] text-[#8A8A85]">·</span>
-              <span className="text-[12px] text-[#8A8A85]">{DETECTED.assetsFound} assets</span>
+              <span className="text-[12px] text-[#8A8A85]">{scan?.pages.length || 0} pages</span>
+              {scan?.completedAt && (
+                <>
+                  <span className="text-[12px] text-[#8A8A85]">·</span>
+                  <span className="text-[12px] text-[#8A8A85]">
+                    {new Date(scan.completedAt).toLocaleDateString()}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-ghost text-[12px]">
+          <button onClick={handleRescan} className="btn-ghost text-[12px]">
             <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> Rescan
           </button>
-          <button className="btn-ghost text-[12px]">
-            <Download className="h-3.5 w-3.5" weight="bold" /> Export preview
+          <button onClick={handleExport} className="btn-ghost text-[12px]">
+            <Download className="h-3.5 w-3.5" weight="bold" /> Export
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[13px]">
+          {error}
+        </div>
+      )}
 
       {/* Confidence Summary */}
       <div className="dash-card">
         <div className="flex items-center justify-between mb-4">
           <div className="dash-card-title">Confidence summary</div>
-          <span className="text-[14px] font-bold text-[#16A34A]">{DETECTED.confidence}%</span>
+          <span className={cn(
+            'text-[14px] font-bold',
+            overallScore >= 80 ? 'text-[#16A34A]' : overallScore >= 60 ? 'text-[#F59E0B]' : 'text-[#DC2626]'
+          )}>
+            {overallScore}%
+          </span>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label: 'Colors', count: DETECTED.colors.length, icon: Palette, color: '#FF5F45' },
-            { label: 'Fonts', count: DETECTED.fonts.length, icon: TextAa, color: '#FF8A5B' },
-            { label: 'Logos', count: DETECTED.logos.length, icon: CirclesFour, color: '#F2B84B' },
-            { label: 'Flagged', count: DETECTED.flagged, icon: Warning, color: '#D97706' },
+            { label: 'Colors', count: colorIssues.length, icon: Palette, color: '#FF5F45' },
+            { label: 'Fonts', count: typographyIssues.length, icon: TextAa, color: '#FF8A5B' },
+            { label: 'Logos', count: logoIssues.length, icon: CirclesFour, color: '#F2B84B' },
+            { label: 'Issues', count: scan?.issues.length || 0, icon: Warning, color: '#D97706' },
           ].map((card) => (
             <div key={card.label} className="flex items-center gap-3 p-3 rounded-lg border border-[#F0F0EE]">
               <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: `${card.color}15` }}>
@@ -144,88 +268,117 @@ export default function BrandReviewPage() {
       </div>
 
       {/* Detected Colors */}
-      <div className="dash-card">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
-              <Palette className="h-4 w-4 text-[#FF5F45]" weight="bold" />
-            </div>
-            <div className="dash-card-title">Colors detected</div>
-          </div>
-          <Link href="/brand/colors" className="btn-ghost text-[12px]">
-            View all →
-          </Link>
-        </div>
-        <div className="space-y-1.5">
-          {DETECTED.colors.map((c) => (
-            <div key={c.hex} className="color-swatch">
-              <div className="color-swatch-preview" style={{ backgroundColor: c.hex }} />
-              <div className="color-swatch-info">
-                <div className="color-swatch-name">{c.name}</div>
-                <div className="color-swatch-hex">{c.hex}</div>
+      {colorIssues.length > 0 && (
+        <div className="dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+                <Palette className="h-4 w-4 text-[#FF5F45]" weight="bold" />
               </div>
-              <span className="text-[11px] text-[#16A34A] font-medium">{c.confidence}%</span>
+              <div className="dash-card-title">Colors detected</div>
             </div>
-          ))}
+            <Link href="/brand/colors" className="btn-ghost text-[12px]">
+              View all →
+            </Link>
+          </div>
+          <div className="space-y-1.5">
+            {colorIssues.slice(0, 5).map((issue) => {
+              const hexMatch = issue.description.match(/#[0-9A-Fa-f]{6}/);
+              return (
+                <div key={issue.id} className="color-swatch">
+                  {hexMatch && <div className="color-swatch-preview" style={{ backgroundColor: hexMatch[0] }} />}
+                  <div className="color-swatch-info">
+                    <div className="color-swatch-name">{issue.title}</div>
+                    <div className="color-swatch-hex">{hexMatch?.[0] || 'N/A'}</div>
+                  </div>
+                  <span className={cn(
+                    'text-[11px] font-medium',
+                    issue.severity === 'critical' ? 'text-[#DC2626]' :
+                    issue.severity === 'major' ? 'text-[#F59E0B]' : 'text-[#16A34A]'
+                  )}>
+                    {issue.severity}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Detected Typography */}
-      <div className="dash-card">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-[#FF8A5B]/10 flex items-center justify-center">
-              <TextAa className="h-4 w-4 text-[#FF8A5B]" weight="bold" />
+      {typographyIssues.length > 0 && (
+        <div className="dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF8A5B]/10 flex items-center justify-center">
+                <TextAa className="h-4 w-4 text-[#FF8A5B]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Typography detected</div>
             </div>
-            <div className="dash-card-title">Typography detected</div>
+            <Link href="/brand/typography" className="btn-ghost text-[12px]">
+              View all →
+            </Link>
           </div>
-          <Link href="/brand/typography" className="btn-ghost text-[12px]">
-            View all →
-          </Link>
-        </div>
-        <div className="space-y-2">
-          {DETECTED.fonts.map((f) => (
-            <div key={f.name} className="type-specimen">
-              <div className="flex items-center justify-between mb-1">
-                <span className="type-specimen-name">{f.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[#8A8A85]">{f.role}</span>
-                  <span className="text-[11px] text-[#16A34A] font-medium">{f.confidence}%</span>
+          <div className="space-y-2">
+            {typographyIssues.slice(0, 3).map((issue) => (
+              <div key={issue.id} className="type-specimen">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="type-specimen-name">{issue.title}</span>
+                  <span className={cn(
+                    'text-[11px] font-medium',
+                    issue.severity === 'major' ? 'text-[#F59E0B]' : 'text-[#16A34A]'
+                  )}>
+                    {issue.severity}
+                  </span>
                 </div>
+                <p className="text-[12px] text-[#8A8A85]">{issue.description}</p>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Detected Logos */}
-      <div className="dash-card">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-[#F2B84B]/10 flex items-center justify-center">
-              <CirclesFour className="h-4 w-4 text-[#F2B84B]" weight="bold" />
-            </div>
-            <div className="dash-card-title">Logos detected</div>
+            ))}
           </div>
-          <Link href="/brand/assets" className="btn-ghost text-[12px]">
-            View all →
-          </Link>
         </div>
-        <div className="space-y-1.5">
-          {DETECTED.logos.map((l, i) => (
-            <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-[#F0F0EE]">
-              <div className="w-9 h-9 rounded-md bg-[#F5F5F3] flex items-center justify-center">
-                <CirclesFour className="h-4 w-4 text-[#8A8A85]" weight="bold" />
+      )}
+
+      {/* Issues List */}
+      {scan?.issues && scan.issues.length > 0 && (
+        <div className="dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#F59E0B]/10 flex items-center justify-center">
+                <Warning className="h-4 w-4 text-[#F59E0B]" weight="bold" />
               </div>
-              <div className="flex-1">
-                <div className="text-[12px] font-medium text-[#3D3D3A]">{l.name}</div>
-                <div className="text-[11px] text-[#8A8A85]">{l.type}</div>
-              </div>
-              <span className="text-[11px] text-[#16A34A] font-medium">{l.confidence}%</span>
+              <div className="dash-card-title">Issues found</div>
             </div>
-          ))}
+            <span className="text-[12px] text-[#8A8A85]">{scan.issues.length} issues</span>
+          </div>
+          <div className="space-y-2">
+            {scan.issues.slice(0, 8).map((issue) => (
+              <div key={issue.id} className="flex items-start gap-3 p-3 rounded-lg border border-[#F0F0EE]">
+                <div className={cn(
+                  'w-2 h-2 rounded-full mt-1.5 shrink-0',
+                  issue.severity === 'critical' ? 'bg-[#DC2626]' :
+                  issue.severity === 'major' ? 'bg-[#F59E0B]' :
+                  issue.severity === 'warning' ? 'bg-[#F59E0B]' : 'bg-[#16A34A]'
+                )} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium text-[#1A1918]">{issue.title}</div>
+                  <div className="text-[12px] text-[#8A8A85] mt-0.5">{issue.description}</div>
+                  {issue.recommendation && (
+                    <div className="text-[11px] text-[#6B7280] mt-1">→ {issue.recommendation}</div>
+                  )}
+                </div>
+                <span className={cn(
+                  'text-[10px] font-medium uppercase px-2 py-0.5 rounded',
+                  issue.severity === 'critical' ? 'bg-red-50 text-[#DC2626]' :
+                  issue.severity === 'major' ? 'bg-yellow-50 text-[#F59E0B]' :
+                  issue.severity === 'warning' ? 'bg-yellow-50 text-[#F59E0B]' : 'bg-green-50 text-[#16A34A]'
+                )}>
+                  {issue.severity}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Approval Actions */}
       <div className="dash-card">
@@ -240,11 +393,16 @@ export default function BrandReviewPage() {
             <Link href="/brand/scan" className="btn-secondary text-[12px]">
               <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> Rescan
             </Link>
-            <Link href="/brand" className="btn-secondary text-[12px]">
-              Review flagged items
-            </Link>
-            <button onClick={handleApprove} className="btn-primary text-[12px]">
-              <CheckCircle className="h-3.5 w-3.5" weight="bold" /> Approve identity
+            <button
+              onClick={handleApprove}
+              disabled={approving}
+              className="btn-primary text-[12px]"
+            >
+              {approving ? (
+                <Spinner className="h-3.5 w-3.5 animate-spin" weight="bold" />
+              ) : (
+                <CheckCircle className="h-3.5 w-3.5" weight="bold" />
+              )} Approve identity
             </button>
           </div>
         </div>

@@ -1,57 +1,117 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import {
   Copy,
   Download,
   MagnifyingGlass,
-  Funnel,
   CheckCircle,
   Warning,
-  PencilSimple,
+  Spinner,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { BrandSubNav } from '@/components/brand-sub-nav';
+import { apiFetch } from '@/lib/api';
 
-const TOKENS = [
-  { category: 'Colors', tokens: [
-    { name: 'brand.primary', value: '#FF5F45', preview: '#FF5F45', type: 'color', status: 'approved', usage: 24 },
-    { name: 'brand.secondary', value: '#FF8A5B', preview: '#FF8A5B', type: 'color', status: 'approved', usage: 18 },
-    { name: 'brand.accent', value: '#F2B84B', preview: '#F2B84B', type: 'color', status: 'approved', usage: 12 },
-    { name: 'neutral.900', value: '#1A1918', preview: '#1A1918', type: 'color', status: 'approved', usage: 31 },
-    { name: 'neutral.50', value: '#FAFAF9', preview: '#FAFAF9', type: 'color', status: 'approved', usage: 28 },
-  ]},
-  { category: 'Typography', tokens: [
-    { name: 'font.heading', value: 'Manrope', preview: '', type: 'font', status: 'approved', usage: 32 },
-    { name: 'font.mono', value: 'IBM Plex Mono', preview: '', type: 'font', status: 'approved', usage: 18 },
-    { name: 'font.body', value: 'Inter', preview: '', type: 'font', status: 'approved', usage: 45 },
-  ]},
-  { category: 'Spacing', tokens: [
-    { name: 'spacing.1', value: '4px', preview: '', type: 'spacing', status: 'approved', usage: 42 },
-    { name: 'spacing.2', value: '8px', preview: '', type: 'spacing', status: 'approved', usage: 38 },
-    { name: 'spacing.3', value: '12px', preview: '', type: 'spacing', status: 'approved', usage: 28 },
-    { name: 'spacing.4', value: '16px', preview: '', type: 'spacing', status: 'approved', usage: 35 },
-    { name: 'spacing.6', value: '24px', preview: '', type: 'spacing', status: 'approved', usage: 22 },
-  ]},
-  { category: 'Radius', tokens: [
-    { name: 'radius.sm', value: '4px', preview: '', type: 'radius', status: 'approved', usage: 15 },
-    { name: 'radius.md', value: '8px', preview: '', type: 'radius', status: 'approved', usage: 24 },
-    { name: 'radius.lg', value: '12px', preview: '', type: 'radius', status: 'approved', usage: 18 },
-    { name: 'radius.xl', value: '16px', preview: '', type: 'radius', status: 'review', usage: 8 },
-  ]},
-];
+interface Token {
+  name: string;
+  value: string;
+  preview: string;
+  type: string;
+  status: string;
+}
 
 export default function TokensPage() {
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
 
-  const allTokens = TOKENS.flatMap(c => c.tokens);
-  const filtered = allTokens.filter(t => {
+  useEffect(() => {
+    apiFetch('/api/v1/brand-profile')
+      .then(r => r.json())
+      .then(d => {
+        if (!d.success) return;
+        const p = d.data;
+        const all: Token[] = [];
+
+        (p.colors || []).forEach((c: any) => {
+          all.push({
+            name: `color.${c.name.toLowerCase().replace(/\s+/g, '-')}`,
+            value: c.hexValue,
+            preview: c.hexValue,
+            type: 'color',
+            status: 'approved',
+          });
+        });
+
+        (p.fonts || []).forEach((f: any) => {
+          all.push({
+            name: `font.${f.role || f.name.toLowerCase().replace(/\s+/g, '-')}`,
+            value: f.family,
+            preview: '',
+            type: 'font',
+            status: 'approved',
+          });
+        });
+
+        all.push({
+          name: 'spacing.base',
+          value: p.spacingPreference || 'comfortable',
+          preview: '',
+          type: 'spacing',
+          status: 'approved',
+        });
+
+        if (p.borderRadius != null) {
+          all.push({
+            name: 'radius.default',
+            value: `${p.borderRadius}px`,
+            preview: '',
+            type: 'radius',
+            status: 'approved',
+          });
+        }
+
+        setTokens(all);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = tokens.filter(t => {
     if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter && t.type !== filter) return false;
     return true;
   });
+
+  const handleExport = () => {
+    const json: Record<string, any> = {};
+    tokens.forEach(t => { json[t.name] = t.value; });
+    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'design-tokens.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyAll = () => {
+    const lines = tokens.map(t => `  "${t.name}": "${t.value}"`);
+    navigator.clipboard.writeText(`{\n${lines.join(',\n')}\n}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <BrandSubNav />
+        <div className="dash-card flex items-center justify-center py-12">
+          <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -60,13 +120,13 @@ export default function TokensPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Design Tokens</h2>
-          <p className="text-[13px] text-[#8A8A85] mt-0.5">{allTokens.length} tokens across {TOKENS.length} categories</p>
+          <p className="text-[13px] text-[#8A8A85] mt-0.5">{tokens.length} tokens generated from your brand profile</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-[12px]">
+          <button onClick={handleCopyAll} className="btn-secondary text-[12px]">
             <Copy className="h-3.5 w-3.5" weight="bold" /> Copy all
           </button>
-          <button className="btn-secondary text-[12px]">
+          <button onClick={handleExport} className="btn-secondary text-[12px]">
             <Download className="h-3.5 w-3.5" weight="bold" /> Export JSON
           </button>
         </div>
@@ -111,7 +171,6 @@ export default function TokensPage() {
               <th>Value</th>
               <th>Type</th>
               <th>Status</th>
-              <th>Usage</th>
               <th></th>
             </tr>
           </thead>
@@ -133,28 +192,18 @@ export default function TokensPage() {
                   <span className="text-[11px] font-medium text-[#8A8A85] uppercase">{token.type}</span>
                 </td>
                 <td>
-                  {token.status === 'approved' ? (
-                    <span className="status-badge active text-[10px]">
-                      <CheckCircle className="h-3 w-3" weight="bold" /> Approved
-                    </span>
-                  ) : (
-                    <span className="status-badge pending text-[10px]">
-                      <Warning className="h-3 w-3" weight="bold" /> Review
-                    </span>
-                  )}
+                  <span className="status-badge active text-[10px]">
+                    <CheckCircle className="h-3 w-3" weight="bold" /> Approved
+                  </span>
                 </td>
                 <td>
-                  <span className="text-[12px] text-[#8A8A85]">{token.usage}×</span>
-                </td>
-                <td>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1 hover:bg-[#F5F5F3] rounded" title="Copy">
-                      <Copy className="h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
-                    </button>
-                    <button className="p-1 hover:bg-[#F5F5F3] rounded" title="Edit">
-                      <PencilSimple className="h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`"${token.name}": "${token.value}"`)}
+                    className="p-1 hover:bg-[#F5F5F3] rounded"
+                    title="Copy"
+                  >
+                    <Copy className="h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
+                  </button>
                 </td>
               </tr>
             ))}

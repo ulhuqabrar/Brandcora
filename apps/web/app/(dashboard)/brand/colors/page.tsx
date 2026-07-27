@@ -1,37 +1,80 @@
 'use client';
 
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import {
   Copy,
   PencilSimple,
+  Spinner,
+  Plus,
+  Trash,
 } from '@phosphor-icons/react';
 import { BrandSubNav } from '@/components/brand-sub-nav';
+import { apiFetch } from '@/lib/api';
 
-const COLORS = [
-  { name: 'Primary', hex: '#FF5F45', token: 'brand.primary', usage: 24, category: 'Brand' },
-  { name: 'Secondary', hex: '#FF8A5B', token: 'brand.secondary', usage: 18, category: 'Brand' },
-  { name: 'Accent', hex: '#F2B84B', token: 'brand.accent', usage: 12, category: 'Brand' },
-  { name: 'Success', hex: '#16A34A', token: 'semantic.success', usage: 8, category: 'Semantic' },
-  { name: 'Warning', hex: '#D97706', token: 'semantic.warning', usage: 5, category: 'Semantic' },
-  { name: 'Error', hex: '#DC2626', token: 'semantic.error', usage: 3, category: 'Semantic' },
-  { name: 'Dark', hex: '#1A1918', token: 'neutral.900', usage: 31, category: 'Neutral' },
-  { name: 'Gray 700', hex: '#3D3D3A', token: 'neutral.700', usage: 22, category: 'Neutral' },
-  { name: 'Gray 500', hex: '#6B6B66', token: 'neutral.500', usage: 18, category: 'Neutral' },
-  { name: 'Gray 300', hex: '#C4C4BF', token: 'neutral.300', usage: 14, category: 'Neutral' },
-  { name: 'Light', hex: '#FAFAF9', token: 'neutral.50', usage: 28, category: 'Neutral' },
-];
+interface BrandColor {
+  id: string;
+  name: string;
+  hexValue: string;
+  role: string | null;
+}
 
-const GRADIENTS = [
-  { name: 'Brand gradient', value: 'linear-gradient(135deg, #FF5F45, #FF8A5B, #F2B84B)', usage: 6 },
-  { name: 'Subtle warm', value: 'linear-gradient(180deg, #FAF8F5, #F5F0EB)', usage: 3 },
-];
+interface BrandGradient {
+  id: string;
+  name: string;
+  originalValue: string;
+  normalizedValue: string;
+}
 
 export default function ColorsPage() {
-  const grouped = COLORS.reduce((acc, c) => {
-    if (!acc[c.category]) acc[c.category] = [];
-    acc[c.category].push(c);
+  const [colors, setColors] = useState<BrandColor[]>([]);
+  const [gradients, setGradients] = useState<BrandGradient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/v1/brand-profile')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          setColors(d.data.colors || []);
+          setGradients(d.data.gradients || []);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleDeleteColor = async (id: string) => {
+    try {
+      await apiFetch(`/api/v1/brand-profile/colors/${id}`, { method: 'DELETE' });
+      setColors(c => c.filter(x => x.id !== id));
+    } catch { /* ignore */ }
+  };
+
+  const handleCopyCSS = () => {
+    const css = colors.map(c => `  --color-${c.name.toLowerCase().replace(/\s+/g, '-')}: ${c.hexValue};`).join('\n');
+    navigator.clipboard.writeText(`:root {\n${css}\n}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <BrandSubNav />
+        <div className="dash-card flex items-center justify-center py-12">
+          <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
+        </div>
+      </div>
+    );
+  }
+
+  const grouped = colors.reduce((acc, c) => {
+    const cat = c.role || 'Other';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(c);
     return acc;
-  }, {} as Record<string, typeof COLORS>);
+  }, {} as Record<string, BrandColor[]>);
 
   return (
     <div className="space-y-5">
@@ -40,55 +83,69 @@ export default function ColorsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Colors</h2>
-          <p className="text-[13px] text-[#8A8A85] mt-0.5">{COLORS.length} color tokens detected</p>
+          <p className="text-[13px] text-[#8A8A85] mt-0.5">{colors.length} color tokens detected</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-[12px]">
-            <Copy className="h-3.5 w-3.5" weight="bold" /> Copy CSS
-          </button>
-          <button className="btn-secondary text-[12px]">
-            <PencilSimple className="h-3.5 w-3.5" weight="bold" /> Edit
+          <button onClick={handleCopyCSS} className="btn-secondary text-[12px]">
+            <Copy className="h-3.5 w-3.5" weight="bold" /> {copied ? 'Copied!' : 'Copy CSS'}
           </button>
         </div>
       </div>
 
-      {Object.entries(grouped).map(([category, colors]) => (
-        <div key={category} className="dash-card">
-          <div className="dash-card-title mb-3">{category}</div>
-          <div className="grid grid-cols-2 gap-2">
-            {colors.map((c) => (
-              <div key={c.hex} className="color-swatch">
-                <div className="color-swatch-preview" style={{ backgroundColor: c.hex }} />
-                <div className="color-swatch-info">
-                  <div className="color-swatch-name">{c.name}</div>
-                  <div className="color-swatch-hex">{c.hex}</div>
+      {colors.length === 0 ? (
+        <div className="dash-card text-center py-8">
+          <p className="text-[13px] text-[#8A8A85] mb-4">No colors detected yet.</p>
+          <a href="/brand/scan" className="btn-primary text-[12px]">Run a scan</a>
+        </div>
+      ) : (
+        Object.entries(grouped).map(([category, catColors]) => (
+          <div key={category} className="dash-card">
+            <div className="dash-card-title mb-3 capitalize">{category}</div>
+            <div className="grid grid-cols-2 gap-2">
+              {catColors.map((c) => (
+                <div key={c.id} className="color-swatch">
+                  <div className="color-swatch-preview" style={{ backgroundColor: c.hexValue }} />
+                  <div className="color-swatch-info">
+                    <div className="color-swatch-name">{c.name}</div>
+                    <div className="color-swatch-hex">{c.hexValue}</div>
+                  </div>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(c.hexValue)}
+                    className="p-1 hover:bg-[#F5F5F3] rounded"
+                    title="Copy"
+                  >
+                    <Copy className="h-3 w-3 text-[#C4C4BF]" weight="bold" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteColor(c.id)}
+                    className="p-1 hover:bg-red-50 rounded"
+                    title="Delete"
+                  >
+                    <Trash className="h-3 w-3 text-[#DC2626]" weight="bold" />
+                  </button>
                 </div>
-                <span className="text-[11px] font-mono text-[#8A8A85]">{c.token}</span>
-                <span className="text-[11px] text-[#C4C4BF]">{c.usage}×</span>
-                <button className="p-1 hover:bg-[#F5F5F3] rounded" title="Copy">
-                  <Copy className="h-3 w-3 text-[#C4C4BF]" weight="bold" />
-                </button>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+
+      {gradients.length > 0 && (
+        <div className="dash-card">
+          <div className="dash-card-title mb-3">Gradients</div>
+          <div className="space-y-2">
+            {gradients.map((g) => (
+              <div key={g.id} className="flex items-center gap-3 p-2 rounded-lg border border-[#F0F0EE]">
+                <div className="w-20 h-8 rounded-md" style={{ background: g.normalizedValue }} />
+                <div className="flex-1">
+                  <div className="text-[12px] font-medium text-[#3D3D3A]">{g.name}</div>
+                  <div className="text-[11px] font-mono text-[#8A8A85] truncate">{g.originalValue}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
-      ))}
-
-      <div className="dash-card">
-        <div className="dash-card-title mb-3">Gradients</div>
-        <div className="space-y-2">
-          {GRADIENTS.map((g) => (
-            <div key={g.name} className="flex items-center gap-3 p-2 rounded-lg border border-[#F0F0EE]">
-              <div className="w-20 h-8 rounded-md" style={{ background: g.value }} />
-              <div className="flex-1">
-                <div className="text-[12px] font-medium text-[#3D3D3A]">{g.name}</div>
-                <div className="text-[11px] font-mono text-[#8A8A85] truncate">{g.value}</div>
-              </div>
-              <span className="text-[11px] text-[#C4C4BF]">{g.usage}×</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

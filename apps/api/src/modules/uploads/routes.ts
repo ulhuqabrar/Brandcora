@@ -92,4 +92,34 @@ router.post('/social-design', requireAuth, upload.single('file'), async (req: Au
   }
 });
 
+router.post('/avatar', requireAuth, upload.single('file'), async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    // Update user's image field
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { image: fileUrl },
+    });
+
+    // Also upsert profile
+    await prisma.profile.upsert({
+      where: { authUserId: req.userId! },
+      update: { avatar: fileUrl },
+      create: { authUserId: req.userId!, avatar: fileUrl },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: { fileUrl },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export { router as uploadRoutes };

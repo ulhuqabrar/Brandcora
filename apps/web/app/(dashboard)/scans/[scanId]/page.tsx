@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -8,127 +8,127 @@ import {
   Download,
   Share,
   ArrowClockwise,
-  DotsThree,
   CheckCircle,
   Warning,
   WarningCircle,
   Palette,
   TextAa,
   CirclesFour,
-  Ruler,
-  Square,
-  Eye,
-  MagnifyingGlass,
   FileImage,
+  Spinner,
+  Globe,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
+import { apiFetch } from '@/lib/api';
 
-const REPORT = {
-  id: 'rpt-2',
-  name: 'Q3 social campaign',
-  brand: 'seocontent.ai',
-  channel: 'Instagram',
-  score: 64,
-  status: 'needs_review',
-  createdBy: 'Sajibur',
-  date: '1 day ago',
-  assetUrl: null,
-  categories: [
-    { name: 'Logo usage', score: 85, issues: 0, status: 'pass' },
-    { name: 'Color accuracy', score: 52, issues: 3, status: 'fail' },
-    { name: 'Typography', score: 64, issues: 2, status: 'warn' },
-    { name: 'Spacing', score: 71, issues: 1, status: 'warn' },
-    { name: 'Radius', score: 90, issues: 0, status: 'pass' },
-    { name: 'Contrast', score: 58, issues: 1, status: 'fail' },
-  ],
-  issues: [
-    {
-      id: 1,
-      severity: 'critical',
-      category: 'Color',
-      title: 'Primary button uses wrong brand color',
-      detected: '#E85D40',
-      approved: '#FF5F45',
-      location: 'Bottom CTA button',
-      status: 'open',
-    },
-    {
-      id: 2,
-      severity: 'critical',
-      category: 'Color',
-      title: 'Background gradient mismatch',
-      detected: 'linear-gradient(#FFF, #F5F5F5)',
-      approved: 'linear-gradient(#FAF8F5, #F5F0EB)',
-      location: 'Full background',
-      status: 'open',
-    },
-    {
-      id: 3,
-      severity: 'critical',
-      category: 'Color',
-      title: 'Accent color deviation detected',
-      detected: '#F0B840',
-      approved: '#F2B84B',
-      location: 'Highlight badge',
-      status: 'open',
-    },
-    {
-      id: 4,
-      severity: 'important',
-      category: 'Typography',
-      title: 'Heading uses Arial instead of Manrope',
-      detected: 'Arial Bold, 44px',
-      approved: 'Manrope SemiBold, 48px',
-      location: 'Main headline',
-      status: 'open',
-    },
-    {
-      id: 5,
-      severity: 'important',
-      category: 'Typography',
-      title: 'Body text weight too light',
-      detected: 'Inter Regular, 400',
-      approved: 'Inter Medium, 500',
-      location: 'Description text',
-      status: 'open',
-    },
-    {
-      id: 6,
-      severity: 'minor',
-      category: 'Spacing',
-      title: 'Padding below minimum threshold',
-      detected: '12px',
-      approved: '16px',
-      location: 'Card inner padding',
-      status: 'open',
-    },
-    {
-      id: 7,
-      severity: 'minor',
-      category: 'Contrast',
-      title: 'Text contrast ratio below WCAG AA',
-      detected: '3.2:1',
-      approved: '4.5:1',
-      location: 'Subtitle text',
-      status: 'open',
-    },
-  ],
-};
+interface ScanIssue {
+  id: string;
+  severity: string;
+  category: string;
+  title: string;
+  description: string;
+  recommendation: string | null;
+}
+
+interface ScanScore {
+  id: string;
+  category: string;
+  score: number;
+  weight: number;
+}
+
+interface ScanData {
+  id: string;
+  status: string;
+  overallScore: number | null;
+  sourceUrl: string | null;
+  sourceFileUrl: string | null;
+  scanType: string;
+  platform: string | null;
+  createdAt: string;
+  completedAt: string | null;
+  issues: ScanIssue[];
+  scores: ScanScore[];
+  brandProfile?: { name: string } | null;
+}
 
 const SEVERITY_CONFIG: Record<string, { color: string; label: string }> = {
   critical: { color: '#DC2626', label: 'Critical' },
-  important: { color: '#D97706', label: 'Important' },
+  major: { color: '#D97706', label: 'Major' },
+  warning: { color: '#D97706', label: 'Warning' },
   minor: { color: '#3B82F6', label: 'Minor' },
   suggestion: { color: '#C4C4BF', label: 'Suggestion' },
 };
 
-const SCORE_COLOR = (s: number) =>
-  s >= 80 ? '#16A34A' : s >= 60 ? '#D97706' : '#DC2626';
-
-export default function ReportDetailPage() {
+export default function ScanDetailPage() {
   const params = useParams();
-  const [selectedIssue, setSelectedIssue] = useState<number | null>(null);
-  const [view, setView] = useState<'original' | 'annotated'>('annotated');
+  const scanId = params.scanId as string;
+
+  const [scan, setScan] = useState<ScanData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!scanId) return;
+    apiFetch(`/api/v1/scans/${scanId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setScan(d.data);
+        else setError(d.error || 'Failed to load scan');
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [scanId]);
+
+  const handleExport = async () => {
+    if (!scan) return;
+    const blob = new Blob([JSON.stringify(scan, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scan-${scan.id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="dash-card flex items-center justify-center py-12">
+          <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !scan) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center gap-3">
+          <Link href="/scans" className="p-1.5 hover:bg-[#F5F5F3] rounded-lg transition-colors">
+            <ArrowLeft className="h-4 w-4 text-[#8A8A85]" weight="bold" />
+          </Link>
+          <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Scan not found</h2>
+        </div>
+        <div className="dash-card text-center py-8">
+          <p className="text-[13px] text-[#8A8A85] mb-4">{error || 'Scan not found'}</p>
+          <Link href="/scans" className="btn-primary text-[12px]">Back to scans</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const hostname = scan.sourceUrl ? (() => {
+    try { return new URL(scan.sourceUrl).hostname.replace('www.', ''); }
+    catch { return scan.sourceUrl; }
+  })() : scan.platform || 'Social';
+
+  const scoreColor = (scan.overallScore ?? 0) >= 80 ? '#16A34A' :
+                     (scan.overallScore ?? 0) >= 60 ? '#D97706' : '#DC2626';
+
+  const colorIssues = scan.issues.filter(i => i.category === 'colors');
+  const typographyIssues = scan.issues.filter(i => i.category === 'typography');
+  const logoIssues = scan.issues.filter(i => i.category === 'logo');
 
   return (
     <div className="space-y-5">
@@ -139,151 +139,123 @@ export default function ReportDetailPage() {
             <ArrowLeft className="h-4 w-4 text-[#8A8A85]" weight="bold" />
           </Link>
           <div>
-            <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">{REPORT.name}</h2>
+            <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">{hostname}</h2>
             <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-[12px] text-[#8A8A85]">{REPORT.brand}</span>
+              <Globe className="h-3.5 w-3.5 text-[#8A8A85]" weight="bold" />
+              <span className="text-[12px] text-[#8A8A85]">{scan.scanType}</span>
               <span className="text-[12px] text-[#8A8A85]">·</span>
-              <span className="text-[12px] text-[#8A8A85]">{REPORT.channel}</span>
-              <span className="text-[12px] text-[#8A8A85]">·</span>
-              <span className="text-[12px] text-[#8A8A85]">{REPORT.date}</span>
-              <span className={cn('status-badge text-[10px]', REPORT.status === 'approved' ? 'active' : 'pending')}>
-                {REPORT.status === 'approved' ? 'Approved' : 'Needs review'}
+              <span className="text-[12px] text-[#8A8A85]">
+                {new Date(scan.createdAt).toLocaleDateString()}
+              </span>
+              <span className={cn('status-badge text-[10px]', scan.status === 'completed' ? 'active' : 'pending')}>
+                {scan.status}
               </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-[12px]">
+          <button onClick={handleExport} className="btn-secondary text-[12px]">
             <Download className="h-3.5 w-3.5" weight="bold" /> Export
           </button>
-          <button className="btn-secondary text-[12px]">
-            <Share className="h-3.5 w-3.5" weight="bold" /> Share
-          </button>
-          <button className="btn-secondary text-[12px]">
-            <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> Reanalyze
-          </button>
+          <Link href={`/brand/scan`} className="btn-secondary text-[12px]">
+            <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> New scan
+          </Link>
         </div>
       </div>
 
-      {/* Main Content: Preview + Issues Panel */}
+      {/* Score Summary */}
       <div className="grid grid-cols-12 gap-5">
-        {/* Creative Preview (7 cols) */}
-        <div className="col-span-7 dash-card p-0 overflow-hidden">
-          <div className="flex items-center justify-between p-3 border-b border-[#F5F5F3]">
-            <div className="flex items-center gap-1 bg-[#F5F5F3] rounded-lg p-0.5">
-              <button
-                onClick={() => setView('original')}
-                className={cn('px-3 py-1 rounded-md text-[12px] font-medium transition-colors', view === 'original' ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#8A8A85]')}
-              >
-                Original
-              </button>
-              <button
-                onClick={() => setView('annotated')}
-                className={cn('px-3 py-1 rounded-md text-[12px] font-medium transition-colors', view === 'annotated' ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#8A8A85]')}
-              >
-                Annotated
-              </button>
-            </div>
+        {/* Score Card (4 cols) */}
+        <div className="col-span-4 dash-card">
+          <div className="text-[12px] text-[#8A8A85] mb-2">Brand alignment</div>
+          <div className="flex items-end gap-2">
+            <span className="score-large" style={{ color: scoreColor }}>
+              {scan.overallScore != null ? Math.round(scan.overallScore) : '—'}
+            </span>
+            {scan.overallScore != null && <span className="text-[14px] text-[#C4C4BF] mb-1">/100</span>}
           </div>
-          <div className="relative bg-[#F5F5F3] aspect-[4/3] flex items-center justify-center">
-            {/* Placeholder for creative preview */}
-            <div className="text-center">
-              <FileImage className="h-16 w-16 text-[#D8D8D5] mx-auto mb-3" weight="bold" />
-              <span className="text-[13px] text-[#8A8A85]">Creative preview</span>
-            </div>
-            {/* Annotation markers */}
-            {view === 'annotated' && REPORT.issues.map((issue, i) => (
-              <button
-                key={issue.id}
-                onClick={() => setSelectedIssue(selectedIssue === issue.id ? null : issue.id)}
-                className={cn(
-                  'annotation-marker',
-                  selectedIssue === issue.id && 'ring-2 ring-offset-2 ring-[#FF5F45]'
-                )}
-                style={{
-                  top: `${20 + (i * 12)}%`,
-                  left: `${15 + (i * 10)}%`,
-                }}
-              >
-                {i + 1}
-              </button>
+          <div className="mt-4 space-y-2">
+            {scan.scores.map((s) => (
+              <div key={s.id} className="score-category">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] text-[#3D3D3A]">{s.category}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="score-bar">
+                    <div
+                      className="score-bar-fill"
+                      style={{
+                        width: `${s.score}%`,
+                        backgroundColor: s.score >= 80 ? '#16A34A' : s.score >= 60 ? '#D97706' : '#DC2626',
+                      }}
+                    />
+                  </div>
+                  <span className="text-[12px] font-semibold w-7 text-right" style={{ color: s.score >= 80 ? '#16A34A' : s.score >= 60 ? '#D97706' : '#DC2626' }}>
+                    {Math.round(s.score)}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Report Panel (5 cols) */}
-        <div className="col-span-5 space-y-4">
-          {/* Score */}
-          <div className="dash-card">
-            <div className="text-[12px] text-[#8A8A85] mb-2">Brand alignment</div>
-            <div className="flex items-end gap-2">
-              <span className="score-large" style={{ color: SCORE_COLOR(REPORT.score) }}>
-                {REPORT.score}
-              </span>
-              <span className="text-[14px] text-[#C4C4BF] mb-1">/100</span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {REPORT.categories.map((cat) => (
-                <div key={cat.name} className="score-category">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-[#3D3D3A]">{cat.name}</span>
-                    {cat.issues > 0 && (
-                      <span className="text-[10px] font-medium text-[#8A8A85] bg-[#F5F5F3] px-1.5 py-0.5 rounded">
-                        {cat.issues}
-                      </span>
-                    )}
+        {/* Issues Panel (8 cols) */}
+        <div className="col-span-8 space-y-4">
+          {/* Category Summary */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Colors', count: colorIssues.length, icon: Palette, color: '#FF5F45' },
+              { label: 'Typography', count: typographyIssues.length, icon: TextAa, color: '#FF8A5B' },
+              { label: 'Logos', count: logoIssues.length, icon: CirclesFour, color: '#F2B84B' },
+            ].map((cat) => (
+              <div key={cat.label} className="dash-card">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: `${cat.color}15` }}>
+                    <cat.icon className="h-3.5 w-3.5" style={{ color: cat.color }} weight="bold" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="score-bar">
-                      <div className="score-bar-fill" style={{ width: `${cat.score}%`, backgroundColor: SCORE_COLOR(cat.score) }} />
-                    </div>
-                    <span className="text-[12px] font-semibold w-7 text-right" style={{ color: SCORE_COLOR(cat.score) }}>
-                      {cat.score}
-                    </span>
-                  </div>
+                  <span className="text-[12px] font-medium text-[#3D3D3A]">{cat.label}</span>
+                  <span className="ml-auto text-[13px] font-bold text-[#1A1918]">{cat.count}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* Issues List */}
           <div className="dash-card">
             <div className="dash-card-header">
-              <div className="dash-card-title">Issues ({REPORT.issues.length})</div>
+              <div className="dash-card-title">Issues ({scan.issues.length})</div>
             </div>
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {REPORT.issues.map((issue, i) => {
-                const sev = SEVERITY_CONFIG[issue.severity];
-                return (
-                  <button
-                    key={issue.id}
-                    onClick={() => setSelectedIssue(selectedIssue === issue.id ? null : issue.id)}
-                    className={cn(
-                      'issue-row w-full text-left',
-                      selectedIssue === issue.id && 'border-[#FF5F45] bg-[#FF5F45]/[0.02]'
-                    )}
-                  >
-                    <div className="issue-severity" style={{ backgroundColor: sev.color }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[10px] font-semibold uppercase" style={{ color: sev.color }}>
-                          {sev.label}
-                        </span>
-                        <span className="text-[10px] text-[#C4C4BF]">·</span>
-                        <span className="text-[10px] text-[#8A8A85]">{issue.category}</span>
+            {scan.issues.length === 0 ? (
+              <div className="text-center py-6">
+                <CheckCircle className="h-8 w-8 text-[#16A34A] mx-auto mb-2" weight="bold" />
+                <p className="text-[13px] text-[#8A8A85]">No issues found — brand is consistent!</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {scan.issues.map((issue) => {
+                  const sev = SEVERITY_CONFIG[issue.severity] || SEVERITY_CONFIG.minor;
+                  return (
+                    <div key={issue.id} className="issue-row">
+                      <div className="issue-severity" style={{ backgroundColor: sev.color }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-semibold uppercase" style={{ color: sev.color }}>
+                            {sev.label}
+                          </span>
+                          <span className="text-[10px] text-[#C4C4BF]">·</span>
+                          <span className="text-[10px] text-[#8A8A85]">{issue.category}</span>
+                        </div>
+                        <div className="text-[12px] font-medium text-[#1A1918] mb-1">{issue.title}</div>
+                        <div className="text-[11px] text-[#8A8A85]">{issue.description}</div>
+                        {issue.recommendation && (
+                          <div className="text-[11px] text-[#6B7280] mt-1">→ {issue.recommendation}</div>
+                        )}
                       </div>
-                      <div className="text-[12px] font-medium text-[#1A1918] mb-1">{issue.title}</div>
-                      <div className="text-[11px] text-[#8A8A85]">
-                        <span className="font-mono text-[#DC2626]">{issue.detected}</span>
-                        {' → '}
-                        <span className="font-mono text-[#16A34A]">{issue.approved}</span>
-                      </div>
-                      <div className="text-[11px] text-[#C4C4BF] mt-0.5">{issue.location}</div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

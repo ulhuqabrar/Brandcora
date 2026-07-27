@@ -338,6 +338,11 @@ model scan {
   brandProfile      brandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
   scanType          String
   status            String      @default("pending")
+  progress          Int         @default(0)
+  currentStage      String?
+  pagesDiscovered   Int         @default(0)
+  pagesAnalyzed     Int         @default(0)
+  warnings          Json        @default("[]")
   sourceUrl         String?
   sourceFileUrl     String?
   platform          String?

@@ -115,6 +115,89 @@ export default function BrandExtractPage() {
     }
   }
 
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    if (!result) return;
+    setSaving(true);
+    try {
+      // Create or update brand profile
+      const profileRes = await apiFetch('/api/v1/brand-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: result.brandName,
+          description: result.visualStyle?.slice(0, 200) || null,
+          headingFont: result.fonts.find(f => f.role === 'heading')?.family || result.fonts[0]?.family || null,
+          bodyFont: result.fonts.find(f => f.role === 'body')?.family || null,
+          borderRadius: parseInt(result.borderRadius) || null,
+        }),
+      });
+      const profileData = await profileRes.json();
+
+      // If profile already exists, update it
+      if (!profileData.success && profileData.error?.includes('already exists')) {
+        await apiFetch('/api/v1/brand-profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: result.brandName,
+            description: result.visualStyle?.slice(0, 200) || null,
+            headingFont: result.fonts.find(f => f.role === 'heading')?.family || result.fonts[0]?.family || null,
+            bodyFont: result.fonts.find(f => f.role === 'body')?.family || null,
+            borderRadius: parseInt(result.borderRadius) || null,
+          }),
+        });
+      }
+
+      // Save colors
+      for (const color of result.colors) {
+        await apiFetch('/api/v1/brand-profile/colors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: color.role || 'Color',
+            hexValue: color.hex,
+            role: color.role,
+          }),
+        });
+      }
+
+      // Save fonts
+      for (const font of result.fonts) {
+        await apiFetch('/api/v1/brand-profile/fonts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: font.family,
+            family: font.family,
+            role: font.role,
+            weight: 400,
+          }),
+        });
+      }
+
+      // Save logos
+      for (const logo of result.logos) {
+        await apiFetch('/api/v1/brand-profile/logos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileUrl: logo.url,
+            storageKey: logo.url,
+            logoType: logo.type,
+          }),
+        });
+      }
+
+      router.push('/brand');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save brand profile');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (result) {
     return (
       <div className="space-y-6">
@@ -124,9 +207,12 @@ export default function BrandExtractPage() {
             <p className="text-muted-foreground mt-1">Review and save your extracted brand profile.</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => { localStorage.setItem('brand-profile-data', JSON.stringify(result)); router.push('/brand'); }} className="gradient-accent text-white shadow-glass">
-              <CheckCircle className="mr-1.5 h-4 w-4" weight="bold" />
-              Save & Continue
+            <Button onClick={handleSave} disabled={saving} className="gradient-accent text-white shadow-glass">
+              {saving ? (
+                <><Spinner className="mr-1.5 h-4 w-4 animate-spin" weight="bold" /> Saving...</>
+              ) : (
+                <><CheckCircle className="mr-1.5 h-4 w-4" weight="bold" /> Save & Continue</>
+              )}
             </Button>
             <Button variant="outline" onClick={() => { setResult(null); setUrl(''); }}>
               Extract another
@@ -316,8 +402,8 @@ export default function BrandExtractPage() {
         )}
 
         <div className="flex gap-3">
-          <Button onClick={() => { localStorage.setItem('brand-profile-data', JSON.stringify(result)); router.push('/brand'); }} className="gradient-accent text-white shadow-glass">
-            Save & Go to Brand Profile
+          <Button onClick={handleSave} disabled={saving} className="gradient-accent text-white shadow-glass">
+            {saving ? 'Saving...' : 'Save & Go to Brand Profile'}
           </Button>
           <Button variant="outline" onClick={() => { setResult(null); setUrl(''); }}>
             Extract another URL
