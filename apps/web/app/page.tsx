@@ -33,7 +33,7 @@ function RevealSection({ children, className = '', delay = 0 }: { children: Reac
 /* ─── Logo Mark ─── */
 function LogoMark({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 60 40" className={className} fill="none">
+    <svg viewBox="0 0 48 48" className={className} fill="none">
       <defs>
         <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FF5F45" />
@@ -42,17 +42,17 @@ function LogoMark({ className = '' }: { className?: string }) {
         </linearGradient>
       </defs>
       {/* Top row */}
-      <circle cx="6" cy="6" r="4" fill="url(#logoGrad)" />
-      <rect x="14" y="1" width="5" height="14" rx="2.5" fill="url(#logoGrad)" />
-      <rect x="23" y="1" width="5" height="18" rx="2.5" fill="url(#logoGrad)" />
-      <rect x="32" y="1" width="5" height="14" rx="2.5" fill="url(#logoGrad)" />
-      <rect x="41" y="5" width="5" height="8" rx="2.5" fill="url(#logoGrad)" />
+      <circle cx="7" cy="7" r="4" fill="url(#logoGrad)" />
+      <rect x="14" y="2" width="5" height="16" rx="2.5" fill="url(#logoGrad)" />
+      <rect x="22" y="2" width="5" height="20" rx="2.5" fill="url(#logoGrad)" />
+      <rect x="30" y="2" width="5" height="16" rx="2.5" fill="url(#logoGrad)" />
+      <rect x="38" y="6" width="5" height="10" rx="2.5" fill="url(#logoGrad)" />
       {/* Bottom row */}
-      <rect x="6" y="18" width="5" height="16" rx="2.5" fill="url(#logoGrad)" />
-      <rect x="15" y="18" width="5" height="12" rx="2.5" fill="url(#logoGrad)" />
-      <circle cx="28" cy="32" r="4" fill="url(#logoGrad)" />
-      <circle cx="37" cy="32" r="4" fill="url(#logoGrad)" />
-      <rect x="46" y="22" width="5" height="10" rx="2.5" fill="url(#logoGrad)" />
+      <rect x="7" y="22" width="5" height="18" rx="2.5" fill="url(#logoGrad)" />
+      <rect x="14" y="22" width="5" height="14" rx="2.5" fill="url(#logoGrad)" />
+      <circle cx="25" cy="38" r="4" fill="url(#logoGrad)" />
+      <circle cx="33" cy="38" r="4" fill="url(#logoGrad)" />
+      <rect x="40" y="28" width="5" height="12" rx="2.5" fill="url(#logoGrad)" />
     </svg>
   );
 }
