@@ -76,9 +76,10 @@ export default function PricingPage() {
       } else {
         setError('No checkout URL received. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout error:', error);
-      setError('Network error. Please try again.');
+      const detail = error?.message || String(error);
+      setError(`Network error: ${detail}`);
     } finally {
       setLoading(null);
     }
