@@ -1052,6 +1052,121 @@ function SecuritySection() {
   );
 }
 
+/* ─── Pricing Section ─── */
+function PricingSection() {
+  const plans = [
+    {
+      name: 'Free',
+      price: '$0',
+      period: 'forever',
+      description: 'Try Brandcora with no commitment.',
+      features: [
+        '1 brand profile',
+        '3 website scans / month',
+        '1 social check / month',
+        'Basic extracted tokens',
+        'JSON export',
+      ],
+      cta: 'Get started',
+      href: '/register',
+      popular: false,
+    },
+    {
+      name: 'Pro',
+      price: '$5',
+      period: '/ month',
+      description: 'For teams that need consistent brand control.',
+      features: [
+        'Unlimited brand profiles',
+        'Unlimited website scans',
+        'Unlimited social checks',
+        'Full design-token export',
+        'Brand validation reports',
+        '10 pages per scan',
+        '90-day scan history',
+        'Priority support',
+      ],
+      cta: 'Start free trial',
+      href: '/pricing',
+      popular: true,
+    },
+  ];
+
+  return (
+    <section id="pricing" className="py-24 md:py-32 bg-white border-y border-border/50">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
+        <RevealSection>
+          <div className="text-center mb-12">
+            <h2 className="text-section font-bold text-graphite">
+              Simple, transparent pricing
+            </h2>
+            <p className="mt-3 text-lg text-foreground-secondary">
+              Start free. Upgrade when you need more.
+            </p>
+          </div>
+        </RevealSection>
+
+        <RevealSection>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {plans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-2xl border p-8 flex flex-col ${
+                  plan.popular
+                    ? 'border-brand-orange/30 bg-warm-offwhite shadow-soft'
+                    : 'border-border/40 bg-white'
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-3 left-6 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider gradient-accent text-white">
+                    Most popular
+                  </span>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-graphite">{plan.name}</h3>
+                  <p className="text-sm text-foreground-muted mt-1">{plan.description}</p>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-4xl font-extrabold text-graphite">{plan.price}</span>
+                  <span className="text-sm text-foreground-muted ml-1">{plan.period}</span>
+                </div>
+
+                <ul className="space-y-2.5 mb-8 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-brand-orange mt-0.5 shrink-0" />
+                      <span className="text-sm text-foreground-secondary">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href={plan.href}
+                  className={`block w-full text-center py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                    plan.popular
+                      ? 'gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15'
+                      : 'bg-graphite text-white hover:bg-graphite-elevated'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+
+        <RevealSection>
+          <p className="text-center text-sm text-foreground-muted mt-8">
+            All paid plans include a 14-day free trial. No credit card required.
+          </p>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Final CTA Section ─── */
 function FinalCTA() {
   const [url, setUrl] = useState('');
@@ -1187,6 +1302,7 @@ export default function LandingPage() {
         <WorkflowSection />
         <UseCasesSection />
         <SecuritySection />
+        <PricingSection />
         <FinalCTA />
       </main>
       <Footer />
