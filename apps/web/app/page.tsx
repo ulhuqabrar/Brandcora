@@ -1105,7 +1105,7 @@ function PricingSection() {
         '90-day scan history',
         'Priority support',
       ],
-      cta: 'Start free trial',
+      cta: 'Get unlimited access',
       href: '/pricing',
       popular: true,
     },
