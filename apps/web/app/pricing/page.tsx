@@ -56,6 +56,7 @@ export default function PricingPage() {
     }
 
     setLoading(plan.name);
+    setError('');
     try {
       const res = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',

@@ -9,11 +9,7 @@ import {
   Receipt,
   ArrowRight,
   CheckCircle,
-  Warning,
-  Calendar,
-  TrendUp,
   Sparkle,
-  Buildings,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -53,6 +49,7 @@ export default function BillingSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchSubscription();
@@ -74,12 +71,19 @@ export default function BillingSettingsPage() {
 
   async function handleManageBilling() {
     setPortalLoading(true);
+    setError('');
     try {
       const res = await apiFetch('/api/v1/billing/portal');
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to open billing portal.');
+        return;
+      }
       if (data.data?.url) {
         window.location.href = data.data.url;
       }
+    } catch {
+      setError('Network error. Please try again.');
     } finally {
       setPortalLoading(false);
     }
@@ -87,6 +91,7 @@ export default function BillingSettingsPage() {
 
   async function handleCheckout(planKey: string) {
     setCheckoutLoading(planKey);
+    setError('');
     try {
       const res = await apiFetch('/api/v1/billing/checkout', {
         method: 'POST',
@@ -95,14 +100,16 @@ export default function BillingSettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.error('Checkout error:', data.error);
+        setError(data.error || 'Failed to start checkout. Please try again.');
         return;
       }
       if (data.data?.url) {
         window.location.href = data.data.url;
+      } else {
+        setError('No checkout URL received. Please try again.');
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
+    } catch {
+      setError('Network error. Please try again.');
     } finally {
       setCheckoutLoading(null);
     }
@@ -120,6 +127,10 @@ export default function BillingSettingsPage() {
         <h1 className="text-2xl font-bold">Subscription</h1>
         <p className="text-muted-foreground">Manage your plan, payment method, and billing history.</p>
       </div>
+
+      {error && (
+        <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium">{error}</div>
+      )}
 
       {/* Current Plan */}
       <Card>
@@ -180,9 +191,9 @@ export default function BillingSettingsPage() {
                   </Button>
                 )}
                 {!subscription && (
-                  <Button onClick={() => handleCheckout('pro')}>
-                    Upgrade to Pro
-                    <ArrowRight className="ml-2 h-4 w-4" weight="bold" />
+                  <Button onClick={() => handleCheckout('pro')} disabled={checkoutLoading === 'pro'}>
+                    {checkoutLoading === 'pro' ? 'Redirecting...' : 'Upgrade to Pro'}
+                    {checkoutLoading !== 'pro' && <ArrowRight className="ml-2 h-4 w-4" weight="bold" />}
                   </Button>
                 )}
               </div>
@@ -237,7 +248,7 @@ export default function BillingSettingsPage() {
                       onClick={() => handleCheckout(plan.key)}
                       disabled={checkoutLoading === plan.key}
                     >
-                      {checkoutLoading === plan.key ? 'Loading...' : 'Get started'}
+                      {checkoutLoading === plan.key ? 'Redirecting...' : 'Get started'}
                     </Button>
                   )}
                 </CardContent>
