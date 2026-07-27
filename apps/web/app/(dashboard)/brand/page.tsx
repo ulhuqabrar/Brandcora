@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -18,14 +17,13 @@ import {
   ArrowRight,
   Clock,
   Globe,
-  ArrowClockwise,
-  Download,
-  Link as LinkIcon,
+  Plus,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 const subNav = [
   { to: '/brand', label: 'Overview', icon: Fingerprint },
+  { to: '/brand/scan', label: 'Scan', icon: MagnifyingGlass },
   { to: '/brand/colors', label: 'Colors', icon: Palette },
   { to: '/brand/typography', label: 'Typography', icon: TextAa },
   { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
@@ -35,196 +33,381 @@ const subNav = [
   { to: '/brand/versions', label: 'Versions', icon: GitBranch },
 ];
 
-export default function BrandIdentityPage() {
+const BRAND = {
+  name: 'Acme Corp',
+  url: 'acme.com',
+  status: 'active',
+  version: 2,
+  lastScan: '2 hours ago',
+  approvalState: 'approved',
+  completeness: {
+    logo: 'complete',
+    colors: 'complete',
+    typography: 'complete',
+    icons: 'complete',
+    spacing: 'complete',
+    radius: 'complete',
+    components: 'review',
+  },
+};
+
+const COLORS = [
+  { name: 'Primary', hex: '#FF5F45', token: 'brand.primary', usage: 24 },
+  { name: 'Secondary', hex: '#FF8A5B', token: 'brand.secondary', usage: 18 },
+  { name: 'Accent', hex: '#F2B84B', token: 'brand.accent', usage: 12 },
+  { name: 'Dark', hex: '#1A1918', token: 'neutral.900', usage: 31 },
+  { name: 'Light', hex: '#FAFAF9', token: 'neutral.50', usage: 28 },
+];
+
+const FONTS = [
+  { name: 'Manrope', role: 'Headings', weight: '700', sample: 'Brand Identity' },
+  { name: 'IBM Plex Mono', role: 'Code', weight: '400', sample: 'token-value' },
+  { name: 'Inter', role: 'Body', weight: '400', sample: 'The quick brown fox' },
+];
+
+const LOGOS = [
+  { name: 'Primary mark', type: 'SVG', size: '—', pages: 12 },
+  { name: 'Wordmark dark', type: 'SVG', size: '—', pages: 8 },
+  { name: 'Icon only', type: 'PNG', size: '240×240', pages: 15 },
+];
+
+const SPACING = [4, 8, 12, 16, 24, 32, 48, 64];
+const RADIUS = [
+  { label: 'sm', value: '4px' },
+  { label: 'md', value: '8px' },
+  { label: 'lg', value: '12px' },
+  { label: 'xl', value: '16px' },
+];
+
+const COMPONENTS = [
+  { name: 'Primary button', usage: 18 },
+  { name: 'Secondary button', usage: 12 },
+  { name: 'Input field', usage: 8 },
+  { name: 'Card', usage: 15 },
+  { name: 'Badge', usage: 6 },
+];
+
+const CHANGES = [
+  { title: 'Primary color updated', detail: '#E85D40 → #FF5F45', date: '2 hours ago', type: 'color' },
+  { title: 'Logo lockup repositioned', detail: 'Centered → left-aligned', date: '3 days ago', type: 'logo' },
+  { title: 'Spacing scale adjusted', detail: '8px base → 4px base', date: '1 week ago', type: 'spacing' },
+];
+
+export default function BrandIdentityOverview() {
   const pathname = usePathname();
-  const [url, setUrl] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [hasIdentity, setHasIdentity] = useState(true);
-
-  const isActive = (to: string) => {
-    if (to === '/brand') return pathname === '/brand';
-    return pathname.startsWith(to);
-  };
-
-  const handleScan = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url) return;
-    setIsScanning(true);
-  };
+  const completedCount = Object.values(BRAND.completeness).filter(v => v === 'complete').length;
+  const totalCount = Object.keys(BRAND.completeness).length;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Sub-navigation */}
       <div className="sub-nav overflow-x-auto">
         {subNav.map((item) => (
           <Link
             key={item.to}
             href={item.to}
-            className={cn('sub-nav-item', isActive(item.to) && 'active')}
+            className={cn('sub-nav-item', pathname === item.to && 'active')}
           >
             {item.label}
           </Link>
         ))}
       </div>
 
-      {/* First-time user: URL submission */}
-      {!hasIdentity && (
-        <div className="dash-card max-w-[560px]">
-          <div className="mb-5">
-            <h2 className="text-[18px] font-bold text-[#1A1918] tracking-tight">Create your brand identity</h2>
-            <p className="text-[13px] text-[#8A8A85] mt-1.5 leading-relaxed">
-              Enter your website URL and Brandcora will identify its colors, typography, logos, icons, spacing, radius, and reusable design tokens.
-            </p>
+      {/* Greeting */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#1A1918] tracking-tight">Good morning</h1>
+          <p className="text-[13px] text-[#8A8A85] mt-1">
+            Your brand identity is active and ready for creative checks.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/brand/scan" className="btn-primary">
+            <MagnifyingGlass className="h-4 w-4" weight="bold" />
+            Rescan
+          </Link>
+          <Link href="/scans/new" className="btn-secondary">
+            <Plus className="h-4 w-4" weight="bold" />
+            New report
+          </Link>
+        </div>
+      </div>
+
+      {/* Top Row: Brand Profile / Scan Status / Identity Completeness */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Brand Profile (5 cols) */}
+        <div className="col-span-5 dash-card">
+          <div className="dash-card-header">
+            <div className="dash-card-title">Brand profile</div>
+            <Link href="/brand" className="btn-ghost text-[12px]">
+              Edit <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
           </div>
-          <form onSubmit={handleScan} className="flex gap-3">
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://yourwebsite.com"
-              className="input-compact flex-1"
-              required
-            />
-            <button type="submit" className="btn-primary">
-              <MagnifyingGlass className="h-4 w-4" weight="bold" />
-              Analyze
-            </button>
-          </form>
-          <div className="mt-4 space-y-1.5">
-            {[
-              'Public website required',
-              'Initial scan does not change the website',
-              'Results can be reviewed before approval',
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-[12px] text-[#8A8A85]">
-                <CheckCircle className="h-3 w-3 text-[#C4C4BF]" weight="bold" />
-                {item}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8A8A85]">Brand</span>
+              <span className="text-[13px] font-semibold text-[#1A1918]">{BRAND.name}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8A8A85]">Website</span>
+              <span className="text-[13px] font-mono text-[#3D3D3A]">{BRAND.url}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8A8A85]">Status</span>
+              <span className="status-badge active">
+                <span className="status-dot active" />
+                Approved
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8A8A85]">Version</span>
+              <span className="text-[13px] font-semibold text-[#1A1918]">v{BRAND.version}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8A8A85]">Last scan</span>
+              <span className="text-[13px] text-[#3D3D3A]">{BRAND.lastScan}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Scan Status (3 cols) */}
+        <div className="col-span-3 dash-card">
+          <div className="dash-card-header">
+            <div className="dash-card-title">Scan status</div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] text-[#8A8A85]">Scans this month</span>
+                <span className="text-[13px] font-semibold text-[#1A1918]">12 / 50</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: '24%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] text-[#8A8A85]">Exports</span>
+                <span className="text-[13px] font-semibold text-[#1A1918]">3 / 10</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: '30%' }} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <CheckCircle className="h-4 w-4 text-[#16A34A]" weight="bold" />
+              <span className="text-[12px] text-[#16A34A] font-medium">All up to date</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Identity Completeness (4 cols) */}
+        <div className="col-span-4 dash-card">
+          <div className="dash-card-header">
+            <div className="dash-card-title">Identity completeness</div>
+            <span className="text-[12px] font-semibold text-[#3D3D3A]">{completedCount}/{totalCount}</span>
+          </div>
+          <div className="space-y-0">
+            {Object.entries(BRAND.completeness).map(([key, value]) => (
+              <div key={key} className="completeness-row">
+                <span className="completeness-label capitalize">{key}</span>
+                <span className={cn('completeness-status', value)}>
+                  {value === 'complete' ? (
+                    <><CheckCircle className="h-3.5 w-3.5" weight="bold" /> Complete</>
+                  ) : (
+                    <><Warning className="h-3.5 w-3.5" weight="bold" /> Review</>
+                  )}
+                </span>
               </div>
             ))}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Scan Progress */}
-      {isScanning && (
-        <div className="dash-card">
+      {/* Second Row: Colors / Typography */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Colors & Gradients (6 cols) */}
+        <div className="col-span-6 dash-card">
           <div className="dash-card-header">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
-                <MagnifyingGlass className="h-4 w-4 text-[#FF5F45]" weight="bold" />
+                <Palette className="h-4 w-4 text-[#FF5F45]" weight="bold" />
               </div>
-              <div>
-                <div className="dash-card-title">Scanning website</div>
-                <div className="dash-card-subtitle">{url}</div>
-              </div>
+              <div className="dash-card-title">Colors &amp; gradients</div>
             </div>
-            <button className="btn-ghost text-[12px]">Cancel</button>
+            <Link href="/brand/colors" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
           </div>
           <div className="space-y-1.5">
-            {[
-              { label: 'Connecting to website', status: 'completed' },
-              { label: 'Discovering pages', status: 'completed' },
-              { label: 'Reading styles', status: 'active' },
-              { label: 'Detecting visual assets', status: 'pending' },
-              { label: 'Building design tokens', status: 'pending' },
-              { label: 'Preparing brand profile', status: 'pending' },
-            ].map((stage, i) => (
-              <div key={i} className={cn('scan-stage', stage.status)}>
-                <div className={cn('scan-stage-number', stage.status)}>
-                  {stage.status === 'completed' ? (
-                    <CheckCircle className="h-4 w-4" weight="bold" />
-                  ) : (
-                    i + 1
-                  )}
+            {COLORS.map((c) => (
+              <div key={c.hex} className="color-swatch">
+                <div className="color-swatch-preview" style={{ backgroundColor: c.hex }} />
+                <div className="color-swatch-info">
+                  <div className="color-swatch-name">{c.name}</div>
+                  <div className="color-swatch-hex">{c.hex}</div>
                 </div>
-                <span className={cn(
-                  'text-[13px]',
-                  stage.status === 'active' ? 'font-medium text-[#1A1918]' : 'text-[#8A8A85]'
-                )}>
-                  {stage.label}
-                </span>
-                {stage.status === 'active' && (
-                  <span className="text-[11px] text-[#8A8A85] ml-auto">12 of 18 pages</span>
-                )}
+                <span className="text-[11px] font-mono text-[#8A8A85]">{c.token}</span>
+                <span className="text-[11px] text-[#C4C4BF]">{c.usage}×</span>
               </div>
             ))}
           </div>
-          <div className="mt-4">
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: '45%' }} />
+          <div className="mt-3">
+            <div className="text-[11px] font-medium text-[#8A8A85] uppercase tracking-wider mb-2">Gradient</div>
+            <div className="h-8 rounded-lg bg-gradient-to-r from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B]" />
+          </div>
+        </div>
+
+        {/* Typography (6 cols) */}
+        <div className="col-span-6 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF8A5B]/10 flex items-center justify-center">
+                <TextAa className="h-4 w-4 text-[#FF8A5B]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Typography</div>
+            </div>
+            <Link href="/brand/typography" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {FONTS.map((f) => (
+              <div key={f.name} className="type-specimen">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="type-specimen-name">{f.name}</span>
+                  <span className="text-[11px] text-[#8A8A85]">{f.role}</span>
+                </div>
+                <div className="type-specimen-sample" style={{ fontFamily: f.name }}>
+                  {f.sample}
+                </div>
+                <div className="type-specimen-meta">Weight {f.weight}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Third Row: Logos / Spacing / Components */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Logos & Assets (4 cols) */}
+        <div className="col-span-4 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#F2B84B]/10 flex items-center justify-center">
+                <CirclesFour className="h-4 w-4 text-[#F2B84B]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Logos &amp; assets</div>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {LOGOS.map((l, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-[#F0F0EE]">
+                <div className="w-9 h-9 rounded-md bg-[#F5F5F3] flex items-center justify-center">
+                  <CirclesFour className="h-4 w-4 text-[#8A8A85]" weight="bold" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium text-[#3D3D3A] truncate">{l.name}</div>
+                  <div className="text-[11px] text-[#8A8A85]">{l.type} · {l.size}</div>
+                </div>
+                <span className="text-[11px] text-[#C4C4BF]">{l.pages}p</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Spacing & Radius (4 cols) */}
+        <div className="col-span-4 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#1A1918]/10 flex items-center justify-center">
+                <Ruler className="h-4 w-4 text-[#1A1918]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Spacing &amp; radius</div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <div className="text-[11px] font-medium text-[#8A8A85] uppercase tracking-wider mb-2">Spacing</div>
+              <div className="space-y-1.5">
+                {SPACING.map((px) => (
+                  <div key={px} className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono text-[#8A8A85] w-7">{px}</span>
+                    <div className="spacing-bar" style={{ width: `${Math.min(px * 2.5, 120)}px` }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-[#F5F5F3] pt-3">
+              <div className="text-[11px] font-medium text-[#8A8A85] uppercase tracking-wider mb-2">Radius</div>
+              <div className="flex gap-3">
+                {RADIUS.map((r) => (
+                  <div key={r.label} className="flex flex-col items-center gap-1.5">
+                    <div className="radius-box" style={{ borderRadius: r.value }} />
+                    <span className="text-[10px] font-mono text-[#8A8A85]">{r.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Returning user: Brand Identity Overview */}
-      {hasIdentity && !isScanning && (
-        <>
-          {/* Brand Summary */}
-          <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-8 dash-card">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
-                    <Fingerprint className="h-6 w-6 text-white" weight="bold" />
-                  </div>
-                  <div>
-                    <h2 className="text-[18px] font-bold text-[#1A1918] tracking-tight">Acme Corp</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Globe className="h-3.5 w-3.5 text-[#8A8A85]" weight="bold" />
-                      <span className="text-[12px] text-[#8A8A85] font-mono">acme.com</span>
-                      <span className="status-badge active text-[10px]">
-                        <span className="status-dot active" />
-                        Approved
-                      </span>
-                      <span className="text-[11px] text-[#C4C4BF]">v2</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="btn-ghost text-[12px]">
-                    <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> Rescan
-                  </button>
-                  <button className="btn-ghost text-[12px]">
-                    <Download className="h-3.5 w-3.5" weight="bold" /> Export
-                  </button>
-                  <a href="#" className="btn-ghost text-[12px]">
-                    <LinkIcon className="h-3.5 w-3.5" weight="bold" /> Visit
-                  </a>
-                </div>
+        {/* Components (4 cols) */}
+        <div className="col-span-4 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+                <Stack className="h-4 w-4 text-[#FF5F45]" weight="bold" />
               </div>
-            </div>
-            <div className="col-span-4 dash-card">
-              <div className="text-[12px] text-[#8A8A85] mb-3">Last scan</div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#8A8A85]" weight="bold" />
-                <span className="text-[13px] font-medium text-[#1A1918]">2 hours ago</span>
-              </div>
-              <div className="text-[12px] text-[#8A8A85] mt-2">18 pages analyzed · 24 assets detected</div>
+              <div className="dash-card-title">Components</div>
             </div>
           </div>
-
-          {/* Quick Summary Cards */}
-          <div className="grid grid-cols-4 gap-4">
-            {[
-              { label: 'Colors', value: '12', icon: Palette, color: '#FF5F45' },
-              { label: 'Fonts', value: '3', icon: TextAa, color: '#FF8A5B' },
-              { label: 'Logos', value: '6', icon: CirclesFour, color: '#F2B84B' },
-              { label: 'Tokens', value: '48', icon: ListChecks, color: '#1A1918' },
-            ].map((card) => (
-              <div key={card.label} className="dash-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: `${card.color}15` }}>
-                    <card.icon className="h-3.5 w-3.5" style={{ color: card.color }} weight="bold" />
-                  </div>
-                  <span className="text-[12px] text-[#8A8A85]">{card.label}</span>
-                </div>
-                <div className="metric-value text-[24px]">{card.value}</div>
+          <div className="space-y-1.5">
+            {COMPONENTS.map((c) => (
+              <div key={c.name} className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+                <span className="text-[12px] font-medium text-[#3D3D3A]">{c.name}</span>
+                <span className="text-[11px] text-[#8A8A85]">{c.usage}×</span>
               </div>
             ))}
           </div>
-        </>
-      )}
+          <Link href="/brand/components" className="btn-ghost text-[12px] w-full mt-3 justify-center">
+            View all components <ArrowRight className="h-3 w-3" weight="bold" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Fourth Row: Recent Changes */}
+      <div className="dash-card">
+        <div className="dash-card-header">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+              <GitBranch className="h-4 w-4 text-[#FF5F45]" weight="bold" />
+            </div>
+            <div className="dash-card-title">Recent identity changes</div>
+          </div>
+          <Link href="/brand/versions" className="btn-ghost text-[12px]">
+            View history <ArrowRight className="h-3 w-3" weight="bold" />
+          </Link>
+        </div>
+        <div className="space-y-0">
+          {CHANGES.map((change, i) => (
+            <div key={i} className="flex items-center gap-3 py-2.5 border-b border-[#F5F5F3] last:border-0">
+              <div className="w-2 h-2 rounded-full bg-[#FF5F45] flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-medium text-[#1A1918]">{change.title}</span>
+                  <span className="text-[10px] font-medium text-[#8A8A85] uppercase bg-[#F5F5F3] px-1.5 py-0.5 rounded">{change.type}</span>
+                </div>
+                <span className="text-[12px] text-[#8A8A85]">{change.detail}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-[#C4C4BF] flex-shrink-0">
+                <Clock className="h-3 w-3" weight="bold" />
+                {change.date}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
