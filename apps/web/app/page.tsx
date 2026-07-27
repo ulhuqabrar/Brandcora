@@ -1,874 +1,959 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  ArrowRight,
-  CheckCircle,
-  Globe,
-  Palette,
-  TextT,
-  Image,
-  Spinner,
-  Warning,
-  Lightning,
-  CaretRight,
-} from '@phosphor-icons/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { apiFetch } from '@/lib/api';
-import { Header } from '@/components/layout/header';
+import { ArrowRight, Check, Copy, Download, Eye, ArrowUpRight } from 'lucide-react';
 
-const PROGRESS_STEPS = [
-  { key: 'validating', label: 'Validating website' },
-  { key: 'fetching', label: 'Opening homepage' },
-  { key: 'logos', label: 'Finding logos' },
-  { key: 'colors', label: 'Detecting colors and gradients' },
-  { key: 'typography', label: 'Detecting typography' },
-  { key: 'components', label: 'Analyzing components' },
-  { key: 'gradients', label: 'Analyzing gradients and visual treatments' },
-  { key: 'building', label: 'Building brand profile' },
-  { key: 'done', label: 'Extraction complete' },
-];
-
-const EXTRACTED_COLORS = [
-  { hex: '#61CE70', name: 'Green', role: 'Primary' },
-  { hex: '#11281A', name: 'Forest', role: 'Dark' },
-  { hex: '#FFFFFF', name: 'White', role: 'Surface' },
-  { hex: '#F5F5F5', name: 'Light Gray', role: 'Background' },
-  { hex: '#333333', name: 'Charcoal', role: 'Text' },
-  { hex: '#2D6A4F', name: 'Emerald', role: 'Accent' },
-];
-
-const EXTRACTED_GRADIENTS = [
-  {
-    type: 'linear',
-    angle: 135,
-    stops: [
-      { colorHex: '#61CE70', position: '0%' },
-      { colorHex: '#2D6A4F', position: '100%' },
-    ],
-    role: 'primary',
-    usageCount: 8,
-  },
-  {
-    type: 'linear',
-    angle: 90,
-    stops: [
-      { colorHex: '#11281A', position: '0%' },
-      { colorHex: '#333333', position: '100%' },
-    ],
-    role: 'hero-background',
-    usageCount: 3,
-  },
-];
-
-function useInView(threshold = 0.2) {
+function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
   }, [threshold]);
-
   return { ref, visible };
 }
 
-function AnimatedNumber({ value, duration = 1400 }: { value: number; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const { ref, visible } = useInView(0.5);
-
-  useEffect(() => {
-    if (!visible) return;
-    const start = Date.now();
-    const tick = () => {
-      const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * value));
-      if (progress < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }, [visible, value, duration]);
-
-  return <span ref={ref}>{count}</span>;
+function RevealSection({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, visible } = useInView(0.1);
+  return (
+    <div ref={ref} className={`reveal ${visible ? 'visible' : ''} ${className}`} style={{ transitionDelay: `${delay}s` }}>
+      {children}
+    </div>
+  );
 }
 
-export default function LandingPage() {
-  const router = useRouter();
-  const [url, setUrl] = useState('');
-  const [extracting, setExtracting] = useState(false);
-  const [progressIndex, setProgressIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+/* ─── SVG Identity Assets ─── */
+const identityAssets = [
+  { name: 'Hexa Mark', path: 'M12 2l8.66 5v10L12 27 3.34 17V7z', category: 'Symbols' },
+  { name: 'Circle Grid', path: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 110 12 6 6 0 010-12z', category: 'Geometric' },
+  { name: 'Diamond Pulse', path: 'M12 2l6 6-6 6-6-6z M12 14l6 6-6 6-6-6z', category: 'Abstract' },
+  { name: 'Wave Form', path: 'M2 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0 4 2 6 0', category: 'Organic' },
+  { name: 'Cross Axis', path: 'M12 2v20M2 12h20', category: 'Interface' },
+  { name: 'Star Burst', path: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z', category: 'Editorial' },
+  { name: 'Arch Portal', path: 'M4 22V8a8 8 0 0116 0v14', category: 'Symbols' },
+  { name: 'Dot Matrix', path: 'M4 4h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4zM4 12h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4zM4 20h4v4H4zm8 0h4v4h-4zm8 0h4v4h-4z', category: 'Pattern' },
+  { name: 'Orbit Ring', path: 'M12 2a10 10 0 0110 10M12 2a10 10 0 00-10 10m10-10a5 5 0 015 5m-5-5a5 5 0 00-5 5', category: 'Interface' },
+  { name: 'Flow Lines', path: 'M2 6c4 0 4 4 8 4s4-4 8-4 4 4 8 4M2 14c4 0 4 4 8 4s4-4 8-4 4 4 8 4', category: 'Organic' },
+  { name: 'Stack Form', path: 'M4 4h16v4H4zm2 6h12v4H6zm2 6h8v4H8z', category: 'Modular' },
+  { name: 'Compass Rose', path: 'M12 2l2 8-2-2-2 2zm0 20l-2-8 2 2 2-2zM2 12l8-2-2 2 2 2zm20 0l-8 2 2-2-2-2z', category: 'Editorial' },
+];
 
-  async function handleExtract() {
-    if (!url) return;
-    setExtracting(true);
-    setError(null);
-    setProgressIndex(0);
+/* ─── Specimen Canvas SVG ─── */
+function SpecimenCanvas({ mousePos }: { mousePos: { x: number; y: number } }) {
+  return (
+    <svg viewBox="0 0 600 500" className="w-full h-full" fill="none">
+      <defs>
+        <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF5F45" />
+          <stop offset="48%" stopColor="#FF8A5B" />
+          <stop offset="100%" stopColor="#F2B84B" />
+        </linearGradient>
+        <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(255,95,69,0.12)" />
+          <stop offset="100%" stopColor="transparent" />
+        </radialGradient>
+        <filter id="softShadow">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.08)" />
+        </filter>
+      </defs>
 
-    const progressInterval = setInterval(() => {
-      setProgressIndex(prev => {
-        if (prev < PROGRESS_STEPS.length - 2) return prev + 1;
-        return prev;
-      });
-    }, 800);
+      {/* Construction grid */}
+      <g opacity="0.15">
+        {Array.from({ length: 13 }).map((_, i) => (
+          <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="500" stroke="#FF5F45" strokeWidth="0.5" />
+        ))}
+        {Array.from({ length: 11 }).map((_, i) => (
+          <line key={`h${i}`} x1="0" y1={i * 50} x2="600" y2={i * 50} stroke="#FF5F45" strokeWidth="0.5" />
+        ))}
+      </g>
 
-    try {
-      const res = await apiFetch('/api/v1/brand-extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
+      {/* Glow */}
+      <ellipse cx="340" cy="240" rx="200" ry="180" fill="url(#glowGrad)" />
 
-      clearInterval(progressInterval);
+      {/* Large anchor hexa mark */}
+      <g transform={`translate(${260 + mousePos.x * 0.02}px, ${160 + mousePos.y * 0.02}px)`} filter="url(#softShadow)">
+        <path d="M80 20l69.3 40v80L80 180l-69.3-40V60z" fill="url(#brandGrad)" opacity="0.9" />
+        <path d="M80 20l69.3 40v80L80 180l-69.3-40V60z" fill="none" stroke="white" strokeWidth="1" opacity="0.3" />
+        {/* Construction lines on hexa */}
+        <line x1="80" y1="20" x2="80" y2="180" stroke="white" strokeWidth="0.5" opacity="0.2" />
+        <line x1="10.7" y1="60" x2="149.3" y2="140" stroke="white" strokeWidth="0.5" opacity="0.2" />
+        <circle cx="80" cy="100" r="4" fill="white" opacity="0.4" />
+        <circle cx="80" cy="20" r="3" fill="white" opacity="0.3" />
+        <circle cx="149.3" cy="60" r="3" fill="white" opacity="0.3" />
+        <circle cx="149.3" cy="140" r="3" fill="white" opacity="0.3" />
+        <circle cx="80" cy="180" r="3" fill="white" opacity="0.3" />
+        <circle cx="10.7" cy="140" r="3" fill="white" opacity="0.3" />
+        <circle cx="10.7" cy="60" r="3" fill="white" opacity="0.3" />
+      </g>
 
-      if (!data.success) {
-        throw new Error(data.error || 'Extraction failed');
-      }
+      {/* Orbiting circle */}
+      <g transform={`translate(${380 + mousePos.x * 0.04}px, ${120 + mousePos.y * 0.03}px)`}>
+        <circle cx="0" cy="0" r="32" fill="none" stroke="url(#brandGrad)" strokeWidth="1.5" opacity="0.6" />
+        <circle cx="0" cy="0" r="4" fill="#FF5F45" opacity="0.8" />
+        <text x="0" y="-42" textAnchor="middle" fill="#9F9086" fontSize="8" fontFamily="IBM Plex Mono" letterSpacing="0.1em">32px</text>
+      </g>
 
-      setProgressIndex(PROGRESS_STEPS.length - 1);
-      localStorage.setItem('brand-profile-data', JSON.stringify(data.data));
+      {/* Wave form */}
+      <g transform={`translate(${60 + mousePos.x * 0.01}px, ${340 + mousePos.y * 0.015}px)`} opacity="0.5">
+        <path d="M0 20 C20 0, 40 0, 60 20 S100 40, 120 20 S160 0, 180 20" stroke="url(#brandGrad)" strokeWidth="1.5" fill="none" />
+        <path d="M0 20 C20 0, 40 0, 60 20 S100 40, 120 20 S160 0, 180 20" stroke="url(#brandGrad)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" opacity="0.3" transform="translate(0, 8)" />
+      </g>
 
-      setTimeout(() => {
-        router.push('/brand');
-      }, 800);
-    } catch (err: unknown) {
-      clearInterval(progressInterval);
-      setError(err instanceof Error ? err.message : 'Extraction failed');
-      setExtracting(false);
-    }
-  }
+      {/* Small cross */}
+      <g transform={`translate(${460 + mousePos.x * 0.05}px, ${300 + mousePos.y * 0.04}px)`} opacity="0.4">
+        <line x1="-12" y1="0" x2="12" y2="0" stroke="#1A1918" strokeWidth="1" />
+        <line x1="0" y1="-12" x2="0" y2="12" stroke="#1A1918" strokeWidth="1" />
+        <circle cx="0" cy="0" r="2" fill="#FF5F45" />
+      </g>
+
+      {/* Dot matrix 3x3 */}
+      <g transform={`translate(${100 + mousePos.x * 0.03}px, ${120 + mousePos.y * 0.02}px)`} opacity="0.35">
+        {[0, 1, 2].map(row =>
+          [0, 1, 2].map(col => (
+            <circle key={`${row}-${col}`} cx={col * 16} cy={row * 16} r="3" fill="#1A1918" />
+          ))
+        )}
+      </g>
+
+      {/* Technical label */}
+      <g transform={`translate(${300 + mousePos.x * 0.03}px, ${440 + mousePos.y * 0.02}px)`} opacity="0.5">
+        <rect x="-40" y="-10" width="80" height="20" rx="4" fill="white" stroke="#E0D8D0" strokeWidth="0.5" />
+        <text x="0" y="4" textAnchor="middle" fill="#9F9086" fontSize="8" fontFamily="IBM Plex Mono">12 × 12 grid</text>
+      </g>
+
+      {/* Bounding box with anchor points */}
+      <g transform={`translate(${420 + mousePos.x * 0.02}px, ${60 + mousePos.y * 0.02}px)`} opacity="0.3">
+        <rect x="0" y="0" width="80" height="80" rx="4" fill="none" stroke="#FF5F45" strokeWidth="0.5" strokeDasharray="4 2" />
+        <line x1="0" y1="0" x2="80" y2="80" stroke="#FF5F45" strokeWidth="0.3" />
+        <line x1="80" y1="0" x2="0" y2="80" stroke="#FF5F45" strokeWidth="0.3" />
+        <circle cx="0" cy="0" r="3" fill="white" stroke="#FF5F45" strokeWidth="1" />
+        <circle cx="80" cy="0" r="3" fill="white" stroke="#FF5F45" strokeWidth="1" />
+        <circle cx="0" cy="80" r="3" fill="white" stroke="#FF5F45" strokeWidth="1" />
+        <circle cx="80" cy="80" r="3" fill="white" stroke="#FF5F45" strokeWidth="1" />
+      </g>
+
+      {/* Stacked arch */}
+      <g transform={`translate(${120 + mousePos.x * 0.025}px, ${240 + mousePos.y * 0.015}px)`} opacity="0.3">
+        <path d="M0 40 A20 20 0 0140 40" fill="none" stroke="#1A1918" strokeWidth="1" />
+        <path d="M4 40 A16 16 0 0136 40" fill="none" stroke="#FF5F45" strokeWidth="0.5" />
+        <path d="M8 40 A12 12 0 0132 40" fill="none" stroke="#1A1918" strokeWidth="0.5" opacity="0.5" />
+      </g>
+
+      {/* Dimension line */}
+      <g transform={`translate(${200 + mousePos.x * 0.02}px, ${80 + mousePos.y * 0.015}px)`} opacity="0.25">
+        <line x1="0" y1="0" x2="100" y2="0" stroke="#1A1918" strokeWidth="0.5" />
+        <line x1="0" y1="-4" x2="0" y2="4" stroke="#1A1918" strokeWidth="0.5" />
+        <line x1="100" y1="-4" x2="100" y2="4" stroke="#1A1918" strokeWidth="0.5" />
+        <text x="50" y="-6" textAnchor="middle" fill="#9F9086" fontSize="7" fontFamily="IBM Plex Mono">240px</text>
+      </g>
+    </svg>
+  );
+}
+
+/* ─── Brandcora Logo Mark ─── */
+function LogoMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} fill="none">
+      <defs>
+        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF5F45" />
+          <stop offset="48%" stopColor="#FF8A5B" />
+          <stop offset="100%" stopColor="#F2B84B" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="12" width="4" height="4" rx="1" fill="url(#logoGrad)" />
+      <rect x="10" y="6" width="4" height="16" rx="1" fill="url(#logoGrad)" />
+      <rect x="16" y="4" width="4" height="20" rx="1" fill="url(#logoGrad)" />
+      <rect x="22" y="8" width="4" height="14" rx="1" fill="url(#logoGrad)" />
+      <rect x="28" y="14" width="4" height="6" rx="1" fill="url(#logoGrad)" />
+    </svg>
+  );
+}
+
+/* ─── Navigation ─── */
+function Navigation() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <Header />
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'py-3' : 'py-5'}`}>
+      <div className={`mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 transition-all duration-500`}>
+        <nav className={`flex items-center justify-between rounded-2xl px-6 py-3 transition-all duration-500 ${
+          scrolled
+            ? 'bg-white/80 backdrop-blur-xl border border-black/[0.04] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'
+            : 'bg-transparent'
+        }`}>
+          <Link href="/" className="flex items-center gap-3">
+            <LogoMark className="w-8 h-8" />
+            <span className="font-bold text-lg tracking-tight text-graphite">Brandcora</span>
+          </Link>
 
-      {/* Hero */}
-      <section className="relative pt-24 sm:pt-28">
-        <div className="mx-auto max-w-[1200px] px-6 lg:px-8">
-          <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-16 min-h-[calc(100vh-4rem)] items-center py-16 lg:py-0">
-            <div className="max-w-xl">
-              <h1 className="text-[2.75rem] md:text-[3.5rem] lg:text-[4.25rem] font-bold tracking-[-0.03em] text-foreground mb-6 text-balance leading-[1.05] animate-fade-up-delay-1">
-                Keep every design{' '}
-                <span className="gradient-text">on-brand</span>
-              </h1>
-              <p className="text-lg md:text-xl text-foreground-secondary leading-relaxed mb-10 max-w-md animate-fade-up-delay-2">
-                Extract your brand identity from any website — colors, fonts, logos, spacing. Then check every design against it automatically.
-              </p>
-              <div className="flex flex-col sm:flex-row items-stretch gap-3 max-w-lg animate-fade-up-delay-3">
-                <Input
-                  type="url"
-                  placeholder="Enter your website URL"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1 h-13 px-5 text-base bg-surface border-border text-foreground placeholder:text-foreground-muted"
-                  disabled={extracting}
-                  onKeyDown={(e) => e.key === 'Enter' && handleExtract()}
-                />
-                <Button
-                  onClick={handleExtract}
-                  disabled={!url || extracting}
-                  className="gradient-accent text-white h-13 px-7 shrink-0"
-                >
-                  {extracting ? (
-                    <>
-                      <Spinner className="mr-2 h-4 w-4 animate-spin" weight="bold" />
-                      Extracting...
-                    </>
-                  ) : (
-                    <>
-                      Extract my brand
-                      <ArrowRight className="ml-2 h-4 w-4" weight="bold" />
-                    </>
-                  )}
-                </Button>
-              </div>
-              {error && (
-                <div className="mt-4 max-w-lg rounded-xl bg-destructive/10 p-3 text-destructive text-sm font-medium text-center">
-                  {error}
-                </div>
-              )}
+          <div className="hidden md:flex items-center gap-8">
+            {['Toolkit', 'Collections', 'Use Cases', 'About'].map(item => (
+              <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`}
+                className="text-sm font-medium text-foreground-muted hover:text-foreground transition-colors duration-300">
+                {item}
+              </a>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-4">
+            <Link href="/pricing" className="text-sm font-medium text-foreground-muted hover:text-foreground transition-colors duration-300">
+              Pricing
+            </Link>
+            <Link href="/auth"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-accent hover:shadow-lg hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5">
+              Explore Assets
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+/* ─── Hero Section ─── */
+function HeroSection() {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    setMousePos({
+      x: (e.clientX - rect.left - rect.width / 2) / rect.width * 20,
+      y: (e.clientY - rect.top - rect.height / 2) / rect.height * 20,
+    });
+  }, []);
+
+  return (
+    <section ref={heroRef} onMouseMove={handleMouseMove}
+      className="relative min-h-screen flex items-center overflow-hidden grain"
+      style={{ background: 'linear-gradient(180deg, #FAF8F5 0%, #F0EBF5 40%, #FAF8F5 100%)' }}>
+
+      {/* Atmospheric gradient glow */}
+      <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full opacity-60 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.08) 0%, rgba(242,184,75,0.04) 50%, transparent 70%)' }} />
+      <div className="absolute bottom-1/4 left-1/6 w-[400px] h-[400px] rounded-full opacity-40 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(200,180,230,0.15) 0%, transparent 70%)' }} />
+
+      <div className="relative z-10 mx-auto max-w-[1440px] w-full px-6 md:px-12 lg:px-16 pt-32 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Left: Editorial headline */}
+          <div className="lg:col-span-5 space-y-8">
+            <div className="animate-fade-up">
+              <span className="section-label">Brand Identity Toolkit</span>
             </div>
 
-            {/* Product Scene */}
+            <h1 className="animate-fade-up-delay-1">
+              <span className="block text-display font-extrabold text-graphite leading-[0.92]">
+                Identity assets
+              </span>
+              <span className="block text-display font-extrabold leading-[0.92]">
+                made to become
+              </span>
+              <span className="block text-display font-extrabold leading-[0.92]">
+                your <span className="gradient-text italic">own.</span>
+              </span>
+            </h1>
+
+            <p className="animate-fade-up-delay-2 text-lg text-foreground-secondary max-w-md leading-relaxed">
+              A curated toolkit of adaptable SVG icons, symbols, patterns, and identity elements
+              created for designers who care about every detail.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 animate-fade-up-delay-3">
+              <Link href="/auth"
+                className="btn-magnetic inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl text-sm font-semibold text-white gradient-accent hover:shadow-xl hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5">
+                Explore the toolkit
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a href="#specimens"
+                className="btn-magnetic inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-medium text-foreground border border-border-strong hover:bg-surface-warm transition-all duration-300">
+                View live specimens
+              </a>
+            </div>
+          </div>
+
+          {/* Right: Specimen canvas */}
+          <div className="lg:col-span-7 animate-fade-up-delay-2">
             <div className="relative">
-              <div className="bg-surface rounded-2xl border border-border shadow-soft overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-background-warm/50">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-foreground-muted/20" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-foreground-muted/20" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-foreground-muted/20" />
-                  </div>
-                  <div className="flex-1 mx-4">
-                    <div className="bg-background rounded-md h-7 flex items-center px-3 border border-border">
-                      <span className="text-xs font-mono text-foreground-muted">seocontent.ai</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6 space-y-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Globe className="h-3.5 w-3.5 text-foreground-muted" weight="bold" />
-                    <span className="text-xs font-mono text-foreground-muted">seocontent.ai</span>
-                    <div className="ml-auto flex items-center gap-1.5">
-                      <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                      <span className="text-xs text-green-600 font-medium">Extracted</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="section-label mb-3">Colors</p>
-                    <div className="flex gap-2">
-                      {EXTRACTED_COLORS.map((c) => (
-                        <div key={c.hex} className="group relative">
-                          <div className="token-swatch transition-transform group-hover:scale-110" style={{ backgroundColor: c.hex }} />
-                          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                            <div className="bg-foreground text-white text-[10px] font-mono px-2 py-1 rounded whitespace-nowrap">{c.hex}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="section-label mb-3">Typography</p>
-                    <div className="space-y-2">
-                      <div className="bg-background rounded-xl p-3 border border-border">
-                        <p className="text-base font-bold text-foreground" style={{ fontFamily: 'Outfit, system-ui' }}>Outfit Display</p>
-                        <p className="text-xs text-foreground-muted mt-0.5">Heading - Outfit - 700</p>
-                      </div>
-                      <div className="bg-background rounded-xl p-3 border border-border">
-                        <p className="text-sm text-foreground" style={{ fontFamily: 'Inter, system-ui' }}>Inter Body Text</p>
-                        <p className="text-xs text-foreground-muted mt-0.5">Body - Inter - 400</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-background rounded-xl p-3 border border-border">
-                      <p className="section-label mb-2">Logo</p>
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded bg-[#61CE70] flex items-center justify-center text-white text-[10px] font-bold">S</div>
-                        <div>
-                          <p className="text-xs font-medium text-foreground">Primary</p>
-                          <p className="text-[10px] text-foreground-muted font-mono">High confidence</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-background rounded-xl p-3 border border-border">
-                      <p className="section-label mb-2">Gradients</p>
-                      <div className="space-y-1.5">
-                        {EXTRACTED_GRADIENTS.map((g, i) => (
-                          <div key={i} className="h-5 rounded" style={{
-                            background: `linear-gradient(${g.angle}deg, ${g.stops.map(s => `${s.colorHex} ${s.position}`).join(', ')})`
-                          }} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -right-4 top-1/3 hidden lg:block">
-                <div className="bg-background border border-border rounded-xl px-3 py-2 shadow-soft">
-                  <p className="text-[10px] font-mono text-foreground-muted">confidence</p>
-                  <p className="text-sm font-bold text-foreground">97.8%</p>
-                </div>
+              <SpecimenCanvas mousePos={mousePos} />
+              {/* Floating labels */}
+              <div className="absolute top-8 right-8 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-sm border border-border/50 text-xs font-mono text-foreground-muted">
+                <span className="w-2 h-2 rounded-full bg-brand-orange" />
+                Live canvas
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Extraction progress overlay */}
-      {extracting && (
-        <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-surface rounded-2xl border border-border shadow-elevated p-8 max-w-md w-full">
-            <div className="text-center mb-6">
-              <div className="h-12 w-12 rounded-full gradient-accent flex items-center justify-center mx-auto mb-4">
-                <Spinner className="h-6 w-6 text-white animate-spin" weight="bold" />
+/* ─── Specimen Strip ─── */
+function SpecimenStrip() {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const { ref, visible } = useInView(0.1);
+
+  return (
+    <section id="specimens" ref={ref} className="py-24 md:py-32 bg-white border-y border-border/50">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <span className="section-label">Selected assets / 01</span>
+          <h2 className="mt-4 text-section font-bold text-graphite max-w-2xl">
+            Designed as individual objects. Built to work as a system.
+          </h2>
+        </RevealSection>
+
+        <div className="mt-16 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {identityAssets.map((asset, i) => (
+            <RevealSection key={asset.name} delay={i * 0.05}>
+              <div
+                className="specimen-item group relative aspect-square rounded-2xl bg-warm-offwhite border border-border/40 flex flex-col items-center justify-center cursor-pointer hover:shadow-elevated"
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+              >
+                <svg viewBox="0 0 24 24" className="w-8 h-8 md:w-10 md:h-10 transition-transform duration-500 group-hover:scale-110"
+                  stroke="currentColor" strokeWidth="1" fill="none">
+                  <path d={asset.path} className="stroke-foreground-secondary group-hover:stroke-graphite transition-colors" />
+                </svg>
+                {/* Hover overlay */}
+                <div className="specimen-overlay absolute inset-0 rounded-2xl bg-graphite/90 flex flex-col items-center justify-center p-3 text-center">
+                  <span className="text-[10px] font-mono text-brand-orange mb-1">{asset.category}</span>
+                  <span className="text-xs font-semibold text-white mb-3">{asset.name}</span>
+                  <div className="flex gap-1.5">
+                    <button className="p-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors" title="Copy SVG">
+                      <Copy className="w-3 h-3 text-white" />
+                    </button>
+                    <button className="p-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors" title="Download">
+                      <Download className="w-3 h-3 text-white" />
+                    </button>
+                    <button className="p-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors" title="Preview">
+                      <Eye className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-foreground">Extracting brand</h3>
-              <p className="text-sm text-foreground-muted mt-1">Analyzing your website...</p>
-            </div>
-            <div className="space-y-2.5">
-              {PROGRESS_STEPS.map((step, i) => (
-                <div key={step.key} className="flex items-center gap-3">
-                  {i < progressIndex ? (
-                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0" weight="fill" />
-                  ) : i === progressIndex ? (
-                    <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border border-border shrink-0" />
-                  )}
-                  <span className={`text-sm ${i <= progressIndex ? 'text-foreground font-medium' : 'text-foreground-muted'}`}>
-                    {step.label}
-                  </span>
+            </RevealSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Credibility Strip ─── */
+function CredibilityStrip() {
+  return (
+    <section className="py-16 md:py-20 bg-warm-offwhite">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 text-center md:text-left">
+            <p className="text-xl md:text-2xl font-medium text-foreground-secondary max-w-lg">
+              Made for <span className="text-graphite font-semibold">identity designers</span>, studios, creative teams, and independent makers.
+            </p>
+            <div className="flex items-center gap-8 md:gap-12">
+              {[
+                { value: '240+', label: 'Assets' },
+                { value: '6', label: 'Collections' },
+                { value: 'SVG', label: 'Native format' },
+              ].map(stat => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
+                  <div className="text-xs font-mono text-foreground-muted mt-1 uppercase tracking-wider">{stat.label}</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      )}
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
 
-      {/* Problem */}
-      <section className="py-20 lg:py-28 px-6 lg:px-8 bg-background-warm">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-16 lg:gap-20 items-center">
+/* ─── Collections Section ─── */
+function CollectionsSection() {
+  const collections = [
+    { name: 'Geometric Symbols', count: 48, bg: 'bg-warm-offwhite', span: 'col-span-2 row-span-2', accent: 'brand-orange' },
+    { name: 'Organic Forms', count: 36, bg: 'bg-lavender-soft', span: 'col-span-1 row-span-1' },
+    { name: 'Interface Icons', count: 64, bg: 'bg-graphite', span: 'col-span-1 row-span-1', dark: true },
+    { name: 'Editorial Marks', count: 24, bg: 'bg-warm-cream', span: 'col-span-1 row-span-1' },
+    { name: 'Modular Patterns', count: 18, bg: 'bg-lavender-soft', span: 'col-span-1 row-span-1' },
+    { name: 'Abstract Identity', count: 32, bg: 'bg-warm-offwhite', span: 'col-span-2 row-span-1' },
+  ];
+
+  return (
+    <section id="collections" className="py-24 md:py-32 bg-background">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-16">
             <div>
-              <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-6 text-balance leading-tight tracking-[-0.02em]">
-                Brand drift happens silently
+              <span className="section-label">Collections</span>
+              <h2 className="mt-4 text-section font-bold text-graphite">
+                One toolkit.<br />
+                <span className="text-foreground-muted">Multiple visual languages.</span>
               </h2>
-              <p className="text-foreground-secondary leading-relaxed mb-4">
-                Teams update websites, create marketing materials, and publish content — but nobody checks if it matches the brand guide. Colors shift, fonts change, logos get misused.
-              </p>
-              <p className="text-foreground-secondary leading-relaxed">
-                By the time someone notices, the brand has drifted across dozens of touchpoints. Manual review takes hours. Most issues slip through.
-              </p>
             </div>
-            <div className="relative">
-              <div className="bg-surface rounded-2xl border border-border shadow-soft overflow-hidden">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="section-label">Brand check</p>
-                    <span className="text-xs font-mono text-red-500 font-medium">3 issues found</span>
+            <a href="#" className="inline-flex items-center gap-2 text-sm font-medium text-foreground-secondary hover:text-graphite transition-colors">
+              View all collections <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </RevealSection>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[220px]">
+          {collections.map((col, i) => (
+            <RevealSection key={col.name} delay={i * 0.08}>
+              <div className={`group relative ${col.bg} ${col.span} rounded-3xl p-6 md:p-8 flex flex-col justify-between overflow-hidden cursor-pointer border border-border/30 hover:shadow-elevated transition-all duration-500`}>
+                {/* Background pattern */}
+                <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    {[0, 1, 2, 3, 4, 5].map(j => (
+                      <g key={j} transform={`translate(${(j % 3) * 70 + 20}, ${Math.floor(j / 3) * 80 + 30})`}>
+                        <circle cx="15" cy="15" r="12" fill="none" stroke={col.dark ? 'white' : '#1A1918'} strokeWidth="0.5" />
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+
+                <div className="relative z-10">
+                  <div className="flex gap-1.5 mb-3">
+                    {Array.from({ length: Math.min(6, col.count) }).map((_, j) => (
+                      <div key={j} className={`w-6 h-6 rounded-md ${col.dark ? 'bg-white/10' : 'bg-graphite/5'} flex items-center justify-center`}>
+                        <div className={`w-3 h-3 rounded-sm ${col.dark ? 'bg-white/20' : 'bg-graphite/10'}`} />
+                      </div>
+                    ))}
                   </div>
-                  <div className="space-y-3">
-                    <div className="bg-background rounded-xl border border-red-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                          <Warning className="h-4 w-4 text-red-500" weight="fill" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">Wrong color in hero section</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded bg-[#4CAF50] border border-border" />
-                              <span className="text-xs font-mono text-foreground-muted">#4CAF50</span>
-                            </div>
-                            <CaretRight className="h-3 w-3 text-foreground-muted" />
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded bg-[#61CE70] border border-border" />
-                              <span className="text-xs font-mono text-foreground-muted">#61CE70</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-background rounded-xl border border-red-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                          <Warning className="h-4 w-4 text-red-500" weight="fill" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">Wrong typeface detected</p>
-                          <p className="text-xs text-foreground-muted mt-1">
-                            <span className="font-mono">Arial</span> used — should be <span className="font-mono">Outfit</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-background rounded-xl border border-yellow-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-yellow-50 flex items-center justify-center shrink-0 mt-0.5">
-                          <Warning className="h-4 w-4 text-yellow-600" weight="fill" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">Logo below minimum size</p>
-                          <p className="text-xs text-foreground-muted mt-1 font-mono">
-                            60px width → minimum 120px
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                </div>
+
+                <div className="relative z-10 flex items-end justify-between">
+                  <div>
+                    <h3 className={`text-lg font-bold ${col.dark ? 'text-white' : 'text-graphite'}`}>{col.name}</h3>
+                    <p className={`text-sm mt-1 ${col.dark ? 'text-white/60' : 'text-foreground-muted'}`}>{col.count} assets</p>
+                  </div>
+                  <div className={`p-2 rounded-xl ${col.dark ? 'bg-white/10 group-hover:bg-white/20' : 'bg-graphite/5 group-hover:bg-graphite/10'} transition-colors`}>
+                    <ArrowRight className={`w-4 h-4 ${col.dark ? 'text-white' : 'text-graphite'} transition-transform group-hover:translate-x-0.5`} />
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </RevealSection>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* What We Extract */}
-      <section id="extraction" className="py-20 lg:py-28 px-6 lg:px-8">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="max-w-2xl mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-              Your brand, decoded
+/* ─── Featured Collection Panel (Dark) ─── */
+function FeaturedCollectionPanel() {
+  return (
+    <section className="py-24 md:py-32 relative overflow-hidden grain" style={{ background: 'linear-gradient(180deg, #1A1918 0%, #242322 100%)' }}>
+      {/* Gradient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full pointer-events-none opacity-30"
+        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.1) 0%, transparent 70%)' }} />
+
+      <div className="relative z-10 mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <RevealSection>
+            <span className="section-label text-white/40">Featured Collection</span>
+            <h2 className="mt-4 text-editorial font-bold text-white leading-tight">
+              Geometric <span className="gradient-text">Symbols</span>
             </h2>
-            <p className="text-lg text-foreground-secondary leading-relaxed">
-              Every element of your visual identity — identified, measured, and cataloged from a single URL.
+            <p className="mt-6 text-lg text-white/60 max-w-md leading-relaxed">
+              48 precision-crafted geometric symbols built on consistent construction principles.
+              Each symbol works at every scale, in any color, across all media.
             </p>
-          </div>
-          <div className="grid md:grid-cols-4 gap-6">
-            <FeatureCard
-              icon={<Palette className="h-5 w-5 text-primary" weight="bold" />}
-              title="Colors"
-              count="6 detected"
-              content={
-                <div className="flex gap-2 mb-4">
-                  {['#61CE70', '#11281A', '#FFFFFF', '#F5F5F5', '#333333', '#2D6A4F'].map((hex) => (
-                    <div key={hex} className="token-swatch" style={{ backgroundColor: hex }} />
-                  ))}
-                </div>
-              }
-              details={
-                <>
-                  <DetailRow label="primary" value="#61CE70" />
-                  <DetailRow label="dark" value="#11281A" />
-                </>
-              }
-            />
-            <FeatureCard
-              icon={<TextT className="h-5 w-5 text-primary" weight="bold" />}
-              title="Typography"
-              count="4 fonts found"
-              content={
-                <div className="space-y-2">
-                  <div className="bg-background rounded-xl p-3 border border-border">
-                    <p className="text-base font-bold text-foreground" style={{ fontFamily: 'Outfit, system-ui' }}>Outfit Display</p>
-                    <p className="text-xs text-foreground-muted mt-0.5">Heading · Weight 700</p>
-                  </div>
-                  <div className="bg-background rounded-xl p-3 border border-border">
-                    <p className="text-sm text-foreground" style={{ fontFamily: 'Inter, system-ui' }}>Inter Regular</p>
-                    <p className="text-xs text-foreground-muted mt-0.5">Body · Weight 400</p>
-                  </div>
-                  <div className="bg-background rounded-xl p-3 border border-border">
-                    <p className="text-sm text-foreground" style={{ fontFamily: 'Roboto, system-ui' }}>Roboto</p>
-                    <p className="text-xs text-foreground-muted mt-0.5">UI · Weight 400</p>
-                  </div>
-                </div>
-              }
-            />
-            <FeatureCard
-              icon={<Image className="h-5 w-5 text-primary" weight="bold" />}
-              title="Logos & Components"
-              count="6 variants"
-              content={
-                <div className="space-y-2">
-                  <div className="bg-background rounded-xl p-3 border border-border flex items-center justify-between">
-                    <span className="text-sm text-foreground">Primary logo</span>
-                    <span className="text-xs font-mono text-green-600">High</span>
-                  </div>
-                  <div className="bg-background rounded-xl p-3 border border-border flex items-center justify-between">
-                    <span className="text-sm text-foreground">Favicon</span>
-                    <span className="text-xs font-mono text-green-600">High</span>
-                  </div>
-                  <div className="bg-background rounded-xl p-3 border border-border flex items-center justify-between">
-                    <span className="text-sm text-foreground">CTA buttons</span>
-                    <span className="text-xs font-mono text-foreground-muted">3 variants</span>
-                  </div>
-                  <div className="bg-background rounded-xl p-3 border border-border flex items-center justify-between">
-                    <span className="text-sm text-foreground">Card styles</span>
-                    <span className="text-xs font-mono text-foreground-muted">4 tokens</span>
-                  </div>
-                </div>
-              }
-            />
-            <FeatureCard
-              icon={<Lightning className="h-5 w-5 text-primary" weight="bold" />}
-              title="Gradients"
-              count="2 detected"
-              content={
-                <div className="space-y-2">
-                  {EXTRACTED_GRADIENTS.map((g, i) => (
-                    <div key={i} className="bg-background rounded-xl p-3 border border-border">
-                      <div className="h-6 rounded mb-2" style={{
-                        background: `linear-gradient(${g.angle}deg, ${g.stops.map(s => `${s.colorHex} ${s.position}`).join(', ')})`
-                      }} />
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-foreground capitalize">{g.role}</span>
-                        <span className="text-[10px] font-mono text-foreground-muted">{g.type} · {g.angle}deg</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              }
-            />
-          </div>
-        </div>
-      </section>
+            <div className="mt-8 flex items-center gap-4">
+              <a href="#" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-graphite bg-white hover:bg-white/90 transition-all duration-300 hover:-translate-y-0.5">
+                Explore collection <ArrowRight className="w-4 h-4" />
+              </a>
+              <span className="text-sm font-mono text-white/40">48 SVG &middot; Figma &middot; PNG</span>
+            </div>
+          </RevealSection>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 lg:py-28 px-6 lg:px-8 bg-background-warm">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="max-w-2xl mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-              Three steps to brand consistency
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: '01', title: 'Paste your URL', desc: 'Enter any website. Brandcora opens it and begins extracting your visual identity.', icon: <Globe className="h-5 w-5 text-white" weight="bold" /> },
-              { step: '02', title: 'We analyze every pixel', desc: 'Colors, fonts, logos, spacing, shadows, buttons — everything is detected and cataloged.', icon: <Lightning className="h-5 w-5 text-white" weight="bold" /> },
-              { step: '03', title: 'Your brand profile emerges', desc: 'A complete brand specification with exact values, ready to check against any design.', icon: <CheckCircle className="h-5 w-5 text-white" weight="bold" /> },
-            ].map((item) => (
-              <div key={item.step}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl gradient-accent shadow-soft mb-5">
-                  {item.icon}
+          <RevealSection delay={0.2}>
+            <div className="relative grid grid-cols-3 gap-4">
+              {identityAssets.slice(0, 9).map((asset, i) => (
+                <div key={asset.name}
+                  className="aspect-square rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center hover:bg-white/[0.08] transition-all duration-300 group cursor-pointer"
+                  style={{ animationDelay: `${i * 0.05}s` }}>
+                  <svg viewBox="0 0 24 24" className="w-6 h-6 md:w-8 md:h-8" stroke="currentColor" strokeWidth="1" fill="none">
+                    <path d={asset.path} className="stroke-white/40 group-hover:stroke-white/70 transition-colors" />
+                  </svg>
                 </div>
-                <div className="section-label mb-2">Step {item.step}</div>
-                <h3 className="text-lg font-bold text-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-foreground-secondary leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </RevealSection>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Before & After */}
-      <section className="py-20 lg:py-28 px-6 lg:px-8">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="max-w-2xl mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-              See exactly what changes
+/* ─── Typographic Editorial Section ─── */
+function EditorialSection() {
+  return (
+    <section className="py-24 md:py-40 bg-warm-offwhite overflow-hidden">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+          <RevealSection className="lg:col-span-7">
+            <h2 className="text-editorial font-bold text-graphite leading-[1.05]">
+              More than an<br />
+              icon library.
             </h2>
-            <p className="text-lg text-foreground-secondary leading-relaxed">
-              Brandcora doesn't just find problems — it gives you the exact fix.
+            <h2 className="mt-2 text-editorial font-bold text-graphite leading-[1.05]">
+              A starting point for<br />
+              <span className="font-serif italic font-normal text-foreground-secondary">complete identities.</span>
+            </h2>
+          </RevealSection>
+
+          <RevealSection delay={0.2} className="lg:col-span-4 lg:col-start-9 flex flex-col justify-end">
+            <p className="text-base text-foreground-secondary leading-relaxed">
+              Every symbol in the toolkit is designed as a modular element of a larger visual language.
+              Combine, recolor, resize, and remix. The system adapts to your brand, not the other way around.
             </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-surface rounded-2xl border border-border p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="section-label">Current design</span>
-              </div>
-              <div className="space-y-3">
-                <CompareRow label="Color">
-                  <div className="flex items-center gap-3">
-                    <div className="h-7 w-7 rounded bg-[#4CAF50] border border-border" />
-                    <div>
-                      <p className="text-sm font-mono text-foreground">#4CAF50</p>
-                      <p className="text-xs text-foreground-muted">Wrong green</p>
-                    </div>
-                  </div>
-                </CompareRow>
-                <CompareRow label="Font">
-                  <div className="flex items-center gap-3">
-                    <p className="text-base text-foreground" style={{ fontFamily: 'Arial, sans-serif' }}>Arial</p>
-                    <div>
-                      <p className="text-sm text-foreground">Wrong typeface</p>
-                      <p className="text-xs text-foreground-muted">Should be Outfit</p>
-                    </div>
-                  </div>
-                </CompareRow>
-                <CompareRow label="Logo">
-                  <div className="flex items-center gap-3">
-                    <div className="h-7 w-7 rounded bg-foreground-muted/20 flex items-center justify-center text-xs text-foreground-muted">60</div>
-                    <div>
-                      <p className="text-sm text-foreground">60px width</p>
-                      <p className="text-xs text-foreground-muted">Below minimum</p>
-                    </div>
-                  </div>
-                </CompareRow>
-              </div>
+            <div className="mt-8 flex items-center gap-2 text-sm font-medium text-graphite">
+              <span className="w-8 h-[2px] gradient-accent rounded-full" />
+              Built for professional use
             </div>
-            <div className="bg-surface rounded-2xl border border-primary/20 p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                <span className="section-label">Recommended</span>
-              </div>
-              <div className="space-y-3">
-                <CompareRow label="Color">
-                  <div className="flex items-center gap-3">
-                    <div className="h-7 w-7 rounded bg-[#61CE70] border border-border" />
-                    <div>
-                      <p className="text-sm font-mono text-foreground">#61CE70</p>
-                      <p className="text-xs text-primary">Brand green</p>
-                    </div>
-                  </div>
-                </CompareRow>
-                <CompareRow label="Font">
-                  <div className="flex items-center gap-3">
-                    <p className="text-base text-foreground" style={{ fontFamily: 'Outfit, system-ui' }}>Outfit</p>
-                    <div>
-                      <p className="text-sm text-foreground">Brand typeface</p>
-                      <p className="text-xs text-primary">Weights: 400-700</p>
-                    </div>
-                  </div>
-                </CompareRow>
-                <CompareRow label="Logo">
-                  <div className="flex items-center gap-3">
-                    <div className="h-7 w-7 rounded bg-[#61CE70] flex items-center justify-center text-xs text-white font-bold">S</div>
-                    <div>
-                      <p className="text-sm text-foreground">120px width</p>
-                      <p className="text-xs text-primary">Meets minimum</p>
-                    </div>
-                  </div>
-                </CompareRow>
-              </div>
-            </div>
-          </div>
+          </RevealSection>
         </div>
-      </section>
 
-      {/* Score — White Section */}
-      <section className="py-20 lg:py-28 px-6 lg:px-8 bg-background">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-16 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-6 text-balance leading-tight tracking-[-0.02em]">
-                Measured, not guessed
-              </h2>
-              <p className="text-lg leading-relaxed text-foreground-secondary">
-                A weighted score across every dimension of brand compliance. Colors, fonts, logos, spacing, contrast, gradients — all quantified.
-              </p>
+        {/* Floating SVG specimens entering from bottom */}
+        <div className="relative mt-20 h-32 overflow-hidden">
+          {identityAssets.slice(0, 5).map((asset, i) => (
+            <div key={asset.name} className="absolute bottom-0 opacity-10"
+              style={{ left: `${10 + i * 18}%`, transform: `translateY(${20 + (i % 3) * 15}px) rotate(${-5 + i * 3}deg)` }}>
+              <svg viewBox="0 0 24 24" className="w-16 h-16 md:w-24 md:h-24" stroke="currentColor" strokeWidth="0.5" fill="none">
+                <path d={asset.path} className="stroke-graphite" />
+              </svg>
             </div>
-            <div className="bg-surface rounded-2xl border border-border p-8">
-              <div className="flex items-center gap-8 mb-8">
-                <div className="inline-flex items-center justify-center w-28 h-28 rounded-full gradient-accent shrink-0">
-                  <span className="text-5xl font-bold text-white">
-                    <AnimatedNumber value={91} />
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">Brand Match Score</h3>
-                  <p className="text-sm mt-1 text-foreground-muted">Weighted across 8 dimensions</p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { label: 'Color consistency', score: 94, weight: '25%' },
-                  { label: 'Font usage', score: 88, weight: '20%' },
-                  { label: 'Logo compliance', score: 92, weight: '15%' },
-                  { label: 'Spacing consistency', score: 85, weight: '10%' },
-                  { label: 'Text contrast', score: 90, weight: '10%' },
-                  { label: 'Component styles', score: 87, weight: '10%' },
-                  { label: 'Accessibility', score: 82, weight: '5%' },
-                  { label: 'Gradient consistency', score: 93, weight: '5%' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm text-foreground-secondary">{item.label}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-mono text-foreground-muted">{item.weight}</span>
-                        <span className="text-sm font-bold text-foreground">{item.score}%</span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted">
-                      <div className="h-full rounded-full gradient-accent" style={{ width: `${item.score}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Pricing */}
-      <section id="pricing" className="py-20 lg:py-28 px-6 lg:px-8">
-        <div className="mx-auto max-w-[800px]">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-              Simple, transparent
-            </h2>
-            <p className="text-lg text-foreground-secondary">
-              Start free. Upgrade when you need more.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-surface rounded-2xl border border-border p-8">
-              <h3 className="text-lg font-bold text-foreground mb-1">Free</h3>
-              <p className="text-sm text-foreground-muted mb-5">For trying out Brand Guard</p>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-foreground">$0</span>
-                <span className="text-foreground-muted">forever</span>
-              </div>
-              <ul className="space-y-2.5 mb-8">
-                {['1 brand profile', '3 social checks/month', '1 website scan/month', 'Basic scores'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground-secondary">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0" weight="fill" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/register" className="block">
-                <Button variant="outline" className="w-full border-border text-foreground">Get started</Button>
-              </Link>
-            </div>
-            <div className="bg-surface rounded-2xl border border-primary/30 p-8 relative">
-              <div className="absolute -top-3 left-8">
-                <span className="gradient-accent text-white text-xs font-bold px-3 py-1 rounded-full">Popular</span>
-              </div>
-              <h3 className="text-lg font-bold gradient-text mb-1">Pro</h3>
-              <p className="text-sm text-foreground-muted mb-5">For agencies and power users</p>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-foreground">$5</span>
-                <span className="text-foreground-muted">/month</span>
-              </div>
-              <ul className="space-y-2.5 mb-8">
-                {['Unlimited brand profiles', 'Unlimited social checks', 'Unlimited website scans', 'Full reports', 'Priority support'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground-secondary">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0" weight="fill" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/register" className="block">
-                <Button className="w-full gradient-accent text-white">Start free trial</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+/* ─── Interactive Customization Section ─── */
+function CustomizationSection() {
+  const [strokeWeight, setStrokeWeight] = useState(1);
+  const [cornerRadius, setCornerRadius] = useState(4);
+  const [activeColor, setActiveColor] = useState('#FF5F45');
+  const [copied, setCopied] = useState(false);
 
-      {/* Final CTA */}
-      <section className="py-20 lg:py-28 px-6 lg:px-8 bg-background-warm">
-        <div className="mx-auto max-w-[640px] text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance leading-tight tracking-[-0.02em]">
-            Extract your brand now
+  const colors = ['#FF5F45', '#FF8A5B', '#F2B84B', '#1A1918', '#6B5CE7', '#38BDF8'];
+
+  const handleCopy = () => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <section className="py-24 md:py-32 bg-white border-y border-border/50">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <span className="section-label">Customization</span>
+          <h2 className="mt-4 text-section font-bold text-graphite">
+            Make every asset your own.
           </h2>
-          <p className="text-lg text-foreground-secondary mb-10">
-            See what's really inside your website.
-          </p>
-          <div className="flex flex-col sm:flex-row items-stretch gap-3 max-w-lg mx-auto mb-6">
-            <Input
-              type="url"
-              placeholder="https://yoursite.com"
-              className="flex-1 h-13 px-5 text-base bg-surface border-border text-foreground placeholder:text-foreground-muted"
-            />
-            <Button className="gradient-accent text-white h-13 px-7 shrink-0">
-              Analyze now
-              <ArrowRight className="ml-2 h-4 w-4" weight="bold" />
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-foreground-muted">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-primary" weight="fill" />
-              Free analysis
+        </RevealSection>
+
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* Preview */}
+          <RevealSection className="lg:col-span-7">
+            <div className="relative aspect-[4/3] rounded-3xl bg-warm-offwhite border border-border/40 flex items-center justify-center overflow-hidden construction-grid">
+              <svg viewBox="0 0 200 200" className="w-40 h-40 md:w-56 md:h-56 transition-all duration-500">
+                <rect x="20" y="20" width="160" height="160" rx={cornerRadius}
+                  fill="none" stroke={activeColor} strokeWidth={strokeWeight} />
+                <circle cx="100" cy="100" r="40"
+                  fill="none" stroke={activeColor} strokeWidth={strokeWeight} opacity="0.6" />
+                <path d="M60 100 L100 60 L140 100 L100 140 Z"
+                  fill="none" stroke={activeColor} strokeWidth={strokeWeight} opacity="0.4" />
+              </svg>
+              {/* Technical overlay */}
+              <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-sm border border-border/50 text-[10px] font-mono text-foreground-muted">
+                stroke: {strokeWeight}px &middot; radius: {cornerRadius}px
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-primary" weight="fill" />
-              No signup required
+          </RevealSection>
+
+          {/* Controls */}
+          <RevealSection delay={0.15} className="lg:col-span-5">
+            <div className="space-y-8">
+              {/* Stroke weight */}
+              <div>
+                <label className="text-xs font-mono text-foreground-muted uppercase tracking-wider">Stroke Weight</label>
+                <div className="mt-3 flex items-center gap-4">
+                  <input type="range" min="0.5" max="3" step="0.5" value={strokeWeight}
+                    onChange={e => setStrokeWeight(Number(e.target.value))}
+                    className="flex-1 h-1 bg-border rounded-full appearance-none cursor-pointer accent-brand-orange" />
+                  <span className="text-sm font-mono text-graphite w-8 text-right">{strokeWeight}px</span>
+                </div>
+              </div>
+
+              {/* Corner radius */}
+              <div>
+                <label className="text-xs font-mono text-foreground-muted uppercase tracking-wider">Corner Softness</label>
+                <div className="mt-3 flex items-center gap-4">
+                  <input type="range" min="0" max="24" step="2" value={cornerRadius}
+                    onChange={e => setCornerRadius(Number(e.target.value))}
+                    className="flex-1 h-1 bg-border rounded-full appearance-none cursor-pointer accent-brand-orange" />
+                  <span className="text-sm font-mono text-graphite w-8 text-right">{cornerRadius}px</span>
+                </div>
+              </div>
+
+              {/* Colors */}
+              <div>
+                <label className="text-xs font-mono text-foreground-muted uppercase tracking-wider">Primary Color</label>
+                <div className="mt-3 flex items-center gap-2.5">
+                  {colors.map(color => (
+                    <button key={color}
+                      onClick={() => setActiveColor(color)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${activeColor === color ? 'border-graphite scale-110' : 'border-transparent hover:scale-105'}`}
+                      style={{ backgroundColor: color }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Copy SVG */}
+              <button onClick={handleCopy}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white gradient-accent hover:shadow-lg hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5">
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copied to clipboard
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy SVG
+                  </>
+                )}
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-primary" weight="fill" />
-              Instant results
-            </div>
-          </div>
+          </RevealSection>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-background-warm">
-        <div className="mx-auto max-w-[1200px] px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <img src="/logo.png" alt="Brandcora" className="h-7 w-auto" />
-              </Link>
-              <p className="text-sm text-foreground-secondary leading-relaxed max-w-[240px]">
-                Extract your brand identity from any website and keep every design on-brand.
-              </p>
-            </div>
+/* ─── Use Cases Section ─── */
+function UseCasesSection() {
+  const useCases = [
+    { title: 'Brand Identity', desc: 'Complete visual systems', icon: '◇' },
+    { title: 'Packaging', desc: 'Label and box design', icon: '□' },
+    { title: 'Editorial', desc: 'Print and digital media', icon: '△' },
+    { title: 'Digital Products', desc: 'Apps and websites', icon: '○' },
+    { title: 'Social Campaigns', desc: 'Campaign assets', icon: '☆' },
+    { title: 'Presentations', desc: 'Slide and deck design', icon: '⬡' },
+    { title: 'Environmental', desc: 'Signage and spaces', icon: '◆' },
+    { title: 'Motion', desc: 'Animation systems', icon: '▲' },
+  ];
 
-            {/* Product */}
+  return (
+    <section id="use-cases" className="py-24 md:py-32 bg-background">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <div className="max-w-2xl mb-16">
+            <span className="section-label">Use Cases</span>
+            <h2 className="mt-4 text-section font-bold text-graphite">
+              One visual language,<br />
+              <span className="text-foreground-muted">endless applications.</span>
+            </h2>
+          </div>
+        </RevealSection>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {useCases.map((uc, i) => (
+            <RevealSection key={uc.title} delay={i * 0.06}>
+              <div className="group relative p-6 rounded-2xl bg-warm-offwhite border border-border/30 hover:border-brand-orange/20 hover:shadow-soft transition-all duration-300 cursor-pointer">
+                <div className="text-2xl text-brand-orange mb-4 opacity-60 group-hover:opacity-100 transition-opacity">{uc.icon}</div>
+                <h3 className="text-sm font-bold text-graphite">{uc.title}</h3>
+                <p className="text-xs text-foreground-muted mt-1">{uc.desc}</p>
+              </div>
+            </RevealSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Dark Feature Section ─── */
+function DarkFeatureSection() {
+  return (
+    <section className="py-24 md:py-32 relative overflow-hidden grain" style={{ background: 'linear-gradient(180deg, #1A1918 0%, #1E1D1C 50%, #1A1918 100%)' }}>
+      {/* Subtle grid background */}
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }} />
+
+      <div className="relative z-10 mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <div className="max-w-3xl mb-16">
+            <span className="section-label text-white/30">System Design</span>
+            <h2 className="mt-4 text-section font-bold text-white leading-tight">
+              Built for systems,<br />
+              not isolated symbols.
+            </h2>
+            <p className="mt-6 text-lg text-white/50 max-w-lg leading-relaxed">
+              Every asset connects. The toolkit is designed as a modular visual language where elements
+              share proportions, weights, and construction logic.
+            </p>
+          </div>
+        </RevealSection>
+
+        {/* Connected system diagram */}
+        <RevealSection delay={0.2}>
+          <div className="relative py-16">
+            <svg viewBox="0 0 1000 300" className="w-full" fill="none">
+              {/* Connecting lines */}
+              <line x1="120" y1="150" x2="300" y2="100" stroke="rgba(255,95,69,0.15)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="300" y1="100" x2="500" y2="150" stroke="rgba(255,95,69,0.15)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="500" y1="150" x2="700" y2="100" stroke="rgba(255,95,69,0.15)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="700" y1="100" x2="880" y2="150" stroke="rgba(255,95,69,0.15)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="300" y1="100" x2="300" y2="220" stroke="rgba(255,95,69,0.1)" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="700" y1="100" x2="700" y2="220" stroke="rgba(255,95,69,0.1)" strokeWidth="1" strokeDasharray="4 4" />
+
+              {/* Nodes */}
+              {[
+                { x: 120, y: 150, r: 28, path: 'M12 2l8.66 5v10L12 27 3.34 17V7z' },
+                { x: 300, y: 100, r: 24, path: 'M12 2a10 10 0 100 20 10 10 0 000-20z' },
+                { x: 500, y: 150, r: 32, path: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z' },
+                { x: 700, y: 100, r: 24, path: 'M4 4h16v4H4zm2 6h12v4H6zm2 6h8v4H8z' },
+                { x: 880, y: 150, r: 28, path: 'M12 2l6 6-6 6-6-6z M12 14l6 6-6 6-6-6z' },
+                { x: 300, y: 220, r: 16, path: 'M12 2v20M2 12h20' },
+                { x: 700, y: 220, r: 16, path: 'M12 2a10 10 0 0110 10' },
+              ].map((node, i) => (
+                <g key={i}>
+                  <circle cx={node.x} cy={node.y} r={node.r + 8} fill="rgba(255,95,69,0.04)" />
+                  <circle cx={node.x} cy={node.y} r={node.r} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                  <g transform={`translate(${node.x - 12}, ${node.y - 12})`}>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="rgba(255,255,255,0.4)" strokeWidth="1" fill="none">
+                      <path d={node.path} />
+                    </svg>
+                  </g>
+                </g>
+              ))}
+            </svg>
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Licensing Section ─── */
+function LicensingSection() {
+  const formats = [
+    { name: 'SVG', desc: 'Scalable vectors' },
+    { name: 'Figma', desc: 'Component library' },
+    { name: 'PNG', desc: 'Rasterized assets' },
+    { name: 'PDF', desc: 'Print-ready files' },
+  ];
+
+  const licenses = [
+    'Commercial license included',
+    'Editable vector paths',
+    'Free lifetime updates',
+    'Organized by collection',
+  ];
+
+  return (
+    <section className="py-24 md:py-32 bg-warm-offwhite">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
+        <RevealSection>
+          <div className="max-w-2xl mb-16">
+            <span className="section-label">Formats &amp; Licensing</span>
+            <h2 className="mt-4 text-section font-bold text-graphite">
+              Everything you need,<br />
+              nothing you don&apos;t.
+            </h2>
+          </div>
+        </RevealSection>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <RevealSection>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-4">Product</h4>
-              <ul className="space-y-2.5">
-                <li><a href="#extraction" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">How it Works</a></li>
-                <li><a href="#pricing" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#faq" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">FAQ</a></li>
-              </ul>
+              <h3 className="text-sm font-bold text-graphite uppercase tracking-wider mb-6">Available Formats</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {formats.map(f => (
+                  <div key={f.name} className="p-4 rounded-xl bg-white border border-border/40">
+                    <span className="text-lg font-bold gradient-text font-mono">{f.name}</span>
+                    <p className="text-xs text-foreground-muted mt-1">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+          </RevealSection>
 
-            {/* Company */}
+          <RevealSection delay={0.1}>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-4">Company</h4>
-              <ul className="space-y-2.5">
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">About</a></li>
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Blog</a></li>
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Careers</a></li>
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Contact</a></li>
-              </ul>
+              <h3 className="text-sm font-bold text-graphite uppercase tracking-wider mb-6">License Details</h3>
+              <div className="space-y-3">
+                {licenses.map(license => (
+                  <div key={license} className="flex items-center gap-3 py-2">
+                    <Check className="w-4 h-4 text-brand-orange shrink-0" />
+                    <span className="text-sm text-foreground-secondary">{license}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+          </RevealSection>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-            {/* Legal */}
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-4">Legal</h4>
-              <ul className="space-y-2.5">
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">Cookie Policy</a></li>
-              </ul>
+/* ─── Final CTA ─── */
+function FinalCTA() {
+  return (
+    <section className="py-24 md:py-40 relative overflow-hidden grain" style={{ background: 'linear-gradient(180deg, #FAF8F5 0%, #F0EBF5 50%, #FAF8F5 100%)' }}>
+      {/* Large gradient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(255,95,69,0.1) 0%, rgba(242,184,75,0.05) 40%, transparent 70%)' }} />
+
+      {/* Large SVG watermark */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
+        <svg viewBox="0 0 200 200" className="w-[500px] h-[500px]">
+          <path d="M100 10l77.9 45v90L100 190l-77.9-45V55z" fill="none" stroke="#1A1918" strokeWidth="1" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 text-center">
+        <RevealSection>
+          <h2 className="text-editorial font-bold text-graphite leading-tight max-w-3xl mx-auto">
+            Give your next identity a<br />
+            <span className="gradient-text">stronger starting point.</span>
+          </h2>
+          <p className="mt-6 text-lg text-foreground-secondary max-w-lg mx-auto leading-relaxed">
+            Explore a flexible collection of symbols, icons, and visual elements
+            made to evolve with your ideas.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/auth"
+              className="btn-magnetic inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-semibold text-white gradient-accent hover:shadow-xl hover:shadow-brand-orange/20 transition-all duration-300 hover:-translate-y-0.5">
+              Explore the toolkit
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a href="#specimens"
+              className="btn-magnetic inline-flex items-center gap-2 px-7 py-4 rounded-2xl text-sm font-medium text-foreground border border-border-strong hover:bg-surface-warm transition-all duration-300">
+              Preview all assets
+            </a>
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Footer ─── */
+function Footer() {
+  return (
+    <footer className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #1A1918 0%, #141312 100%)' }}>
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16 pt-20 pb-12">
+        {/* Large brand name */}
+        <div className="mb-16">
+          <h2 className="text-[clamp(3rem,10vw,8rem)] font-extrabold text-white/5 leading-none tracking-tight">
+            Brandcora
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <div>
+            <h4 className="text-xs font-mono text-white/30 uppercase tracking-wider mb-4">Product</h4>
+            <ul className="space-y-2.5">
+              {['Toolkit', 'Collections', 'Pricing', 'Changelog'].map(item => (
+                <li key={item}>
+                  <a href="#" className="text-sm text-white/50 hover:text-white/80 transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs font-mono text-white/30 uppercase tracking-wider mb-4">Resources</h4>
+            <ul className="space-y-2.5">
+              {['Documentation', 'Use Cases', 'Brand Guide', 'License'].map(item => (
+                <li key={item}>
+                  <a href="#" className="text-sm text-white/50 hover:text-white/80 transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs font-mono text-white/30 uppercase tracking-wider mb-4">Company</h4>
+            <ul className="space-y-2.5">
+              {['About', 'Blog', 'Contact', 'Careers'].map(item => (
+                <li key={item}>
+                  <a href="#" className="text-sm text-white/50 hover:text-white/80 transition-colors">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs font-mono text-white/30 uppercase tracking-wider mb-4">Stay updated</h4>
+            <p className="text-sm text-white/40 mb-4">New assets and collections, delivered monthly.</p>
+            <div className="flex gap-2">
+              <input type="email" placeholder="your@email.com"
+                className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20" />
+              <button className="px-4 py-2 rounded-lg gradient-accent text-sm font-semibold text-white hover:opacity-90 transition-opacity">
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-border">
-          <div className="mx-auto max-w-[1200px] px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-sm text-foreground-muted">
-              &copy; {new Date().getFullYear()} Brandcora. All rights reserved.
-            </span>
-            <div className="flex items-center gap-5">
-              <a href="#" className="text-foreground-muted hover:text-foreground transition-colors" aria-label="Twitter">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </a>
-              <a href="#" className="text-foreground-muted hover:text-foreground transition-colors" aria-label="GitHub">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-              </a>
-              <a href="#" className="text-foreground-muted hover:text-foreground transition-colors" aria-label="LinkedIn">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              </a>
-            </div>
+        <div className="border-t border-white/[0.06] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <LogoMark className="w-6 h-6 opacity-60" />
+            <span className="text-sm text-white/30">&copy; 2026 Brandcora. All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-6">
+            {['Twitter', 'GitHub', 'Dribbble'].map(social => (
+              <a key={social} href="#" className="text-xs text-white/30 hover:text-white/60 transition-colors">{social}</a>
+            ))}
           </div>
         </div>
-      </footer>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, count, content, details }: {
-  icon: React.ReactNode;
-  title: string;
-  count: string;
-  content?: React.ReactNode;
-  details?: React.ReactNode;
-}) {
-  return (
-    <div className="bg-surface rounded-2xl border border-border p-6 group hover:shadow-soft transition-shadow">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">{icon}</div>
-        <div>
-          <h3 className="font-semibold text-foreground text-sm">{title}</h3>
-          <p className="text-xs text-foreground-muted">{count}</p>
-        </div>
       </div>
-      {content}
-      {details && (
-        <div className="space-y-1.5 text-xs font-mono text-foreground-muted mt-3">{details}</div>
-      )}
-    </div>
+    </footer>
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+/* ─── Main Landing Page ─── */
+export default function LandingPage() {
   return (
-    <div className="flex justify-between">
-      <span>{label}</span>
-      <span className="text-foreground">{value}</span>
-    </div>
-  );
-}
-
-function CompareRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-background rounded-xl border border-border p-4">
-      <p className="text-xs text-foreground-muted mb-2">{label}</p>
-      {children}
+    <div className="min-h-screen">
+      <Navigation />
+      <main>
+        <HeroSection />
+        <SpecimenStrip />
+        <CredibilityStrip />
+        <CollectionsSection />
+        <FeaturedCollectionPanel />
+        <EditorialSection />
+        <CustomizationSection />
+        <UseCasesSection />
+        <DarkFeatureSection />
+        <LicensingSection />
+        <FinalCTA />
+      </main>
+      <Footer />
     </div>
   );
 }

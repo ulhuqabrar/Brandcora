@@ -12,7 +12,7 @@ const config = {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1200px",
+        "2xl": "1440px",
       },
     },
     extend: {
@@ -59,15 +59,48 @@ const config = {
         },
         "dark-surface": "hsl(var(--dark-surface))",
         "dark-surface-elevated": "hsl(var(--dark-surface-elevated))",
+        brand: {
+          orange: "var(--brand-orange)",
+          peach: "var(--brand-peach)",
+          gold: "var(--brand-gold)",
+        },
+        lavender: {
+          DEFAULT: "var(--lavender)",
+          soft: "var(--lavender-soft)",
+          muted: "var(--lavender-muted)",
+        },
+        warm: {
+          offwhite: "var(--warm-offwhite)",
+          cream: "var(--warm-cream)",
+        },
+        graphite: {
+          DEFAULT: "var(--graphite)",
+          elevated: "var(--graphite-elevated)",
+          light: "var(--graphite-light)",
+        },
       },
       fontFamily: {
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
+        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        '2xl': '1.5rem',
+        '3xl': '2rem',
+        '4xl': '2.5rem',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+        '26': '6.5rem',
+        '30': '7.5rem',
+        '34': '8.5rem',
+        '38': '9.5rem',
+        '128': '32rem',
+        '144': '36rem',
       },
       keyframes: {
         "accordion-down": {
@@ -82,6 +115,12 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      fontSize: {
+        'display': ['clamp(3rem, 7vw, 7rem)', { lineHeight: '0.92', letterSpacing: '-0.03em', fontWeight: '700' }],
+        'display-lg': ['clamp(3.5rem, 8vw, 8rem)', { lineHeight: '0.9', letterSpacing: '-0.03em', fontWeight: '800' }],
+        'editorial': ['clamp(2.5rem, 5vw, 4.5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'section': ['clamp(2rem, 4vw, 3.5rem)', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' }],
       },
     },
   },
