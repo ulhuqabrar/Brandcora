@@ -111,12 +111,29 @@ app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const port = Number(process.env.PORT || 10000);
-app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 API server running on port ${port}`);
-  console.log(`📊 Environment: ${env.NODE_ENV}`);
-  console.log(`🔗 API URL: ${env.API_BASE_URL}`);
-  console.log(`🔐 BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
-  console.log(`🌐 WEB_APP_URL: ${env.WEB_APP_URL}`);
+
+// Ensure scan progress columns exist (idempotent)
+async function ensureSchema() {
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "scans" ADD COLUMN IF NOT EXISTS "progress" INTEGER NOT NULL DEFAULT 0`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "scans" ADD COLUMN IF NOT EXISTS "currentStage" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "scans" ADD COLUMN IF NOT EXISTS "pagesDiscovered" INTEGER NOT NULL DEFAULT 0`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "scans" ADD COLUMN IF NOT EXISTS "pagesAnalyzed" INTEGER NOT NULL DEFAULT 0`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "scans" ADD COLUMN IF NOT EXISTS "warnings" JSONB NOT NULL DEFAULT '[]'::jsonb`);
+    console.log('✅ Database schema verified');
+  } catch (e: any) {
+    console.warn('⚠️ Schema migration warning:', e.message);
+  }
+}
+
+ensureSchema().then(() => {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 API server running on port ${port}`);
+    console.log(`📊 Environment: ${env.NODE_ENV}`);
+    console.log(`🔗 API URL: ${env.API_BASE_URL}`);
+    console.log(`🔐 BETTER_AUTH_URL: ${env.BETTER_AUTH_URL}`);
+    console.log(`🌐 WEB_APP_URL: ${env.WEB_APP_URL}`);
+  });
 });
 
 export default app;
