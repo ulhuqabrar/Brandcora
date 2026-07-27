@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Check, ChevronRight, Upload, Shield, Lock, Eye, FileJson, Layers, Palette, Type, Square, Search, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, Upload, Shield, Lock, Eye, FileJson, Layers, Palette, Type, Square, ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -77,15 +81,16 @@ function Navigation() {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth" className="text-[13px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200">
-              Sign in
-            </Link>
-            <Link href="/auth"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-white gradient-accent hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200">
-              Scan a website
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          <div className="hidden md:flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth">Sign in</Link>
+            </Button>
+            <Button size="sm" asChild className="gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15">
+              <Link href="/auth">
+                Scan a website
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         </nav>
       </div>
@@ -96,7 +101,6 @@ function Navigation() {
 /* ─── Hero Section ─── */
 function HeroSection() {
   const [url, setUrl] = useState('');
-  const [focused, setFocused] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [scanComplete, setScanComplete] = useState(false);
@@ -137,9 +141,9 @@ function HeroSection() {
 
           {/* Left column — 5 cols */}
           <div className="lg:col-span-5 space-y-6 lg:pt-4">
-            <p className="text-[13px] font-medium text-foreground-muted tracking-wide">
+            <Badge variant="secondary" className="text-[11px] font-medium px-3 py-1">
               Brand intelligence for creative teams
-            </p>
+            </Badge>
 
             <h1 className="text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold text-graphite leading-[1.05] tracking-[-0.03em] max-w-[520px]">
               Turn your website into a usable brand system.
@@ -151,39 +155,32 @@ function HeroSection() {
 
             {/* URL form */}
             <form onSubmit={handleSubmit} className="max-w-[520px]">
-              <div className={`flex items-center gap-2 rounded-[11px] border transition-all duration-200 bg-white ${
-                focused
-                  ? 'border-brand-orange/30 shadow-[0_0_0_3px_rgba(255,95,69,0.06)]'
-                  : error
-                    ? 'border-red-300'
-                    : 'border-border-strong hover:border-foreground-subtle'
-              }`}>
-                <input
+              <div className="flex gap-2">
+                <Input
                   type="text"
                   value={url}
                   onChange={(e) => { setUrl(e.target.value); setError(''); }}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
                   placeholder="https://yourwebsite.com"
                   disabled={loading}
                   aria-label="Website URL"
                   aria-describedby={error ? 'url-error' : undefined}
-                  className="flex-1 min-w-0 bg-transparent border-none outline-none px-4 text-[15px] text-foreground placeholder:text-foreground-subtle h-12 disabled:opacity-50"
+                  className={`h-12 text-[15px] ${error ? 'border-red-300 focus-visible:ring-red-300' : ''}`}
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={loading}
-                  className="shrink-0 h-12 px-5 rounded-[10px] gradient-accent text-white text-[14px] font-semibold hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200 disabled:opacity-70 flex items-center gap-2"
+                  size="lg"
+                  className="shrink-0 h-12 px-6 gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15"
                 >
                   {loading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                       Analyzing…
                     </>
                   ) : (
                     'Analyze website'
                   )}
-                </button>
+                </Button>
               </div>
               {error && (
                 <p id="url-error" className="mt-2 text-[13px] text-red-600" role="alert">{error}</p>
@@ -483,9 +480,11 @@ function BrandSystemSection() {
                 <span className="text-foreground-muted">organized and named.</span>
               </h2>
             </div>
-            <Link href="/auth" className="inline-flex items-center gap-2 text-sm font-medium text-foreground-secondary hover:text-graphite transition-colors">
-              View full extraction <ArrowRight className="w-4 h-4" />
-            </Link>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth">
+                View full extraction <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </RevealSection>
 
@@ -522,9 +521,9 @@ function BrandSystemSection() {
                     <span className="text-graphite">{t.sample}</span>
                   </div>
                   <div className="md:w-48 shrink-0 flex flex-wrap gap-2">
-                    <span className="text-[9px] font-mono text-foreground-muted px-2 py-0.5 rounded bg-warm-offwhite">{t.font}</span>
-                    <span className="text-[9px] font-mono text-foreground-muted px-2 py-0.5 rounded bg-warm-offwhite">{t.weight}</span>
-                    <span className="text-[9px] font-mono text-foreground-muted px-2 py-0.5 rounded bg-warm-offwhite">{t.size}</span>
+                    <Badge variant="secondary" className="text-[9px] font-mono px-2 py-0.5">{t.font}</Badge>
+                    <Badge variant="secondary" className="text-[9px] font-mono px-2 py-0.5">{t.weight}</Badge>
+                    <Badge variant="secondary" className="text-[9px] font-mono px-2 py-0.5">{t.size}</Badge>
                   </div>
                 </div>
               ))}
@@ -630,13 +629,12 @@ function TokenSection() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {['Export JSON', 'Copy tokens', 'Send to Figma', 'Connect API'].map(action => (
-                <button key={action} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white/70 bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] transition-all duration-300">
-                  {action === 'Export JSON' && <FileJson className="w-3.5 h-3.5" />}
-                  {action === 'Copy tokens' && <span className="w-3.5 h-3.5 flex items-center justify-center text-[10px]">{copied ? '✓' : '⎘'}</span>}
-                  {action === 'Send to Figma' && <Layers className="w-3.5 h-3.5" />}
-                  {action === 'Connect API' && <ArrowUpRight className="w-3.5 h-3.5" />}
+                <Button key={action} variant="outline" size="sm" className="text-white/70 bg-white/[0.06] border-white/[0.08] hover:bg-white/[0.1] hover:text-white">
+                  {action === 'Export JSON' && <FileJson className="mr-1.5 h-3.5 w-3.5" />}
+                  {action === 'Send to Figma' && <Layers className="mr-1.5 h-3.5 w-3.5" />}
+                  {action === 'Connect API' && <ArrowUpRight className="mr-1.5 h-3.5 w-3.5" />}
                   {action}
-                </button>
+                </Button>
               ))}
             </div>
           </RevealSection>
@@ -652,10 +650,10 @@ function TokenSection() {
                   </div>
                   <span className="text-[10px] font-mono text-white/30 ml-2">brand-tokens.json</span>
                 </div>
-                <button onClick={handleCopy} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.06] hover:bg-white/[0.1] transition-colors">
-                  {copied ? <Check className="w-3 h-3 text-green-400" /> : <span className="text-[10px] text-white/40">⎘</span>}
-                  <span className="text-[9px] font-mono text-white/40">{copied ? 'Copied' : 'Copy'}</span>
-                </button>
+                <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 px-2 text-white/40 hover:text-white/70 hover:bg-white/[0.1]">
+                  {copied ? <Check className="h-3 w-3 text-green-400" /> : <span className="text-[10px]">⎘</span>}
+                  <span className="ml-1 text-[9px] font-mono">{copied ? 'Copied' : 'Copy'}</span>
+                </Button>
               </div>
 
               <pre className="p-5 text-[11px] font-mono leading-relaxed overflow-x-auto">
@@ -699,72 +697,81 @@ function LibrarySection() {
           <div className="mt-12 rounded-2xl overflow-hidden border border-border/40 bg-white shadow-soft">
             <div className="flex items-center gap-1 px-4 py-3 border-b border-border/30 overflow-x-auto">
               {['Overview', 'Logos', 'Colors', 'Typography', 'Icons', 'Components', 'Tokens'].map(tab => (
-                <button
+                <Button
                   key={tab}
+                  variant={activeTab === tab.toLowerCase() ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setActiveTab(tab.toLowerCase())}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                    activeTab === tab.toLowerCase()
-                      ? 'bg-graphite text-white'
-                      : 'text-foreground-muted hover:text-foreground hover:bg-warm-offwhite'
-                  }`}
+                  className={activeTab === tab.toLowerCase() ? '' : 'text-foreground-muted'}
                 >
                   {tab}
-                </button>
+                </Button>
               ))}
             </div>
 
             <div className="p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 rounded-xl bg-warm-offwhite border border-border/30 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-graphite">Brand Overview</h3>
-                    <span className="text-[9px] font-mono text-foreground-muted px-2 py-0.5 rounded bg-white border border-border/30">Last scanned 2h ago</span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { label: 'Logos', value: '6', icon: Square },
-                      { label: 'Colors', value: '14', icon: Palette },
-                      { label: 'Fonts', value: '3', icon: Type },
-                      { label: 'Tokens', value: '128', icon: Layers },
-                    ].map(stat => (
-                      <div key={stat.label} className="p-3 rounded-lg bg-white border border-border/30">
-                        <stat.icon className="w-4 h-4 text-brand-orange mb-2" />
-                        <p className="text-xl font-bold text-graphite">{stat.value}</p>
-                        <p className="text-[10px] text-foreground-muted">{stat.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
-                  <h3 className="text-sm font-bold text-graphite mb-4">Version History</h3>
-                  <div className="space-y-3">
-                    {[
-                      { version: 'v3.2', date: 'Today', changes: 'Updated primary color' },
-                      { version: 'v3.1', date: '3 days ago', changes: 'Added icon set' },
-                      { version: 'v3.0', date: '1 week ago', changes: 'Major brand refresh' },
-                      { version: 'v2.4', date: '2 weeks ago', changes: 'Typography update' },
-                    ].map(v => (
-                      <div key={v.version} className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />
-                        <div>
-                          <p className="text-xs font-bold text-graphite">{v.version} <span className="font-normal text-foreground-muted">· {v.date}</span></p>
-                          <p className="text-[10px] text-foreground-muted">{v.changes}</p>
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm">Brand Overview</CardTitle>
+                      <Badge variant="outline" className="text-[9px] font-mono">Last scanned 2h ago</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { label: 'Logos', value: '6', icon: Square },
+                        { label: 'Colors', value: '14', icon: Palette },
+                        { label: 'Fonts', value: '3', icon: Type },
+                        { label: 'Tokens', value: '128', icon: Layers },
+                      ].map(stat => (
+                        <div key={stat.label} className="p-3 rounded-lg bg-warm-offwhite border border-border/30">
+                          <stat.icon className="w-4 h-4 text-brand-orange mb-2" />
+                          <p className="text-xl font-bold text-graphite">{stat.value}</p>
+                          <p className="text-[10px] text-foreground-muted">{stat.label}</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Version History</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {[
+                        { version: 'v3.2', date: 'Today', changes: 'Updated primary color' },
+                        { version: 'v3.1', date: '3 days ago', changes: 'Added icon set' },
+                        { version: 'v3.0', date: '1 week ago', changes: 'Major brand refresh' },
+                        { version: 'v2.4', date: '2 weeks ago', changes: 'Typography update' },
+                      ].map(v => (
+                        <div key={v.version} className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-graphite">{v.version} <span className="font-normal text-foreground-muted">· {v.date}</span></p>
+                            <p className="text-[10px] text-foreground-muted">{v.changes}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="mt-6 flex items-center gap-3">
                 <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Workspaces</span>
                 {['Brandcora', 'Client A', 'Client B'].map((brand, i) => (
-                  <button key={brand} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    i === 0 ? 'gradient-accent text-white' : 'bg-warm-offwhite text-foreground-muted hover:text-foreground border border-border/30'
-                  }`}>
+                  <Button
+                    key={brand}
+                    variant={i === 0 ? 'default' : 'outline'}
+                    size="sm"
+                    className={i === 0 ? 'gradient-accent text-white' : ''}
+                  >
                     {brand}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -863,61 +870,69 @@ function ValidationSection() {
 
           <RevealSection delay={0.2}>
             <div className="space-y-6">
-              <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-5xl font-extrabold gradient-text">86</span>
-                  <span className="text-lg text-foreground-muted mb-1">/ 100</span>
-                </div>
-                <p className="text-sm font-medium text-graphite">Brand alignment score</p>
-                <p className="text-xs text-foreground-muted mt-1">Minor inconsistencies detected</p>
-              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-end gap-3 mb-4">
+                    <span className="text-5xl font-extrabold gradient-text">86</span>
+                    <span className="text-lg text-foreground-muted mb-1">/ 100</span>
+                  </div>
+                  <p className="text-sm font-medium text-graphite">Brand alignment score</p>
+                  <p className="text-xs text-foreground-muted mt-1">Minor inconsistencies detected</p>
+                </CardContent>
+              </Card>
 
-              <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6 space-y-4">
-                {[
-                  { label: 'Logo', score: 100, status: 'On brand' },
-                  { label: 'Color', score: 78, status: 'Minor issues' },
-                  { label: 'Typography', score: 64, status: 'Needs review' },
-                  { label: 'Spacing', score: 91, status: 'On brand' },
-                  { label: 'Components', score: 88, status: 'On brand' },
-                ].map(cat => (
-                  <div key={cat.label}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-graphite">{cat.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-foreground-muted">{cat.score}%</span>
-                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                          cat.score >= 90 ? 'bg-green-50 text-green-700' :
-                          cat.score >= 75 ? 'bg-amber-50 text-amber-700' :
-                          'bg-red-50 text-red-700'
-                        }`}>{cat.status}</span>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  {[
+                    { label: 'Logo', score: 100, status: 'On brand' },
+                    { label: 'Color', score: 78, status: 'Minor issues' },
+                    { label: 'Typography', score: 64, status: 'Needs review' },
+                    { label: 'Spacing', score: 91, status: 'On brand' },
+                    { label: 'Components', score: 88, status: 'On brand' },
+                  ].map(cat => (
+                    <div key={cat.label}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-graphite">{cat.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-foreground-muted">{cat.score}%</span>
+                          <Badge variant={cat.score >= 90 ? 'default' : cat.score >= 75 ? 'secondary' : 'destructive'} className="text-[9px]">
+                            {cat.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="score-bar">
+                        <div className="score-bar-fill" style={{ width: `${cat.score}%` }} />
                       </div>
                     </div>
-                    <div className="score-bar">
-                      <div className="score-bar-fill" style={{ width: `${cat.score}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="rounded-xl bg-warm-offwhite border border-border/30 p-6">
-                <h4 className="text-sm font-bold text-graphite mb-3">Recommendations</h4>
-                <div className="space-y-3">
-                  {[
-                    'Use approved display typeface for heading',
-                    'Replace accent color with brand.primary.500',
-                    'Increase logo clear space from 12px to 24px',
-                    'Change card radius to approved 16px token',
-                  ].map((rec, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <ChevronRight className="w-3.5 h-3.5 text-brand-orange mt-0.5 shrink-0" />
-                      <span className="text-xs text-foreground-secondary">{rec}</span>
-                    </div>
                   ))}
-                </div>
-                <button className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white gradient-accent hover:shadow-lg hover:shadow-brand-orange/20 transition-all duration-300">
-                  Apply suggested corrections
-                </button>
-              </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Recommendations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[
+                      'Use approved display typeface for heading',
+                      'Replace accent color with brand.primary.500',
+                      'Increase logo clear space from 12px to 24px',
+                      'Change card radius to approved 16px token',
+                    ].map((rec, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-brand-orange mt-0.5 shrink-0" />
+                        <span className="text-xs text-foreground-secondary">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full gradient-accent text-white hover:shadow-lg hover:shadow-brand-orange/20">
+                    Apply suggested corrections
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           </RevealSection>
         </div>
@@ -998,11 +1013,13 @@ function UseCasesSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {useCases.map((uc, i) => (
             <RevealSection key={uc.title} delay={i * 0.06}>
-              <div className="group p-6 rounded-2xl bg-white border border-border/30 hover:border-brand-orange/20 hover:shadow-soft transition-all duration-300 cursor-pointer h-full">
-                <span className="text-[9px] font-mono text-brand-orange uppercase tracking-wider">{uc.tag}</span>
-                <h3 className="text-base font-bold text-graphite mt-2">{uc.title}</h3>
-                <p className="text-sm text-foreground-muted mt-2 leading-relaxed">{uc.desc}</p>
-              </div>
+              <Card className="h-full hover:border-brand-orange/20 hover:shadow-soft transition-all duration-300 cursor-pointer">
+                <CardContent className="pt-6">
+                  <Badge variant="secondary" className="text-[9px] font-mono mb-2">{uc.tag}</Badge>
+                  <h3 className="text-base font-bold text-graphite mt-2">{uc.title}</h3>
+                  <p className="text-sm text-foreground-muted mt-2 leading-relaxed">{uc.desc}</p>
+                </CardContent>
+              </Card>
             </RevealSection>
           ))}
         </div>
@@ -1037,11 +1054,13 @@ function SecuritySection() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {features.map((f, i) => (
                 <RevealSection key={f.title} delay={i * 0.1}>
-                  <div className="p-5 rounded-xl bg-white border border-border/30">
-                    <f.icon className="w-5 h-5 text-brand-orange mb-3" />
-                    <h3 className="text-sm font-bold text-graphite">{f.title}</h3>
-                    <p className="text-xs text-foreground-muted mt-1">{f.desc}</p>
-                  </div>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <f.icon className="w-5 h-5 text-brand-orange mb-3" />
+                      <h3 className="text-sm font-bold text-graphite">{f.title}</h3>
+                      <p className="text-xs text-foreground-muted mt-1">{f.desc}</p>
+                    </CardContent>
+                  </Card>
                 </RevealSection>
               ))}
             </div>
@@ -1109,50 +1128,40 @@ function PricingSection() {
         <RevealSection>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border p-8 flex flex-col ${
-                  plan.popular
-                    ? 'border-brand-orange/30 bg-warm-offwhite shadow-soft'
-                    : 'border-border/40 bg-white'
-                }`}
-              >
+              <Card key={plan.name} className={`relative ${plan.popular ? 'border-brand-orange/30 shadow-soft' : ''}`}>
                 {plan.popular && (
-                  <span className="absolute -top-3 left-6 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider gradient-accent text-white">
-                    Most popular
-                  </span>
+                  <div className="absolute -top-3 left-6">
+                    <Badge className="gradient-accent text-white border-0 text-[10px] uppercase tracking-wider">Most popular</Badge>
+                  </div>
                 )}
-
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-graphite">{plan.name}</h3>
-                  <p className="text-sm text-foreground-muted mt-1">{plan.description}</p>
-                </div>
-
-                <div className="mb-6">
-                  <span className="text-4xl font-extrabold text-graphite">{plan.price}</span>
-                  <span className="text-sm text-foreground-muted ml-1">{plan.period}</span>
-                </div>
-
-                <ul className="space-y-2.5 mb-8 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-brand-orange mt-0.5 shrink-0" />
-                      <span className="text-sm text-foreground-secondary">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href={plan.href}
-                  className={`block w-full text-center py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                    plan.popular
-                      ? 'gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15'
-                      : 'bg-graphite text-white hover:bg-graphite-elevated'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
+                <CardHeader>
+                  <CardTitle>{plan.name}</CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <span className="text-4xl font-extrabold text-graphite">{plan.price}</span>
+                    <span className="text-sm text-foreground-muted ml-1">{plan.period}</span>
+                  </div>
+                  <ul className="space-y-2.5">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2.5">
+                        <Check className="w-4 h-4 text-brand-orange mt-0.5 shrink-0" />
+                        <span className="text-sm text-foreground-secondary">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    asChild
+                    className={`w-full ${plan.popular ? 'gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15' : ''}`}
+                    variant={plan.popular ? 'default' : 'outline'}
+                  >
+                    <Link href={plan.href}>{plan.cta}</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         </RevealSection>
@@ -1170,7 +1179,6 @@ function PricingSection() {
 /* ─── Final CTA Section ─── */
 function FinalCTA() {
   const [url, setUrl] = useState('');
-  const [focused, setFocused] = useState(false);
 
   return (
     <section className="py-24 md:py-32 relative overflow-hidden" style={{ background: '#FAF8F5' }}>
@@ -1188,21 +1196,17 @@ function FinalCTA() {
           </p>
           <div className="mt-8 flex justify-center">
             <form onSubmit={(e) => { e.preventDefault(); if (url.trim()) window.location.href = '/scans/new-website'; }} className="max-w-[520px] w-full">
-              <div className={`flex items-center gap-2 rounded-[11px] border transition-all duration-200 bg-white ${
-                focused ? 'border-brand-orange/30 shadow-[0_0_0_3px_rgba(255,95,69,0.06)]' : 'border-border-strong'
-              }`}>
-                <input
+              <div className="flex gap-2">
+                <Input
                   type="text"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
                   placeholder="https://yourwebsite.com"
-                  className="flex-1 min-w-0 bg-transparent border-none outline-none px-4 text-[15px] text-foreground placeholder:text-foreground-subtle h-12"
+                  className="h-12 text-[15px]"
                 />
-                <button type="submit" className="shrink-0 h-12 px-5 rounded-[10px] gradient-accent text-white text-[14px] font-semibold hover:shadow-md hover:shadow-brand-orange/15 transition-all duration-200">
+                <Button type="submit" size="lg" className="shrink-0 h-12 px-6 gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15">
                   Analyze website
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -1275,11 +1279,15 @@ function Footer() {
             <LogoMark className="w-6 h-6 opacity-60" />
             <span className="text-sm text-white/30">&copy; 2026 Brandcora. All rights reserved.</span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/auth" className="text-sm text-white/40 hover:text-white/70 transition-colors">Sign in</Link>
-            <Link href="/auth" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-graphite bg-white/90 hover:bg-white transition-all duration-300">
-              Scan a website <ArrowRight className="w-3 h-3" />
-            </Link>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild className="text-white/40 hover:text-white/70 hover:bg-transparent">
+              <Link href="/auth">Sign in</Link>
+            </Button>
+            <Button size="sm" asChild className="bg-white/90 text-graphite hover:bg-white">
+              <Link href="/auth">
+                Scan a website <ArrowRight className="ml-1.5 h-3 w-3" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
