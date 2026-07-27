@@ -137,7 +137,7 @@ export default function BrandExtractPage() {
 
       // If profile already exists, update it
       if (!profileData.success && profileData.error?.includes('already exists')) {
-        await apiFetch('/api/v1/brand-profile', {
+        const updateRes = await apiFetch('/api/v1/brand-profile', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -148,6 +148,12 @@ export default function BrandExtractPage() {
             borderRadius: parseInt(result.borderRadius) || null,
           }),
         });
+        const updateData = await updateRes.json();
+        if (updateData.success && updateData.data?.id) {
+          localStorage.setItem('brand-profile-id', updateData.data.id);
+        }
+      } else if (profileData.success && profileData.data?.id) {
+        localStorage.setItem('brand-profile-id', profileData.data.id);
       }
 
       // Save colors
