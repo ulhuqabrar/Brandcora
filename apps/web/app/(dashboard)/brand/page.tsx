@@ -84,8 +84,6 @@ export default function BrandIdentityOverview() {
 
   return (
     <div className="space-y-6">
-      <BrandSubNav />
-
       {/* Greeting */}
       <div className="flex items-start justify-between">
         <div>
@@ -105,6 +103,8 @@ export default function BrandIdentityOverview() {
           </Link>
         </div>
       </div>
+
+      <BrandSubNav />
 
       {/* Top Row: Brand Profile / Scan Status / Identity Completeness */}
       <div className="grid grid-cols-12 gap-4">
