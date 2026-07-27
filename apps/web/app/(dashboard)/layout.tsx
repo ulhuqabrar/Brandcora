@@ -7,23 +7,26 @@ import {
   Fingerprint,
   FileText,
   GearSix,
-  MagnifyingGlass,
   Question,
+  BookOpen,
+  SignOut,
   Bell,
   List,
   X,
-  SignOut,
-  House,
 } from '@phosphor-icons/react';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/lib/protected-route';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/dashboard', icon: House, label: 'Home' },
-  { to: '/brand', icon: Fingerprint, label: 'Brand Identity' },
-  { to: '/scans', icon: FileText, label: 'Reports' },
-  { to: '/settings', icon: GearSix, label: 'Settings' },
+  { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
+  { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
+  { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
+];
+
+const bottomItems = [
+  { icon: Question, label: 'Help', href: '#' },
+  { icon: BookOpen, label: 'Docs', href: '#' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -47,6 +50,50 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ProtectedRoute>
       <div className="dashboard-page min-h-screen p-6">
         <div className="app-shell">
+          {/* Desktop Navigation Rail */}
+          <aside className="nav-rail hidden lg:flex">
+            {/* Logo */}
+            <Link href="/dashboard" className="mb-4">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
+                <span className="text-white text-xs font-bold">B</span>
+              </div>
+            </Link>
+
+            {/* Primary Nav */}
+            <nav className="flex flex-col items-center gap-1 flex-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    href={item.to}
+                    className={cn('nav-rail-item', isActive && 'active')}
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5" weight="bold" />
+                    {item.locked && <span className="lock-indicator" />}
+                    {!item.locked && item.count && item.count > 0 && (
+                      <span className="report-count">{item.count}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Bottom Utilities */}
+            <div className="flex flex-col items-center gap-1">
+              {bottomItems.map((item, i) => (
+                <a key={i} href={item.href} className="nav-rail-item" title={item.label}>
+                  <item.icon className="h-5 w-5" weight="bold" />
+                </a>
+              ))}
+              <button onClick={() => signOut()} className="nav-rail-item" title="Sign out">
+                <SignOut className="h-5 w-5" weight="bold" />
+              </button>
+            </div>
+          </aside>
+
           {/* Main Content */}
           <div className="main-content">
             {/* Top Utility Bar */}
@@ -61,13 +108,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Brand */}
               <div className="top-bar-brand">
-                <Link href="/dashboard" className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
-                    <span className="text-white text-[10px] font-bold">B</span>
-                  </div>
-                  <span className="top-bar-brand-name">Brandcora</span>
-                </Link>
-                <span className="top-bar-separator" />
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center lg:hidden">
+                  <span className="text-white text-[10px] font-bold">B</span>
+                </div>
+                <span className="top-bar-brand-name hidden lg:block">Brandcora</span>
+                <span className="top-bar-separator hidden lg:block" />
                 <div className="top-bar-workspace">
                   <span className="top-bar-workspace-name">seocontent.ai</span>
                   <span className="hidden sm:inline text-xs">·</span>
@@ -75,35 +120,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
 
-              {/* Center - Nav Tabs */}
+              {/* Center - Breadcrumb */}
               <div className="top-bar-center">
-                <nav className="flex items-center gap-1">
-                  {navItems.map((item) => {
-                    const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
-                    return (
-                      <Link
-                        key={item.to}
-                        href={item.to}
-                        className={cn(
-                          'px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors',
-                          isActive
-                            ? 'bg-[#1A1918] text-white'
-                            : 'text-[#6B6B66] hover:bg-[#F5F5F3] hover:text-[#3D3D3A]'
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </nav>
+                <div className="top-bar-breadcrumb">
+                  <span className="top-bar-breadcrumb-current">{currentSection}</span>
+                </div>
               </div>
 
               {/* Right Actions */}
               <div className="top-bar-actions">
                 <button className="top-bar-action" title="Search">
-                  <MagnifyingGlass className="h-4 w-4" weight="bold" />
-                </button>
-                <button className="top-bar-action" title="Notifications">
                   <Bell className="h-4 w-4" weight="bold" />
                 </button>
                 <button className="top-bar-action" title="Help">
@@ -112,9 +138,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="top-bar-avatar" title={user?.email}>
                   {initials}
                 </div>
-                <button onClick={() => signOut()} className="top-bar-action" title="Sign out">
-                  <SignOut className="h-4 w-4" weight="bold" />
-                </button>
               </div>
             </header>
 

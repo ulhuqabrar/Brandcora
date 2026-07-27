@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
   User,
   ShieldCheck,
@@ -12,59 +10,27 @@ import {
   Bell,
   FileText,
   ArrowRight,
-  CheckCircle,
   PencilSimple,
   Trash,
-  Envelope,
   Lock,
-  Key,
-  Globe,
 } from '@phosphor-icons/react';
-import { cn } from '@/lib/utils';
-
-const SETTINGS_NAV = [
-  { to: '/settings', label: 'Profile', icon: User },
-  { to: '/settings/security', label: 'Security', icon: ShieldCheck },
-  { to: '/settings/subscription', label: 'Subscription', icon: CreditCard },
-  { to: '/settings/workspace', label: 'Workspace', icon: House },
-  { to: '/settings/members', label: 'Members', icon: Users },
-  { to: '/settings/notifications', label: 'Notifications', icon: Bell },
-  { to: '/settings/terms', label: 'Terms & Privacy', icon: FileText },
-];
 
 export default function SettingsPage() {
-  const pathname = usePathname();
   const [name, setName] = useState('Sajibur');
   const [email, setEmail] = useState('sajibur@seocontent.ai');
   const [timezone, setTimezone] = useState('UTC');
   const [language, setLanguage] = useState('en');
 
-  const isActive = (to: string) => {
-    if (to === '/settings') return pathname === '/settings';
-    return pathname.startsWith(to);
-  };
-
   return (
     <div className="space-y-5">
-      {/* Sub-navigation */}
-      <div className="sub-nav overflow-x-auto">
-        {SETTINGS_NAV.map((item) => (
-          <Link key={item.to} href={item.to} className={cn('sub-nav-item', isActive(item.to) && 'active')}>
-            {item.label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Profile</h2>
-          <p className="text-[13px] text-[#8A8A85] mt-0.5">Manage your personal information</p>
-        </div>
+      <div>
+        <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Settings</h2>
+        <p className="text-[13px] text-[#8A8A85] mt-0.5">Manage your account and workspace</p>
       </div>
 
       {/* Profile Settings */}
       <div className="dash-card">
-        <div className="dash-card-title mb-4">Personal information</div>
+        <div className="dash-card-title mb-4">Profile</div>
         <div className="space-y-4 max-w-[480px]">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-full bg-[#1A1918] text-white flex items-center justify-center text-[18px] font-bold">
@@ -122,7 +88,7 @@ export default function SettingsPage() {
 
       {/* Password */}
       <div className="dash-card">
-        <div className="dash-card-title mb-4">Password</div>
+        <div className="dash-card-title mb-4">Security</div>
         <div className="space-y-3 max-w-[480px]">
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-3">
@@ -135,6 +101,82 @@ export default function SettingsPage() {
             <button className="btn-ghost text-[12px]">
               Change <ArrowRight className="h-3 w-3" weight="bold" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Subscription */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4">Subscription</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-medium text-[#1A1918]">Pro plan — $5/mo</div>
+            <div className="text-[12px] text-[#8A8A85]">50 scans · 10 exports · Unlimited brands</div>
+          </div>
+          <button className="btn-secondary text-[12px]">
+            Manage <ArrowRight className="h-3 w-3" weight="bold" />
+          </button>
+        </div>
+      </div>
+
+      {/* Workspace */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4">Workspace</div>
+        <div className="space-y-3 max-w-[480px]">
+          <div>
+            <label className="text-[12px] font-medium text-[#3D3D3A] mb-1.5 block">Workspace name</label>
+            <input type="text" defaultValue="seocontent.ai" className="input-compact" />
+          </div>
+          <button className="btn-primary">Save</button>
+        </div>
+      </div>
+
+      {/* Members */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4">Members</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#FF5F45] text-white flex items-center justify-center text-[11px] font-bold">SJ</div>
+              <div>
+                <div className="text-[13px] font-medium text-[#1A1918]">Sajibur</div>
+                <div className="text-[12px] text-[#8A8A85]">sajibur@seocontent.ai</div>
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-[#8A8A85] bg-[#F5F5F3] px-2 py-0.5 rounded">Owner</span>
+          </div>
+        </div>
+        <button className="btn-secondary text-[12px] mt-3">
+          <Users className="h-3.5 w-3.5" weight="bold" /> Invite member
+        </button>
+      </div>
+
+      {/* Notifications */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4">Notifications</div>
+        <div className="space-y-3">
+          {['Email notifications', 'Scan complete', 'Report ready', 'Weekly summary'].map((item) => (
+            <div key={item} className="flex items-center justify-between py-1">
+              <span className="text-[13px] text-[#3D3D3A]">{item}</span>
+              <div className="w-9 h-5 bg-[#16A34A] rounded-full relative cursor-pointer">
+                <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Terms & Privacy */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4">Terms &amp; Privacy</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between py-2">
+            <span className="text-[13px] text-[#3D3D3A]">Terms of Service</span>
+            <button className="btn-ghost text-[12px]">View <ArrowRight className="h-3 w-3" weight="bold" /></button>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-[13px] text-[#3D3D3A]">Privacy Policy</span>
+            <button className="btn-ghost text-[12px]">View <ArrowRight className="h-3 w-3" weight="bold" /></button>
           </div>
         </div>
       </div>
