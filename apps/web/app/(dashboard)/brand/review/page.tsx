@@ -4,15 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Fingerprint,
-  MagnifyingGlass,
-  Palette,
-  TextAa,
-  CirclesFour,
-  Ruler,
-  Stack,
-  ListChecks,
-  GitBranch,
   ArrowLeft,
   CheckCircle,
   Warning,
@@ -21,20 +12,13 @@ import {
   Download,
   PencilSimple,
   Globe,
+  MagnifyingGlass,
+  Palette,
+  TextAa,
+  CirclesFour,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-
-const subNav = [
-  { to: '/brand', label: 'Overview', icon: Fingerprint },
-  { to: '/brand/scan', label: 'Scan', icon: MagnifyingGlass },
-  { to: '/brand/colors', label: 'Colors', icon: Palette },
-  { to: '/brand/typography', label: 'Typography', icon: TextAa },
-  { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
-  { to: '/brand/layout', label: 'Layout', icon: Ruler },
-  { to: '/brand/components', label: 'Components', icon: Stack },
-  { to: '/brand/tokens', label: 'Tokens', icon: ListChecks },
-  { to: '/brand/versions', label: 'Versions', icon: GitBranch },
-];
+import { BrandSubNav } from '@/components/brand-sub-nav';
 
 const DETECTED = {
   website: 'seocontent.ai',
@@ -76,13 +60,7 @@ export default function BrandReviewPage() {
   if (approved) {
     return (
       <div className="space-y-5">
-        <div className="sub-nav overflow-x-auto">
-          {subNav.map((item) => (
-            <Link key={item.to} href={item.to} className={cn('sub-nav-item', item.to === '/brand/scan' && 'active')}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        <BrandSubNav />
         <div className="dash-card max-w-[480px] mx-auto text-center py-12">
           <div className="w-16 h-16 rounded-full bg-[#16A34A]/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-[#16A34A]" weight="bold" />
@@ -108,13 +86,7 @@ export default function BrandReviewPage() {
 
   return (
     <div className="space-y-5">
-      <div className="sub-nav overflow-x-auto">
-        {subNav.map((item) => (
-          <Link key={item.to} href={item.to} className={cn('sub-nav-item', item.to === '/brand/scan' && 'active')}>
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      <BrandSubNav />
 
       {/* Header */}
       <div className="flex items-start justify-between">

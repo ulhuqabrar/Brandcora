@@ -1,16 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
-  Fingerprint,
-  Palette,
-  TextAa,
-  CirclesFour,
-  Ruler,
-  Stack,
-  ListChecks,
-  GitBranch,
   Clock,
   ArrowRight,
   ArrowsClockwise,
@@ -20,17 +11,7 @@ import {
   Warning,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-
-const subNav = [
-  { to: '/brand', label: 'Overview', icon: Fingerprint },
-  { to: '/brand/colors', label: 'Colors', icon: Palette },
-  { to: '/brand/typography', label: 'Typography', icon: TextAa },
-  { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
-  { to: '/brand/layout', label: 'Layout', icon: Ruler },
-  { to: '/brand/components', label: 'Components', icon: Stack },
-  { to: '/brand/tokens', label: 'Tokens', icon: ListChecks },
-  { to: '/brand/versions', label: 'Versions', icon: GitBranch },
-];
+import { BrandSubNav } from '@/components/brand-sub-nav';
 
 const VERSIONS = [
   {
@@ -62,18 +43,9 @@ const VERSIONS = [
 ];
 
 export default function VersionsPage() {
-  const pathname = usePathname();
-  const isActive = (to: string) => to === '/brand' ? pathname === '/brand' : pathname.startsWith(to);
-
   return (
     <div className="space-y-5">
-      <div className="sub-nav overflow-x-auto">
-        {subNav.map((item) => (
-          <Link key={item.to} href={item.to} className={cn('sub-nav-item', isActive(item.to) && 'active')}>
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      <BrandSubNav />
 
       <div className="flex items-center justify-between">
         <div>

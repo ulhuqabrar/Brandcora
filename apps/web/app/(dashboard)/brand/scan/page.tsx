@@ -4,33 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Fingerprint,
   MagnifyingGlass,
-  Palette,
-  TextAa,
-  CirclesFour,
-  Ruler,
-  Stack,
-  ListChecks,
-  GitBranch,
   ArrowLeft,
   CheckCircle,
   X,
   Globe,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-
-const subNav = [
-  { to: '/brand', label: 'Overview', icon: Fingerprint },
-  { to: '/brand/scan', label: 'Scan', icon: MagnifyingGlass },
-  { to: '/brand/colors', label: 'Colors', icon: Palette },
-  { to: '/brand/typography', label: 'Typography', icon: TextAa },
-  { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
-  { to: '/brand/layout', label: 'Layout', icon: Ruler },
-  { to: '/brand/components', label: 'Components', icon: Stack },
-  { to: '/brand/tokens', label: 'Tokens', icon: ListChecks },
-  { to: '/brand/versions', label: 'Versions', icon: GitBranch },
-];
+import { BrandSubNav } from '@/components/brand-sub-nav';
 
 const STAGES = [
   'Connecting to website',
@@ -82,18 +63,7 @@ export default function BrandScanPage() {
 
   return (
     <div className="space-y-5">
-      {/* Sub-navigation */}
-      <div className="sub-nav overflow-x-auto">
-        {subNav.map((item) => (
-          <Link
-            key={item.to}
-            href={item.to}
-            className={cn('sub-nav-item', item.to === '/brand/scan' && 'active')}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      <BrandSubNav />
 
       {!isScanning ? (
         /* URL Submission Form */
