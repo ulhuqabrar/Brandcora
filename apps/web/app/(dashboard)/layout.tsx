@@ -23,7 +23,7 @@ const navItems = [
   { to: '/dashboard', icon: House, label: 'Dashboard', locked: false },
   { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
   { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
-  { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
+  { to: '/settings/profile', icon: GearSix, label: 'Settings', locked: false },
 ];
 
 const bottomItems = [
