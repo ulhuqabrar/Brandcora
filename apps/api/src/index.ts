@@ -32,33 +32,49 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: false,
 }));
-
 app.use(cors({
-  origin: [env.WEB_APP_URL, 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowed = origin === env.WEB_APP_URL ||
+      /^https:\/\/brandcora-.*\.vercel\.app$/.test(origin);
+    callback(null, allowed);
+  },
   credentials: true,
 }));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
 
+// ─── Health Check ─────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ─── Better Auth Handler ──────────────────────────────────────────────────────
+const betterAuthHandler = toNodeHandler(auth);
+
+app.get('/api/auth/callback/google', (req, res) => {
+  betterAuthHandler(req, res);
+});
+
+app.all('/api/auth/*', (req, res) => {
+  betterAuthHandler(req, res);
+});
+
+// ─── Body Parsing (after Better Auth) ────────────────────────────────────────
+app.use('/api/v1/webhooks', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// ─── Rate Limiting ────────────────────────────────────────────────────────────
-if (env.NODE_ENV === 'production') {
-  app.use('/api/', rateLimit({
-    windowMs: 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-  }));
-}
-
-// ─── Request Logging ──────────────────────────────────────────────────────────
+// ─── Logging ──────────────────────────────────────────────────────────────────
 app.use(requestLogger);
 
-// ─── Auth Handler ─────────────────────────────────────────────────────────────
-app.use('/api/auth', toNodeHandler(auth));
-
 // ─── API Routes ───────────────────────────────────────────────────────────────
-app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/workspaces', workspaceRoutes);
 app.use('/api/v1/memberships', membershipRoutes);
 app.use('/api/v1/invitations', invitationRoutes);
@@ -165,6 +181,7 @@ ensureSchema().catch(() => {});
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const port = Number(process.env.PORT || 10000);
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 API server running on port ${port}`);
   console.log(`📊 Environment: ${env.NODE_ENV}`);
