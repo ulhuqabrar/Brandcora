@@ -11,7 +11,7 @@ const serverEnvSchema = z.object({
   DIRECT_URL: z.string().url(),
 
   BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url().default('http://localhost:3001/api/auth'),
+  BETTER_AUTH_URL: z.string().url().default('http://localhost:3000/api/auth'),
 
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
