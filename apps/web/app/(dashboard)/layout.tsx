@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  House,
   Fingerprint,
   FileText,
   GearSix,
@@ -19,6 +20,7 @@ import { ProtectedRoute } from '@/lib/protected-route';
 import { cn } from '@/lib/utils';
 
 const navItems = [
+  { to: '/dashboard', icon: House, label: 'Dashboard', locked: false },
   { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
   { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
   { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
