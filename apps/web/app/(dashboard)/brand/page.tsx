@@ -1,426 +1,227 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Palette, Pencil, Globe, ArrowRight, CheckCircle, Download } from '@phosphor-icons/react';
-import { getBrandIdentity, type BrandIdentity } from '@/lib/brand-identity';
+import { usePathname } from 'next/navigation';
+import {
+  Fingerprint,
+  MagnifyingGlass,
+  Palette,
+  TextAa,
+  CirclesFour,
+  Ruler,
+  Stack,
+  ListChecks,
+  GitBranch,
+  CheckCircle,
+  Warning,
+  ArrowRight,
+  Clock,
+  Globe,
+  ArrowClockwise,
+  Download,
+  Link as LinkIcon,
+} from '@phosphor-icons/react';
+import { cn } from '@/lib/utils';
 
-interface BrandGradient {
-  type: string;
-  repeating: boolean;
-  angle: number | null;
-  shape: string | null;
-  position: string | null;
-  stops: Array<{
-    colorHex: string;
-    alpha: number;
-    position: string;
-    positionSource: string;
-  }>;
-  originalValue: string;
-  normalizedValue: string;
-  confidence: number;
-  role: string;
-  usageCount: number;
-  cssVariableName: string | null;
-}
+const subNav = [
+  { to: '/brand', label: 'Overview', icon: Fingerprint },
+  { to: '/brand/colors', label: 'Colors', icon: Palette },
+  { to: '/brand/typography', label: 'Typography', icon: TextAa },
+  { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
+  { to: '/brand/layout', label: 'Layout', icon: Ruler },
+  { to: '/brand/components', label: 'Components', icon: Stack },
+  { to: '/brand/tokens', label: 'Tokens', icon: ListChecks },
+  { to: '/brand/versions', label: 'Versions', icon: GitBranch },
+];
 
-interface BrandProfile {
-  id: string;
-  name: string;
-  description: string | null;
-  headingFont: string | null;
-  bodyFont: string | null;
-  buttonRadius: number;
-  borderRadius: number;
-  spacingPreference: string | null;
-  colors: Array<{ id: string; name: string; hexValue: string; role: string }>;
-  fonts: Array<{ id: string; name: string; family: string; role: string; weight: number }>;
-  logos: Array<{ id: string; fileUrl: string; logoType: string }>;
-  gradients: BrandGradient[];
-  rules: Array<{ id: string; category: string; name: string; value: string }>;
-  visualStyle?: string;
-  websiteUrl?: string;
-}
+export default function BrandIdentityPage() {
+  const pathname = usePathname();
+  const [url, setUrl] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasIdentity, setHasIdentity] = useState(true);
 
-function buildProfileFromExtracted(data: any): BrandProfile {
-  const colors = (data.colors || []).map((c: any, i: number) => ({
-    id: `ec-${i}`, name: c.role, hexValue: c.hex, role: c.role,
-  }));
-  const fonts = (data.fonts || []).map((f: any, i: number) => ({
-    id: `ef-${i}`, name: f.family, family: f.family, role: f.role, weight: f.role === 'heading' ? 700 : 400,
-  }));
-  const logos = (data.logos || []).map((l: any, i: number) => ({
-    id: `el-${i}`, fileUrl: l.url, logoType: l.type,
-  }));
-  const gradients: BrandGradient[] = (data.gradients || []).map((g: any, i: number) => ({
-    type: g.type || 'linear',
-    repeating: g.repeating || false,
-    angle: g.angle ?? null,
-    shape: g.shape ?? null,
-    position: g.position ?? null,
-    stops: g.stops || [],
-    originalValue: g.originalValue || '',
-    normalizedValue: g.normalizedValue || '',
-    confidence: g.confidence || 0.9,
-    role: g.role || 'unknown',
-    usageCount: g.usageCount || 1,
-    cssVariableName: g.cssVariableName ?? null,
-  }));
-  return {
-    id: 'extracted-1',
-    name: data.brandName || 'My Brand',
-    description: data.visualStyle || null,
-    headingFont: data.fonts?.[0]?.family || '',
-    bodyFont: data.fonts?.[1]?.family || data.fonts?.[0]?.family || '',
-    buttonRadius: parseInt(data.borderRadius) || 8,
-    borderRadius: parseInt(data.borderRadius) || 8,
-    spacingPreference: 'comfortable',
-    colors, fonts, logos, gradients, rules: [],
-    visualStyle: data.visualStyle,
-    websiteUrl: data.websiteUrl || 'seocontent.ai',
+  const isActive = (to: string) => {
+    if (to === '/brand') return pathname === '/brand';
+    return pathname.startsWith(to);
   };
-}
 
-const DEMO_PROFILE: BrandProfile = {
-  id: 'demo-1', name: 'My Brand', description: 'Our official brand identity', websiteUrl: 'seocontent.ai',
-  headingFont: 'Plus Jakarta Sans', bodyFont: 'Inter',
-  buttonRadius: 8, borderRadius: 12, spacingPreference: 'comfortable',
-  colors: [
-    { id: 'c1', name: 'Primary', hexValue: '#35378F', role: 'primary' },
-    { id: 'c2', name: 'Accent', hexValue: '#22D3EE', role: 'accent' },
-    { id: 'c3', name: 'Dark', hexValue: '#1E293B', role: 'dark' },
-  ],
-  fonts: [
-    { id: 'f1', name: 'Jakarta', family: 'Plus Jakarta Sans', role: 'heading', weight: 700 },
-    { id: 'f2', name: 'Inter', family: 'Inter', role: 'body', weight: 400 },
-  ],
-  logos: [],
-  gradients: [
-    {
-      type: 'linear',
-      repeating: false,
-      angle: 135,
-      shape: null,
-      position: null,
-      stops: [
-        { colorHex: '#35378F', alpha: 1, position: '0%', positionSource: 'explicit' },
-        { colorHex: '#22D3EE', alpha: 1, position: '100%', positionSource: 'explicit' },
-      ],
-      originalValue: 'linear-gradient(135deg, #35378F 0%, #22D3EE 100%)',
-      normalizedValue: 'linear-gradient(135deg,\n  #35378F 0%,\n  #22D3EE 100%\n)',
-      confidence: 0.95,
-      role: 'primary',
-      usageCount: 5,
-      cssVariableName: '--brand-gradient',
-    },
-  ],
-  rules: [],
-};
-
-function saveToIdentity(profile: BrandProfile) {
-  const identity: BrandIdentity = {
-    name: profile.name,
-    websiteUrl: profile.websiteUrl,
-    visualStyle: profile.visualStyle,
-    colors: profile.colors.map(c => ({ hex: c.hexValue, role: c.role })),
-    fonts: profile.fonts.map(f => ({ family: f.family, role: f.role, weight: f.weight })),
-    logos: profile.logos.map(l => ({ url: l.fileUrl, type: l.logoType })),
-    gradients: profile.gradients.map(g => ({
-      type: g.type,
-      repeating: g.repeating,
-      angle: g.angle,
-      shape: g.shape,
-      position: g.position,
-      stops: g.stops,
-      originalValue: g.originalValue,
-      normalizedValue: g.normalizedValue,
-      confidence: g.confidence,
-      role: g.role,
-      usageCount: g.usageCount,
-      cssVariableName: g.cssVariableName,
-    })),
-    headingFont: profile.headingFont || '',
-    bodyFont: profile.bodyFont || '',
-    buttonRadius: profile.buttonRadius,
-    borderRadius: profile.borderRadius,
-    spacingScale: ['4px', '8px', '12px', '16px', '24px', '32px', '48px', '64px'],
-    buttonStyles: {
-      primaryBg: profile.colors.find(c => c.role === 'primary')?.hexValue || '#35378F',
-      primaryText: '#FFFFFF',
-      secondaryBg: 'transparent',
-      secondaryText: profile.colors.find(c => c.role === 'primary')?.hexValue || '#35378F',
-      radius: `${profile.buttonRadius}px`,
-      padding: '12px 24px',
-    },
+  const handleScan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
+    setIsScanning(true);
   };
-  localStorage.setItem('brand-profile-data', JSON.stringify(identity));
-}
-
-export default function BrandProfilePage() {
-  const [profile, setProfile] = useState<BrandProfile>(DEMO_PROFILE);
-  const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: DEMO_PROFILE.name, description: DEMO_PROFILE.description || '',
-    headingFont: DEMO_PROFILE.headingFont || '', bodyFont: DEMO_PROFILE.bodyFont || '',
-    buttonRadius: DEMO_PROFILE.buttonRadius, borderRadius: DEMO_PROFILE.borderRadius,
-    spacingPreference: DEMO_PROFILE.spacingPreference || '',
-  });
-
-  useEffect(() => {
-    const extracted = localStorage.getItem('brand-profile-data');
-    if (extracted) {
-      try {
-        const data = JSON.parse(extracted);
-        if (data.colors) {
-          const built = buildProfileFromExtracted(data);
-          setProfile(built);
-          setFormData({
-            name: built.name, description: built.description || '',
-            headingFont: built.headingFont || '', bodyFont: built.bodyFont || '',
-            buttonRadius: built.buttonRadius, borderRadius: built.borderRadius,
-            spacingPreference: built.spacingPreference || '',
-          });
-        }
-      } catch { /* ignore */ }
-    }
-  }, []);
-
-  function handleSave() {
-    const updated = { ...profile, ...formData };
-    setProfile(updated);
-    saveToIdentity(updated);
-    setEditing(false);
-  }
-
-  function handleDownload() {
-    const brandData = {
-      brandProfile: {
-        name: profile.name,
-        description: profile.description,
-        websiteUrl: profile.websiteUrl,
-        visualStyle: profile.visualStyle,
-      },
-      colors: profile.colors.map(c => ({
-        name: c.name,
-        hex: c.hexValue,
-        role: c.role,
-      })),
-      fonts: profile.fonts.map(f => ({
-        family: f.family,
-        role: f.role,
-        weight: f.weight,
-      })),
-      logos: profile.logos.map(l => ({
-        url: l.fileUrl,
-        type: l.logoType,
-      })),
-      gradients: profile.gradients.map(g => ({
-        type: g.type,
-        repeating: g.repeating,
-        angle: g.angle,
-        shape: g.shape,
-        position: g.position,
-        stops: g.stops,
-        originalValue: g.originalValue,
-        normalizedValue: g.normalizedValue,
-        confidence: g.confidence,
-        role: g.role,
-        usageCount: g.usageCount,
-        cssVariableName: g.cssVariableName,
-      })),
-      settings: {
-        headingFont: profile.headingFont,
-        bodyFont: profile.bodyFont,
-        buttonRadius: profile.buttonRadius,
-        borderRadius: profile.borderRadius,
-        spacingPreference: profile.spacingPreference,
-      },
-      exportedAt: new Date().toISOString(),
-    };
-
-    const jsonContent = JSON.stringify(brandData, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${profile.name.replace(/\s+/g, '-').toLowerCase()}-brand-profile.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold">Brand Profile</h1>
-          <p className="text-muted-foreground mt-1">Your brand identity — the source of truth for all checks.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownload} className="glass">
-            <Download className="mr-1.5 h-4 w-4" weight="bold" />Download JSON
-          </Button>
-          <Button asChild className="gradient-accent text-white shadow-glass">
-            <Link href="/brand/extract"><Globe className="mr-1.5 h-4 w-4" weight="bold" />Extract from website</Link>
-          </Button>
-
-        </div>
+    <div className="space-y-5">
+      {/* Sub-navigation */}
+      <div className="sub-nav overflow-x-auto">
+        {subNav.map((item) => (
+          <Link
+            key={item.to}
+            href={item.to}
+            className={cn('sub-nav-item', isActive(item.to) && 'active')}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
 
-      {editing ? (
-        <div className="glass-strong rounded-2xl p-6 sm:p-8 shadow-glass">
-          <h3 className="text-lg font-semibold mb-4">Edit Brand Profile</h3>
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>Name *</Label><Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-white" /></div>
-              <div className="space-y-2"><Label>Description</Label><Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="bg-white" /></div>
-              <div className="space-y-2"><Label>Heading font</Label><Input value={formData.headingFont} onChange={e => setFormData({ ...formData, headingFont: e.target.value })} className="bg-white" /></div>
-              <div className="space-y-2"><Label>Body font</Label><Input value={formData.bodyFont} onChange={e => setFormData({ ...formData, bodyFont: e.target.value })} className="bg-white" /></div>
-              <div className="space-y-2"><Label>Button radius (px)</Label><Input type="number" value={formData.buttonRadius} onChange={e => setFormData({ ...formData, buttonRadius: parseInt(e.target.value) || 0 })} className="bg-white" /></div>
-              <div className="space-y-2"><Label>Border radius (px)</Label><Input type="number" value={formData.borderRadius} onChange={e => setFormData({ ...formData, borderRadius: parseInt(e.target.value) || 0 })} className="bg-white" /></div>
+      {/* First-time user: URL submission */}
+      {!hasIdentity && (
+        <div className="dash-card max-w-[560px]">
+          <div className="mb-5">
+            <h2 className="text-[18px] font-bold text-[#1A1918] tracking-tight">Create your brand identity</h2>
+            <p className="text-[13px] text-[#8A8A85] mt-1.5 leading-relaxed">
+              Enter your website URL and Brandcora will identify its colors, typography, logos, icons, spacing, radius, and reusable design tokens.
+            </p>
+          </div>
+          <form onSubmit={handleScan} className="flex gap-3">
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://yourwebsite.com"
+              className="input-compact flex-1"
+              required
+            />
+            <button type="submit" className="btn-primary">
+              <MagnifyingGlass className="h-4 w-4" weight="bold" />
+              Analyze
+            </button>
+          </form>
+          <div className="mt-4 space-y-1.5">
+            {[
+              'Public website required',
+              'Initial scan does not change the website',
+              'Results can be reviewed before approval',
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-[12px] text-[#8A8A85]">
+                <CheckCircle className="h-3 w-3 text-[#C4C4BF]" weight="bold" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Scan Progress */}
+      {isScanning && (
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+                <MagnifyingGlass className="h-4 w-4 text-[#FF5F45]" weight="bold" />
+              </div>
+              <div>
+                <div className="dash-card-title">Scanning website</div>
+                <div className="dash-card-subtitle">{url}</div>
+              </div>
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleSave} disabled={!formData.name} className="gradient-accent text-white shadow-glass">Save profile</Button>
-              <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+            <button className="btn-ghost text-[12px]">Cancel</button>
+          </div>
+          <div className="space-y-1.5">
+            {[
+              { label: 'Connecting to website', status: 'completed' },
+              { label: 'Discovering pages', status: 'completed' },
+              { label: 'Reading styles', status: 'active' },
+              { label: 'Detecting visual assets', status: 'pending' },
+              { label: 'Building design tokens', status: 'pending' },
+              { label: 'Preparing brand profile', status: 'pending' },
+            ].map((stage, i) => (
+              <div key={i} className={cn('scan-stage', stage.status)}>
+                <div className={cn('scan-stage-number', stage.status)}>
+                  {stage.status === 'completed' ? (
+                    <CheckCircle className="h-4 w-4" weight="bold" />
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span className={cn(
+                  'text-[13px]',
+                  stage.status === 'active' ? 'font-medium text-[#1A1918]' : 'text-[#8A8A85]'
+                )}>
+                  {stage.label}
+                </span>
+                {stage.status === 'active' && (
+                  <span className="text-[11px] text-[#8A8A85] ml-auto">12 of 18 pages</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: '45%' }} />
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Returning user: Brand Identity Overview */}
+      {hasIdentity && !isScanning && (
         <>
-          {profile.websiteUrl && (
-            <div className="glass-strong rounded-2xl p-4 shadow-glass flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-green-500 shrink-0" weight="fill" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Extracted from {profile.websiteUrl}</p>
-                {profile.visualStyle && <p className="text-xs text-muted-foreground mt-0.5">{profile.visualStyle}</p>}
-              </div>
-              <Button size="sm" variant="ghost" asChild><Link href="/brand/extract">Re-extract<ArrowRight className="ml-1 h-3 w-3" weight="bold" /></Link></Button>
-            </div>
-          )}
-
-          <div className="glass-strong rounded-2xl p-6 shadow-glass">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl shadow-glass overflow-hidden"
-                style={{
-                  background: profile.colors.length >= 2
-                    ? `linear-gradient(135deg, ${profile.colors[0].hexValue} 0%, ${profile.colors[1].hexValue} 100%)`
-                    : profile.colors.length === 1
-                    ? profile.colors[0].hexValue
-                    : undefined
-                }}
-              >
-                {profile.websiteUrl ? (
-                  <img
-                    src={`https://www.google.com/s2/favicons?domain=${profile.websiteUrl}&sz=64`}
-                    alt={profile.name}
-                    className="h-full w-full object-contain bg-white p-1"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-white font-bold text-lg">${profile.name.charAt(0)}</span>`;
-                    }}
-                  />
-                ) : (
-                  <Palette className="h-6 w-6 text-white" weight="bold" />
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">{profile.name}</h3>
-                {profile.description && <p className="text-sm text-muted-foreground">{profile.description}</p>}
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-medium text-muted-foreground">Heading font</p><p className="text-sm font-medium mt-1">{profile.headingFont || 'Not set'}</p></div>
-              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-medium text-muted-foreground">Body font</p><p className="text-sm font-medium mt-1">{profile.bodyFont || 'Not set'}</p></div>
-              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-medium text-muted-foreground">Button radius</p><p className="text-sm font-medium mt-1">{profile.buttonRadius}px</p></div>
-              <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs font-medium text-muted-foreground">Border radius</p><p className="text-sm font-medium mt-1">{profile.borderRadius}px</p></div>
-            </div>
-          </div>
-
-          <div className="glass-strong rounded-2xl p-6 shadow-glass">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold">Brand Colors</h3><span className="text-sm text-muted-foreground">{profile.colors.length} colors</span></div>
-            <div className="flex flex-wrap gap-3">
-              {profile.colors.map(c => (
-                <div key={c.id} className="flex items-center gap-3 rounded-xl border p-3 bg-white">
-                  <div className="h-10 w-10 rounded-full border shadow-inner" style={{ backgroundColor: c.hexValue }} />
-                  <div><p className="text-sm font-medium capitalize">{c.role}</p><p className="text-xs text-muted-foreground">{c.hexValue}</p></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass-strong rounded-2xl p-6 shadow-glass">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold">Brand Fonts</h3><span className="text-sm text-muted-foreground">{profile.fonts.length} fonts</span></div>
-            <div className="space-y-2">
-              {profile.fonts.map(f => (
-                <div key={f.id} className="flex items-center justify-between rounded-xl border p-3 bg-white">
-                  <div><p className="text-sm font-medium">{f.family}</p><p className="text-xs text-muted-foreground">{f.role}</p></div>
-                  <Badge variant="outline">{f.weight}</Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass-strong rounded-2xl p-6 shadow-glass">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold">Brand Logos</h3><span className="text-sm text-muted-foreground">{profile.logos.length} logos</span></div>
-            {profile.logos.length === 0 ? <p className="text-sm text-muted-foreground">No logos yet.</p> : (
-              <div className="flex flex-wrap gap-4">
-                {profile.logos.map(l => (
-                  <div key={l.id} className="text-center rounded-xl border p-4 bg-white">
-                    <img src={l.fileUrl} alt={l.logoType} className="h-20 w-20 object-contain rounded" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <p className="text-xs text-muted-foreground mt-2">{l.logoType}</p>
+          {/* Brand Summary */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-8 dash-card">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
+                    <Fingerprint className="h-6 w-6 text-white" weight="bold" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="glass-strong rounded-2xl p-6 shadow-glass">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold">Brand Gradients</h3><span className="text-sm text-muted-foreground">{profile.gradients.length} gradients</span></div>
-            {profile.gradients.length === 0 ? <p className="text-sm text-muted-foreground">No gradients detected.</p> : (
-              <div className="space-y-4">
-                {profile.gradients.map((g, i) => (
-                  <div key={i} className="rounded-xl border p-4 bg-white">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className="h-16 w-32 rounded-lg border shrink-0"
-                        style={{
-                          background: g.normalizedValue || `linear-gradient(${g.angle || 0}deg, ${g.stops.map(s => `${s.colorHex} ${s.position}`).join(', ')})`,
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-medium capitalize">{g.role}</p>
-                          <Badge variant="outline" className="text-xs">{g.type}</Badge>
-                          {g.repeating && <Badge variant="secondary" className="text-xs">repeating</Badge>}
-                        </div>
-                        {g.angle !== null && <p className="text-xs text-muted-foreground">Direction: {g.angle}deg</p>}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {g.stops.map((s, j) => (
-                            <div key={j} className="flex items-center gap-1">
-                              <div className="h-3 w-3 rounded-sm border" style={{ backgroundColor: s.colorHex }} />
-                              <span className="text-[10px] font-mono text-muted-foreground">{s.colorHex} {s.position}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-[10px] font-mono text-muted-foreground mt-2 break-all">{g.originalValue}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>Confidence: {Math.round(g.confidence * 100)}%</span>
-                          <span>Used: {g.usageCount}x</span>
-                          {g.cssVariableName && <span>Var: {g.cssVariableName}</span>}
-                        </div>
-                      </div>
+                  <div>
+                    <h2 className="text-[18px] font-bold text-[#1A1918] tracking-tight">Acme Corp</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Globe className="h-3.5 w-3.5 text-[#8A8A85]" weight="bold" />
+                      <span className="text-[12px] text-[#8A8A85] font-mono">acme.com</span>
+                      <span className="status-badge active text-[10px]">
+                        <span className="status-dot active" />
+                        Approved
+                      </span>
+                      <span className="text-[11px] text-[#C4C4BF]">v2</span>
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="btn-ghost text-[12px]">
+                    <ArrowClockwise className="h-3.5 w-3.5" weight="bold" /> Rescan
+                  </button>
+                  <button className="btn-ghost text-[12px]">
+                    <Download className="h-3.5 w-3.5" weight="bold" /> Export
+                  </button>
+                  <a href="#" className="btn-ghost text-[12px]">
+                    <LinkIcon className="h-3.5 w-3.5" weight="bold" /> Visit
+                  </a>
+                </div>
               </div>
-            )}
+            </div>
+            <div className="col-span-4 dash-card">
+              <div className="text-[12px] text-[#8A8A85] mb-3">Last scan</div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#8A8A85]" weight="bold" />
+                <span className="text-[13px] font-medium text-[#1A1918]">2 hours ago</span>
+              </div>
+              <div className="text-[12px] text-[#8A8A85] mt-2">18 pages analyzed · 24 assets detected</div>
+            </div>
+          </div>
+
+          {/* Quick Summary Cards */}
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { label: 'Colors', value: '12', icon: Palette, color: '#FF5F45' },
+              { label: 'Fonts', value: '3', icon: TextAa, color: '#FF8A5B' },
+              { label: 'Logos', value: '6', icon: CirclesFour, color: '#F2B84B' },
+              { label: 'Tokens', value: '48', icon: ListChecks, color: '#1A1918' },
+            ].map((card) => (
+              <div key={card.label} className="dash-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: `${card.color}15` }}>
+                    <card.icon className="h-3.5 w-3.5" style={{ color: card.color }} weight="bold" />
+                  </div>
+                  <span className="text-[12px] text-[#8A8A85]">{card.label}</span>
+                </div>
+                <div className="metric-value text-[24px]">{card.value}</div>
+              </div>
+            ))}
           </div>
         </>
       )}

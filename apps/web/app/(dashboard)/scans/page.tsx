@@ -1,148 +1,242 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, MagnifyingGlass } from '@phosphor-icons/react';
+import {
+  FileText,
+  Plus,
+  Lock,
+  MagnifyingGlass,
+  Fingerprint,
+  TrendUp,
+  CheckCircle,
+  Warning,
+  WarningCircle,
+  ArrowRight,
+  Clock,
+  Funnel,
+  Sliders,
+} from '@phosphor-icons/react';
+import { cn } from '@/lib/utils';
 
-interface Scan {
-  id: string;
-  scanType: string;
-  status: string;
-  overallScore: number | null;
-  platform: string | null;
-  sourceUrl: string | null;
-  createdAt: string;
-  brandProfile: { name: string };
-}
+const REPORTS = [
+  {
+    id: 'rpt-1',
+    name: 'Homepage redesign v3',
+    brand: 'Acme Corp',
+    channel: 'Website',
+    score: 92,
+    issues: 2,
+    status: 'approved',
+    createdBy: 'Sajibur',
+    date: '2 hours ago',
+  },
+  {
+    id: 'rpt-2',
+    name: 'Q3 social campaign',
+    brand: 'Acme Corp',
+    channel: 'Instagram',
+    score: 64,
+    issues: 7,
+    status: 'needs_review',
+    createdBy: 'Sajibur',
+    date: '1 day ago',
+  },
+  {
+    id: 'rpt-3',
+    name: 'Product page audit',
+    brand: 'Acme Corp',
+    channel: 'Website',
+    score: 78,
+    issues: 4,
+    status: 'needs_review',
+    createdBy: 'Sajibur',
+    date: '3 days ago',
+  },
+  {
+    id: 'rpt-4',
+    name: 'Email newsletter banner',
+    brand: 'Acme Corp',
+    channel: 'Email',
+    score: 88,
+    issues: 1,
+    status: 'approved',
+    createdBy: 'Sajibur',
+    date: '5 days ago',
+  },
+  {
+    id: 'rpt-5',
+    name: 'LinkedIn ad creative',
+    brand: 'Acme Corp',
+    channel: 'LinkedIn',
+    score: 71,
+    issues: 5,
+    status: 'changes_requested',
+    createdBy: 'Sajibur',
+    date: '1 week ago',
+  },
+];
 
-function getScans(): Scan[] {
-  const scans: Scan[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key?.startsWith('scan-')) {
-      try {
-        const data = JSON.parse(localStorage.getItem(key)!);
-        scans.push({
-          id: data.id,
-          scanType: data.scanType,
-          status: data.status,
-          overallScore: data.overallScore,
-          platform: data.platform,
-          sourceUrl: data.sourceUrl,
-          createdAt: data.createdAt,
-          brandProfile: data.brandProfile,
-        });
-      } catch { /* ignore */ }
-    }
-  }
-  return scans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
+const STATUS_MAP: Record<string, { label: string; className: string }> = {
+  approved: { label: 'Approved', className: 'active' },
+  needs_review: { label: 'Needs review', className: 'pending' },
+  changes_requested: { label: 'Changes requested', className: 'error' },
+  processing: { label: 'Processing', className: 'neutral' },
+};
 
-export default function ReportHistoryPage() {
-  const [scans, setScans] = useState<Scan[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+const SCORE_COLOR = (s: number) =>
+  s >= 80 ? '#16A34A' : s >= 60 ? '#D97706' : '#DC2626';
 
-  useEffect(() => {
-    setScans(getScans());
-  }, []);
+export default function ReportsPage() {
+  const [hasIdentity] = useState(true);
+  const [search, setSearch] = useState('');
 
-  const filtered = filter === 'all' ? scans : scans.filter(s => s.scanType === filter);
+  const filtered = REPORTS.filter(r =>
+    !search || r.name.toLowerCase().includes(search.toLowerCase())
+  );
 
-  function getScoreColor(score: number | null): string {
-    if (score === null) return 'text-muted-foreground';
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+  if (!hasIdentity) {
+    return (
+      <div className="space-y-5">
+        <div className="dash-card">
+          <div className="empty-state">
+            <div className="empty-state-icon bg-[#FF5F45]/10">
+              <Lock className="h-6 w-6 text-[#FF5F45]" weight="bold" />
+            </div>
+            <div className="empty-state-title">Brand identity required</div>
+            <div className="empty-state-desc">
+              Create and approve a brand identity before analyzing creative assets.
+            </div>
+            <Link href="/brand" className="btn-primary">
+              <Fingerprint className="h-4 w-4" weight="bold" />
+              Create brand identity
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold">Report History</h1>
-          <p className="text-muted-foreground mt-1">View all your brand check reports.</p>
+          <h1 className="text-[26px] font-bold text-[#1A1918] tracking-tight">Creative reports</h1>
+          <p className="text-[13px] text-[#8A8A85] mt-1">
+            Upload a creative asset and compare it with your approved brand identity.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild className="gradient-accent text-white shadow-glass">
-            <Link href="/scans/new-social"><Plus className="mr-1.5 h-4 w-4" weight="bold" />New social check</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/scans/new-website">New website check</Link>
-          </Button>
-        </div>
+        <Link href="/scans/new" className="btn-primary">
+          <Plus className="h-4 w-4" weight="bold" />
+          New report
+        </Link>
       </div>
 
-      <div className="flex gap-2">
-        {['all', 'social', 'website'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
-              filter === f
-                ? 'gradient-accent text-white shadow-glass'
-                : 'glass text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { label: 'Reports this month', value: '12', icon: FileText, color: '#FF5F45', change: '+3' },
+          { label: 'Average score', value: '79', icon: TrendUp, color: '#16A34A', change: '+4' },
+          { label: 'Open issues', value: '8', icon: WarningCircle, color: '#D97706', change: '-2' },
+          { label: 'Approved assets', value: '7', icon: CheckCircle, color: '#16A34A', change: '+1' },
+        ].map((card) => (
+          <div key={card.label} className="dash-card">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: `${card.color}15` }}>
+                <card.icon className="h-3.5 w-3.5" style={{ color: card.color }} weight="bold" />
+              </div>
+              <span className="text-[12px] text-[#8A8A85]">{card.label}</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <div className="metric-value text-[24px]">{card.value}</div>
+              <span className="metric-change positive text-[11px]">{card.change}</span>
+            </div>
+          </div>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="glass-strong rounded-2xl p-8 shadow-glass">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-4">
-              <MagnifyingGlass className="h-8 w-8 text-primary" weight="bold" />
+      {/* Reports Table */}
+      <div className="dash-card p-0 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-[#F5F5F3]">
+          <div className="text-[13px] font-semibold text-[#1A1918]">Recent reports</div>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search reports..."
+                className="input-compact pl-8 h-8 text-[12px] w-48"
+              />
             </div>
-            <h3 className="text-lg font-semibold">No reports yet</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mt-1">
-              Run your first brand check to see reports here.
-            </p>
-            <div className="flex gap-3 mt-4">
-              <Button asChild className="gradient-accent text-white shadow-glass">
-                <Link href="/scans/new-social">Social check</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/scans/new-website">Website check</Link>
-              </Button>
-            </div>
+            <button className="btn-ghost text-[12px]">
+              <Funnel className="h-3.5 w-3.5" weight="bold" /> Filter
+            </button>
           </div>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((scan) => (
-            <Link key={scan.id} href={`/scans/${scan.id}`}>
-              <div className="glass-strong rounded-2xl p-5 shadow-glass hover:bg-gradient-to-r hover:from-[#FF5F45]/10 hover:via-[#FF8A5B]/10 hover:to-[#F2B84B]/10 transition-all duration-200 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${
-                      (scan.overallScore ?? 0) >= 80 ? 'bg-green-500/10' :
-                      (scan.overallScore ?? 0) >= 60 ? 'bg-yellow-500/10' : 'bg-red-500/10'
-                    }`}>
-                      <span className={`text-xl font-extrabold ${getScoreColor(scan.overallScore)}`}>
-                        {scan.overallScore ?? '—'}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{scan.brandProfile.name}</p>
-                        <Badge variant={scan.scanType === 'social' ? 'default' : 'secondary'}>{scan.scanType}</Badge>
-                        {scan.platform && <Badge variant="outline">{scan.platform}</Badge>}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {scan.sourceUrl || 'Uploaded design'} · {new Date(scan.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={scan.status === 'completed' ? 'default' : 'destructive'}>{scan.status}</Badge>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Report</th>
+              <th>Channel</th>
+              <th>Score</th>
+              <th>Issues</th>
+              <th>Status</th>
+              <th>Created by</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((report) => {
+              const status = STATUS_MAP[report.status];
+              return (
+                <tr key={report.id}>
+                  <td>
+                    <Link href={`/scans/${report.id}`} className="text-[13px] font-medium text-[#1A1918] hover:text-[#FF5F45] transition-colors">
+                      {report.name}
+                    </Link>
+                    <div className="text-[11px] text-[#8A8A85]">{report.brand}</div>
+                  </td>
+                  <td>
+                    <span className="text-[12px] text-[#3D3D3A]">{report.channel}</span>
+                  </td>
+                  <td>
+                    <span className="text-[14px] font-bold" style={{ color: SCORE_COLOR(report.score) }}>
+                      {report.score}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={cn(
+                      'text-[12px] font-medium',
+                      report.issues > 5 ? 'text-[#DC2626]' : report.issues > 2 ? 'text-[#D97706]' : 'text-[#8A8A85]'
+                    )}>
+                      {report.issues}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={cn('status-badge text-[10px]', status.className)}>
+                      {status.label}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="text-[12px] text-[#8A8A85]">{report.createdBy}</span>
+                  </td>
+                  <td>
+                    <span className="text-[12px] text-[#8A8A85]">{report.date}</span>
+                  </td>
+                  <td>
+                    <Link href={`/scans/${report.id}`} className="p-1 hover:bg-[#F5F5F3] rounded inline-flex">
+                      <ArrowRight className="h-3.5 w-3.5 text-[#C4C4BF]" weight="bold" />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

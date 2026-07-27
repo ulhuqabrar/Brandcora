@@ -4,49 +4,176 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  House,
+  Fingerprint,
+  FileText,
   GearSix,
-  Receipt,
-  SignOut,
-  User,
-  List,
-  ShieldCheck,
   MagnifyingGlass,
+  Question,
+  BookOpen,
+  SignOut,
+  Bell,
+  User,
+  Lock,
+  List,
+  X,
 } from '@phosphor-icons/react';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/lib/protected-route';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/brand', icon: ShieldCheck, label: 'Brand Profile' },
-  { to: '/scans', icon: MagnifyingGlass, label: 'Reports' },
-  { to: '/settings', icon: GearSix, label: 'Settings' },
+  { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
+  { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
+  { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
+];
+
+const bottomItems = [
+  { icon: Question, label: 'Help', href: '#' },
+  { icon: BookOpen, label: 'Docs', href: '#' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const currentSection = pathname.startsWith('/brand')
+    ? 'Brand Identity'
+    : pathname.startsWith('/scans')
+    ? 'Reports'
+    : pathname.startsWith('/settings')
+    ? 'Settings'
+    : 'Dashboard';
+
+  const initials = user?.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen overflow-hidden bg-background">
-        {/* Sidebar */}
-        <aside
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 bg-background lg:relative lg:translate-x-0 transition-transform duration-200",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center px-6">
-              <Link href="/dashboard" className="flex items-center">
-                <img src="/logo.png" alt="Brand Guard" className="h-8 w-auto" />
-              </Link>
+      <div className="dashboard-page min-h-screen p-6">
+        <div className="app-shell">
+          {/* Desktop Navigation Rail */}
+          <aside className="nav-rail hidden lg:flex">
+            {/* Logo */}
+            <Link href="/dashboard" className="mb-4">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
+                <span className="text-white text-xs font-bold">B</span>
+              </div>
+            </Link>
+
+            {/* Primary Nav */}
+            <nav className="flex flex-col items-center gap-1 flex-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    href={item.to}
+                    className={cn('nav-rail-item', isActive && 'active')}
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5" weight="bold" />
+                    {item.locked && <span className="lock-indicator" />}
+                    {!item.locked && item.count && item.count > 0 && (
+                      <span className="report-count">{item.count}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Bottom Utilities */}
+            <div className="flex flex-col items-center gap-1">
+              {bottomItems.map((item, i) => (
+                <a key={i} href={item.href} className="nav-rail-item" title={item.label}>
+                  <item.icon className="h-5 w-5" weight="bold" />
+                </a>
+              ))}
+              <button onClick={() => signOut()} className="nav-rail-item" title="Sign out">
+                <SignOut className="h-5 w-5" weight="bold" />
+              </button>
             </div>
-            <nav className="flex-1 p-4">
-              <div className="space-y-0.5">
+          </aside>
+
+          {/* Main Content */}
+          <div className="main-content">
+            {/* Top Utility Bar */}
+            <header className="top-bar">
+              {/* Mobile menu button */}
+              <button
+                className="lg:hidden top-bar-action"
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              >
+                {mobileNavOpen ? <X className="h-5 w-5" weight="bold" /> : <List className="h-5 w-5" weight="bold" />}
+              </button>
+
+              {/* Brand */}
+              <div className="top-bar-brand">
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center lg:hidden">
+                  <span className="text-white text-[10px] font-bold">B</span>
+                </div>
+                <span className="top-bar-brand-name hidden lg:block">Brandcora</span>
+                <span className="top-bar-separator hidden lg:block" />
+                <div className="top-bar-workspace">
+                  <span className="top-bar-workspace-name">Acme Studio</span>
+                  <span className="hidden sm:inline text-xs">·</span>
+                  <span className="hidden sm:inline text-xs">Approved · 2h ago</span>
+                </div>
+              </div>
+
+              {/* Center - Breadcrumb */}
+              <div className="top-bar-center">
+                <div className="top-bar-breadcrumb">
+                  <span className="top-bar-breadcrumb-current">{currentSection}</span>
+                </div>
+              </div>
+
+              {/* Right Actions */}
+              <div className="top-bar-actions">
+                <button className="top-bar-action" title="Search">
+                  <MagnifyingGlass className="h-4 w-4" weight="bold" />
+                </button>
+                <button className="top-bar-action" title="Notifications">
+                  <Bell className="h-4 w-4" weight="bold" />
+                </button>
+                <button className="top-bar-action" title="Help">
+                  <Question className="h-4 w-4" weight="bold" />
+                </button>
+                <div className="top-bar-avatar" title={user?.email}>
+                  {initials}
+                </div>
+              </div>
+            </header>
+
+            {/* Dashboard Workspace */}
+            <main className="dashboard-workspace">
+              {children}
+            </main>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Overlay */}
+        {mobileNavOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <div className="fixed inset-y-0 left-0 w-64 bg-white z-50 lg:hidden flex flex-col shadow-xl">
+              <div className="flex items-center justify-between p-4 border-b border-[#ECECEA]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">B</span>
+                  </div>
+                  <span className="text-sm font-bold text-[#1A1918]">Brandcora</span>
+                </div>
+                <button onClick={() => setMobileNavOpen(false)} className="p-1">
+                  <X className="h-5 w-5 text-[#8A8A85]" weight="bold" />
+                </button>
+              </div>
+              <nav className="flex-1 p-3">
                 {navItems.map((item) => {
                   const isActive = pathname === item.to || pathname.startsWith(item.to + '/');
                   const Icon = item.icon;
@@ -54,64 +181,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link
                       key={item.to}
                       href={item.to}
+                      onClick={() => setMobileNavOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 outline-none",
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium mb-1 transition-colors',
                         isActive
-                          ? "text-accent gradient-bg-50 font-bold"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? 'bg-[#1A1918] text-white'
+                          : 'text-[#6B6B66] hover:bg-[#F5F5F3] hover:text-[#3D3D3A]'
                       )}
-                      onClick={() => setSidebarOpen(false)}
                     >
                       <Icon className="h-5 w-5" weight="bold" />
                       {item.label}
+                      {item.locked && <Lock className="h-3 w-3 ml-auto text-[#C4C4BF]" weight="bold" />}
+                      {!item.locked && item.count && item.count > 0 && (
+                        <span className="ml-auto text-[10px] font-bold bg-[#FF5F45] text-white px-1.5 py-0.5 rounded-full">
+                          {item.count}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
-              </div>
-            </nav>
-            <div className="border-t p-3">
-              <button
-                onClick={() => signOut()}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-              >
-                <SignOut className="h-5 w-5" weight="bold" />
-                Sign out
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 glass border-b px-4 sm:px-6">
-            <button
-              type="button"
-              className="lg:hidden p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle menu"
-            >
-              <List className="h-5 w-5" weight="bold" />
-            </button>
-            <div className="flex-1" />
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center shadow-md">
-                <User className="h-4 w-4 text-white" weight="bold" />
+              </nav>
+              <div className="p-3 border-t border-[#ECECEA]">
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#6B6B66] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-colors w-full"
+                >
+                  <SignOut className="h-5 w-5" weight="bold" />
+                  Sign out
+                </button>
               </div>
             </div>
-          </header>
-
-          <main className="flex-1 overflow-y-auto px-12 py-6 gradient-bg-50">
-            {children}
-          </main>
-        </div>
-
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
+          </>
         )}
       </div>
     </ProtectedRoute>
