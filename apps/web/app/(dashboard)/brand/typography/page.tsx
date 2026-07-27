@@ -5,7 +5,6 @@ import {
   Copy,
   Spinner,
 } from '@phosphor-icons/react';
-import { BrandSubNav } from '@/components/brand-sub-nav';
 import { apiFetch } from '@/lib/api';
 
 interface BrandFont {
@@ -42,7 +41,6 @@ export default function TypographyPage() {
   if (loading) {
     return (
       <div className="space-y-5">
-        <BrandSubNav />
         <div className="dash-card flex items-center justify-center py-12">
           <Spinner className="h-6 w-6 text-[#FF5F45] animate-spin" weight="bold" />
         </div>
@@ -52,8 +50,6 @@ export default function TypographyPage() {
 
   return (
     <div className="space-y-5">
-      <BrandSubNav />
-
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Typography</h2>
