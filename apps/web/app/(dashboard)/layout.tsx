@@ -54,8 +54,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <aside className="nav-rail hidden lg:flex">
             {/* Logo */}
             <Link href="/dashboard" className="mb-4">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
-                <span className="text-white text-xs font-bold">B</span>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+                <svg viewBox="0 0 60 40" className="w-full h-full" fill="none">
+                  <defs>
+                    <linearGradient id="logoGradDash" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FF5F45" />
+                      <stop offset="48%" stopColor="#FF8A5B" />
+                      <stop offset="100%" stopColor="#F2B84B" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="6" cy="6" r="4" fill="url(#logoGradDash)" />
+                  <rect x="14" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradDash)" />
+                  <rect x="23" y="1" width="5" height="18" rx="2.5" fill="url(#logoGradDash)" />
+                  <rect x="32" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradDash)" />
+                  <rect x="41" y="5" width="5" height="8" rx="2.5" fill="url(#logoGradDash)" />
+                  <rect x="6" y="18" width="5" height="16" rx="2.5" fill="url(#logoGradDash)" />
+                  <rect x="15" y="18" width="5" height="12" rx="2.5" fill="url(#logoGradDash)" />
+                  <circle cx="28" cy="32" r="4" fill="url(#logoGradDash)" />
+                  <circle cx="37" cy="32" r="4" fill="url(#logoGradDash)" />
+                  <rect x="46" y="22" width="5" height="10" rx="2.5" fill="url(#logoGradDash)" />
+                </svg>
               </div>
             </Link>
 
@@ -108,8 +126,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Brand */}
               <div className="top-bar-brand">
-                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center lg:hidden">
-                  <span className="text-white text-[10px] font-bold">B</span>
+                <div className="w-7 h-7 rounded-md flex items-center justify-center lg:hidden">
+                  <svg viewBox="0 0 60 40" className="w-full h-full" fill="none">
+                    <defs>
+                      <linearGradient id="logoGradMob" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FF5F45" />
+                        <stop offset="48%" stopColor="#FF8A5B" />
+                        <stop offset="100%" stopColor="#F2B84B" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="6" cy="6" r="4" fill="url(#logoGradMob)" />
+                    <rect x="14" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradMob)" />
+                    <rect x="23" y="1" width="5" height="18" rx="2.5" fill="url(#logoGradMob)" />
+                    <rect x="32" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradMob)" />
+                    <rect x="41" y="5" width="5" height="8" rx="2.5" fill="url(#logoGradMob)" />
+                    <rect x="6" y="18" width="5" height="16" rx="2.5" fill="url(#logoGradMob)" />
+                    <rect x="15" y="18" width="5" height="12" rx="2.5" fill="url(#logoGradMob)" />
+                    <circle cx="28" cy="32" r="4" fill="url(#logoGradMob)" />
+                    <circle cx="37" cy="32" r="4" fill="url(#logoGradMob)" />
+                    <rect x="46" y="22" width="5" height="10" rx="2.5" fill="url(#logoGradMob)" />
+                  </svg>
                 </div>
                 <span className="top-bar-brand-name hidden lg:block">Brandcora</span>
                 <span className="top-bar-separator hidden lg:block" />
@@ -158,8 +194,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="fixed inset-y-0 left-0 w-64 bg-white z-50 lg:hidden flex flex-col shadow-xl">
               <div className="flex items-center justify-between p-4 border-b border-[#ECECEA]">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF5F45] via-[#FF8A5B] to-[#F2B84B] flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">B</span>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                    <svg viewBox="0 0 60 40" className="w-full h-full" fill="none">
+                      <defs>
+                        <linearGradient id="logoGradMenu" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#FF5F45" />
+                          <stop offset="48%" stopColor="#FF8A5B" />
+                          <stop offset="100%" stopColor="#F2B84B" />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="6" cy="6" r="4" fill="url(#logoGradMenu)" />
+                      <rect x="14" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradMenu)" />
+                      <rect x="23" y="1" width="5" height="18" rx="2.5" fill="url(#logoGradMenu)" />
+                      <rect x="32" y="1" width="5" height="14" rx="2.5" fill="url(#logoGradMenu)" />
+                      <rect x="41" y="5" width="5" height="8" rx="2.5" fill="url(#logoGradMenu)" />
+                      <rect x="6" y="18" width="5" height="16" rx="2.5" fill="url(#logoGradMenu)" />
+                      <rect x="15" y="18" width="5" height="12" rx="2.5" fill="url(#logoGradMenu)" />
+                      <circle cx="28" cy="32" r="4" fill="url(#logoGradMenu)" />
+                      <circle cx="37" cy="32" r="4" fill="url(#logoGradMenu)" />
+                      <rect x="46" y="22" width="5" height="10" rx="2.5" fill="url(#logoGradMenu)" />
+                    </svg>
                   </div>
                   <span className="text-sm font-bold text-[#1A1918]">Brandcora</span>
                 </div>
