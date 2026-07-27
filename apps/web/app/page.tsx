@@ -64,7 +64,7 @@ function Navigation() {
       <div className="mx-auto max-w-[1280px] px-8 md:px-12 transition-all duration-500">
         <nav className={`flex items-center justify-between rounded-xl px-5 py-2.5 transition-all duration-500 ${
           scrolled
-            ? 'bg-white/80 backdrop-blur-xl border border-black/[0.04] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'
+            ? 'bg-white/80 backdrop-blur-xl border border-black/[0.04]'
             : 'bg-transparent'
         }`}>
           <Link href="/" className="flex items-center gap-2.5">
@@ -85,7 +85,7 @@ function Navigation() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/auth">Sign in</Link>
             </Button>
-            <Button size="sm" asChild className="gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15">
+            <Button size="sm" asChild className="gradient-accent text-white">
               <Link href="/auth">
                 Scan a website
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -170,7 +170,7 @@ function HeroSection() {
                   type="submit"
                   disabled={loading}
                   size="lg"
-                  className="shrink-0 h-12 px-6 gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15"
+className="shrink-0 h-12 px-6 gradient-accent text-white"
                 >
                   {loading ? (
                     <>
@@ -202,7 +202,7 @@ function HeroSection() {
 
           {/* Right column — 7 cols: product visual */}
           <div className="lg:col-span-7">
-            <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-[0_8px_40px_rgba(0,0,0,0.06)] bg-white">
+            <div className="relative rounded-2xl overflow-hidden border border-border/50 bg-white">
               {/* Browser chrome */}
               <div className="flex items-center gap-2.5 px-4 py-2.5 bg-warm-offwhite border-b border-border/40">
                 <div className="flex gap-1.5">
@@ -694,7 +694,7 @@ function LibrarySection() {
         </RevealSection>
 
         <RevealSection delay={0.2}>
-          <div className="mt-12 rounded-2xl overflow-hidden border border-border/40 bg-white shadow-soft">
+          <div className="mt-12 rounded-2xl overflow-hidden border border-border/40 bg-white">
             <div className="flex items-center gap-1 px-4 py-3 border-b border-border/30 overflow-x-auto">
               {['Overview', 'Logos', 'Colors', 'Typography', 'Icons', 'Components', 'Tokens'].map(tab => (
                 <Button
@@ -928,7 +928,7 @@ function ValidationSection() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full gradient-accent text-white hover:shadow-lg hover:shadow-brand-orange/20">
+                  <Button className="w-full gradient-accent text-white">
                     Apply suggested corrections
                   </Button>
                 </CardFooter>
@@ -972,7 +972,7 @@ function WorkflowSection() {
             <div className="grid grid-cols-2 md:grid-cols-7 gap-6 md:gap-4">
               {steps.map((step) => (
                 <div key={step.num} className="relative text-center">
-                  <div className="relative z-10 w-16 h-16 mx-auto rounded-2xl bg-white border border-border/40 shadow-soft flex items-center justify-center mb-4">
+                  <div className="relative z-10 w-16 h-16 mx-auto rounded-2xl bg-white border border-border/40 flex items-center justify-center mb-4">
                     <span className="text-sm font-mono font-bold gradient-text">{step.num}</span>
                   </div>
                   <h3 className="text-xs font-bold text-graphite mb-1">{step.label}</h3>
@@ -1013,7 +1013,7 @@ function UseCasesSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {useCases.map((uc, i) => (
             <RevealSection key={uc.title} delay={i * 0.06}>
-              <Card className="h-full hover:border-brand-orange/20 hover:shadow-soft transition-all duration-300 cursor-pointer">
+              <Card className="h-full hover:border-brand-orange/20 transition-all duration-300 cursor-pointer">
                 <CardContent className="pt-6">
                   <Badge variant="secondary" className="text-[9px] font-mono mb-2">{uc.tag}</Badge>
                   <h3 className="text-base font-bold text-graphite mt-2">{uc.title}</h3>
@@ -1128,7 +1128,7 @@ function PricingSection() {
         <RevealSection>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {plans.map((plan) => (
-              <Card key={plan.name} className={`relative ${plan.popular ? 'border-brand-orange/30 shadow-soft' : ''}`}>
+              <Card key={plan.name} className={`relative ${plan.popular ? 'border-brand-orange/30' : ''}`}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-6">
                     <Badge className="gradient-accent text-white border-0 text-[10px] uppercase tracking-wider">Most popular</Badge>
@@ -1155,7 +1155,7 @@ function PricingSection() {
                 <CardFooter>
                   <Button
                     asChild
-                    className={`w-full ${plan.popular ? 'gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15' : ''}`}
+                    className={`w-full ${plan.popular ? 'gradient-accent text-white' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
                   >
                     <Link href={plan.href}>{plan.cta}</Link>
@@ -1204,7 +1204,7 @@ function FinalCTA() {
                   placeholder="https://yourwebsite.com"
                   className="h-12 text-[15px]"
                 />
-                <Button type="submit" size="lg" className="shrink-0 h-12 px-6 gradient-accent text-white hover:shadow-md hover:shadow-brand-orange/15">
+                <Button type="submit" size="lg" className="shrink-0 h-12 px-6 gradient-accent text-white">
                   Analyze website
                 </Button>
               </div>
