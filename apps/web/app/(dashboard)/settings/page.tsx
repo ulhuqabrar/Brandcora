@@ -4,37 +4,38 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  GearSix,
-  House,
-  Users,
-  Fingerprint,
-  Plugs,
-  Download,
-  Bell,
+  User,
   ShieldCheck,
   CreditCard,
+  House,
+  Users,
+  Bell,
+  FileText,
   ArrowRight,
   CheckCircle,
-  Warning,
   PencilSimple,
   Trash,
+  Envelope,
+  Lock,
+  Key,
+  Globe,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 const SETTINGS_NAV = [
-  { to: '/settings', label: 'Workspace', icon: House },
-  { to: '/settings/team', label: 'Team', icon: Users },
-  { to: '/settings/brand-defaults', label: 'Brand defaults', icon: Fingerprint },
-  { to: '/settings/integrations', label: 'Integrations', icon: Plugs },
-  { to: '/settings/export', label: 'Export', icon: Download },
-  { to: '/settings/notifications', label: 'Notifications', icon: Bell },
+  { to: '/settings', label: 'Profile', icon: User },
   { to: '/settings/security', label: 'Security', icon: ShieldCheck },
-  { to: '/settings/billing', label: 'Billing', icon: CreditCard },
+  { to: '/settings/subscription', label: 'Subscription', icon: CreditCard },
+  { to: '/settings/workspace', label: 'Workspace', icon: House },
+  { to: '/settings/members', label: 'Members', icon: Users },
+  { to: '/settings/notifications', label: 'Notifications', icon: Bell },
+  { to: '/settings/terms', label: 'Terms & Privacy', icon: FileText },
 ];
 
 export default function SettingsPage() {
   const pathname = usePathname();
-  const [workspaceName, setWorkspaceName] = useState('Acme Studio');
+  const [name, setName] = useState('Sajibur');
+  const [email, setEmail] = useState('sajibur@acme.com');
   const [timezone, setTimezone] = useState('UTC');
   const [language, setLanguage] = useState('en');
 
@@ -56,21 +57,41 @@ export default function SettingsPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Workspace</h2>
-          <p className="text-[13px] text-[#8A8A85] mt-0.5">Manage your workspace settings</p>
+          <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Profile</h2>
+          <p className="text-[13px] text-[#8A8A85] mt-0.5">Manage your personal information</p>
         </div>
       </div>
 
-      {/* Workspace Settings */}
+      {/* Profile Settings */}
       <div className="dash-card">
-        <div className="dash-card-title mb-4">General</div>
+        <div className="dash-card-title mb-4">Personal information</div>
         <div className="space-y-4 max-w-[480px]">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-full bg-[#1A1918] text-white flex items-center justify-center text-[18px] font-bold">
+              {name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            </div>
+            <div>
+              <button className="btn-secondary text-[12px]">
+                <PencilSimple className="h-3.5 w-3.5" weight="bold" /> Change photo
+              </button>
+              <p className="text-[11px] text-[#8A8A85] mt-1">JPG, PNG or GIF. Max 2MB.</p>
+            </div>
+          </div>
           <div>
-            <label className="text-[12px] font-medium text-[#3D3D3A] mb-1.5 block">Workspace name</label>
+            <label className="text-[12px] font-medium text-[#3D3D3A] mb-1.5 block">Full name</label>
             <input
               type="text"
-              value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="input-compact"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-medium text-[#3D3D3A] mb-1.5 block">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="input-compact"
             />
           </div>
@@ -99,28 +120,36 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Data & Storage */}
+      {/* Password */}
       <div className="dash-card">
-        <div className="dash-card-title mb-4">Data &amp; storage</div>
-        <div className="space-y-3">
+        <div className="dash-card-title mb-4">Password</div>
+        <div className="space-y-3 max-w-[480px]">
           <div className="flex items-center justify-between py-2">
-            <div>
-              <div className="text-[13px] font-medium text-[#1A1918]">Data retention</div>
-              <div className="text-[12px] text-[#8A8A85]">Keep reports and assets for 90 days</div>
+            <div className="flex items-center gap-3">
+              <Lock className="h-4 w-4 text-[#8A8A85]" weight="bold" />
+              <div>
+                <div className="text-[13px] font-medium text-[#1A1918]">Password</div>
+                <div className="text-[12px] text-[#8A8A85]">Last changed 3 months ago</div>
+              </div>
             </div>
             <button className="btn-ghost text-[12px]">
               Change <ArrowRight className="h-3 w-3" weight="bold" />
             </button>
           </div>
-          <div className="border-t border-[#F5F5F3] flex items-center justify-between py-2">
-            <div>
-              <div className="text-[13px] font-medium text-[#DC2626]">Delete workspace</div>
-              <div className="text-[12px] text-[#8A8A85]">Permanently delete all data</div>
-            </div>
-            <button className="btn-ghost text-[12px] text-[#DC2626]">
-              <Trash className="h-3.5 w-3.5" weight="bold" /> Delete
-            </button>
+        </div>
+      </div>
+
+      {/* Delete Account */}
+      <div className="dash-card">
+        <div className="dash-card-title mb-4 text-[#DC2626]">Danger zone</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-medium text-[#1A1918]">Delete account</div>
+            <div className="text-[12px] text-[#8A8A85]">Permanently delete your account and all data</div>
           </div>
+          <button className="btn-ghost text-[12px] text-[#DC2626]">
+            <Trash className="h-3.5 w-3.5" weight="bold" /> Delete
+          </button>
         </div>
       </div>
     </div>
