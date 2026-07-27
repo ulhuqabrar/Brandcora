@@ -72,50 +72,73 @@ export function getBrandIdentity(): BrandIdentity {
   if (saved) {
     try {
       const data = JSON.parse(saved);
-      const colors = (data.colors || []).map((c: any) => ({ hex: c.hex || c.hexValue, role: c.role }));
-      const fonts = (data.fonts || []).map((f: any) => ({ family: f.family, role: f.role, weight: f.weight || 400 }));
-      const gradients = (data.gradients || []).map((g: any) => ({
-        type: g.type || g.gradientType || 'linear',
-        repeating: g.repeating || false,
-        angle: g.angle ?? null,
-        shape: g.shape ?? null,
-        position: g.position ?? null,
-        stops: g.stops || [],
-        originalValue: g.originalValue || '',
-        normalizedValue: g.normalizedValue || '',
-        confidence: g.confidence || 0.9,
-        role: g.role || 'unknown',
-        usageCount: g.usageCount || 1,
-        cssVariableName: g.cssVariableName ?? null,
-      }));
-      const primaryBg = colors.find((c: any) => c.role === 'primary')?.hex || '#35378F';
-      const secondaryBg = colors.find((c: any) => c.role === 'secondary')?.hex || 'transparent';
-      const secondaryText = colors.find((c: any) => c.role === 'secondary')?.hex || primaryBg;
-      return {
-        name: data.brandName || data.name || 'My Brand',
-        websiteUrl: data.websiteUrl,
-        visualStyle: data.visualStyle,
-        colors,
-        fonts,
-        logos: (data.logos || []).map((l: any) => ({ url: l.url || l.fileUrl, type: l.type || l.logoType })),
-        gradients,
-        headingFont: data.headingFont || fonts[0]?.family || '',
-        bodyFont: data.bodyFont || fonts[1]?.family || fonts[0]?.family || '',
-        buttonRadius: data.buttonRadius || data.borderRadius || 8,
-        borderRadius: data.borderRadius || 8,
-        spacingScale: data.spacing?.scale || ['4px', '8px', '12px', '16px', '24px', '32px'],
-        buttonStyles: {
-          primaryBg,
-          primaryText: '#FFFFFF',
-          secondaryBg,
-          secondaryText,
-          radius: `${data.buttonRadius || 8}px`,
-          padding: '12px 24px',
-        },
-      };
+      return parseBrandData(data);
     } catch { /* ignore */ }
   }
   return DEFAULT_IDENTITY;
+}
+
+function parseBrandData(data: any): BrandIdentity {
+  const colors = (data.colors || []).map((c: any) => ({ hex: c.hex || c.hexValue, role: c.role }));
+  const fonts = (data.fonts || []).map((f: any) => ({ family: f.family, role: f.role, weight: f.weight || 400 }));
+  const gradients = (data.gradients || []).map((g: any) => ({
+    type: g.type || g.gradientType || 'linear',
+    repeating: g.repeating || false,
+    angle: g.angle ?? null,
+    shape: g.shape ?? null,
+    position: g.position ?? null,
+    stops: g.stops || [],
+    originalValue: g.originalValue || '',
+    normalizedValue: g.normalizedValue || '',
+    confidence: g.confidence || 0.9,
+    role: g.role || 'unknown',
+    usageCount: g.usageCount || 1,
+    cssVariableName: g.cssVariableName ?? null,
+  }));
+  const primaryBg = colors.find((c: any) => c.role === 'primary')?.hex || '#35378F';
+  const secondaryBg = colors.find((c: any) => c.role === 'secondary')?.hex || 'transparent';
+  const secondaryText = colors.find((c: any) => c.role === 'secondary')?.hex || primaryBg;
+  return {
+    name: data.brandName || data.name || 'My Brand',
+    websiteUrl: data.websiteUrl,
+    visualStyle: data.visualStyle,
+    colors,
+    fonts,
+    logos: (data.logos || []).map((l: any) => ({ url: l.url || l.fileUrl, type: l.type || l.logoType })),
+    gradients,
+    headingFont: data.headingFont || fonts[0]?.family || '',
+    bodyFont: data.bodyFont || fonts[1]?.family || fonts[0]?.family || '',
+    buttonRadius: data.buttonRadius || data.borderRadius || 8,
+    borderRadius: data.borderRadius || 8,
+    spacingScale: data.spacing?.scale || ['4px', '8px', '12px', '16px', '24px', '32px'],
+    buttonStyles: {
+      primaryBg,
+      primaryText: '#FFFFFF',
+      secondaryBg,
+      secondaryText,
+      radius: `${data.buttonRadius || 8}px`,
+      padding: '12px 24px',
+    },
+  };
+}
+
+export async function fetchBrandIdentityFromApi(): Promise<BrandIdentity | null> {
+  try {
+    const res = await fetch('/api/v1/brand-profile', {
+      credentials: 'include',
+    });
+    const data = await res.json();
+
+    if (data.success && data.data) {
+      const identity = parseBrandData(data.data);
+      localStorage.setItem('brand-profile-data', JSON.stringify(data.data));
+      if (data.data.id) {
+        localStorage.setItem('brand-profile-id', data.data.id);
+      }
+      return identity;
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 export function hexDistance(c1: string, c2: string): number {

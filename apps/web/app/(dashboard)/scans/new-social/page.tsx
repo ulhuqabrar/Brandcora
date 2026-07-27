@@ -4,8 +4,9 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, ArrowRight, Warning } from '@phosphor-icons/react';
-import { getBrandIdentity, generateIssues, calculateScore, type BrandIdentity, type ScanIssue } from '@/lib/brand-identity';
+import { Upload, X, ArrowRight, Warning, Spinner } from '@phosphor-icons/react';
+import { getBrandIdentity, type BrandIdentity } from '@/lib/brand-identity';
+import { apiFetch } from '@/lib/api';
 
 const PLATFORMS = [
   { key: 'instagram-post', name: 'Instagram Post', size: '1080 × 1080' },
@@ -18,42 +19,13 @@ const PLATFORMS = [
   { key: 'general', name: 'General', size: '1080 × 1080' },
 ];
 
-function extractColorsFromImage(imageElement: HTMLImageElement): Array<{ hex: string; location: string }> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return [];
-  const size = 100;
-  canvas.width = size;
-  canvas.height = size;
-  ctx.drawImage(imageElement, 0, 0, size, size);
-  const data = ctx.getImageData(0, 0, size, size).data;
-  const colorBuckets: Record<string, number> = {};
-  const step = 4;
-  for (let i = 0; i < data.length; i += 4 * step) {
-    const r = Math.round(data[i] / 32) * 32;
-    const g = Math.round(data[i + 1] / 32) * 32;
-    const b = Math.round(data[i + 2] / 32) * 32;
-    const key = `${r},${g},${b}`;
-    colorBuckets[key] = (colorBuckets[key] || 0) + 1;
-  }
-  const sorted = Object.entries(colorBuckets).sort((a, b) => b[1] - a[1]);
-  const result: Array<{ hex: string; location: string }> = [];
-  const labels = ['Background', 'Primary accent', 'Secondary accent', 'Text area', 'Border element'];
-  for (let i = 0; i < Math.min(5, sorted.length); i++) {
-    const [rgb] = sorted[i];
-    const [r, g, b] = rgb.split(',').map(Number);
-    const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    result.push({ hex, location: labels[i] || `Region ${i + 1}` });
-  }
-  return result;
-}
-
-function detectFontsFromImage(): Array<{ family: string; weight?: number; element: string }> {
-  return [
-    { family: 'Detected font', element: 'Heading text (estimated)' },
-    { family: 'Detected body font', element: 'Body text (estimated)' },
-  ];
-}
+const STAGES = [
+  'Uploading design',
+  'Extracting colors',
+  'Comparing against brand',
+  'Checking layout compliance',
+  'Calculating scores',
+];
 
 export default function NewSocialCheckPage() {
   const router = useRouter();
@@ -62,6 +34,7 @@ export default function NewSocialCheckPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStage, setCurrentStage] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const brand = getBrandIdentity();
@@ -86,89 +59,110 @@ export default function NewSocialCheckPage() {
     if (!file || !preview) return;
     setLoading(true);
     setError(null);
+    setCurrentStage(0);
+
     try {
-      await new Promise(r => setTimeout(r, 800));
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = preview;
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load image'));
+      // Stage 1: Upload the image
+      setCurrentStage(0);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadRes = await apiFetch('/api/v1/uploads/social-design', {
+        method: 'POST',
+        body: formData,
       });
+      const uploadData = await uploadRes.json();
 
-      const detectedColors = extractColorsFromImage(img);
-      const detectedFonts = detectFontsFromImage();
-
-      const issues: ScanIssue[] = [];
-      let issueId = 0;
-
-      for (const dc of detectedColors) {
-        let matched = false;
-        for (const bc of brand.colors) {
-          const r1 = parseInt(dc.hex.slice(1, 3), 16), g1 = parseInt(dc.hex.slice(3, 5), 16), b1 = parseInt(dc.hex.slice(5, 7), 16);
-          const r2 = parseInt(bc.hex.slice(1, 3), 16), g2 = parseInt(bc.hex.slice(3, 5), 16), b2 = parseInt(bc.hex.slice(5, 7), 16);
-          const dist = Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
-          if (dist < 80) {
-            matched = true;
-            if (dist < 15) {
-              issues.push({ id: `i${++issueId}`, category: 'color', severity: 'passed', title: `${bc.role} color matches brand`, detected: dc.hex, brandRequirement: bc.hex, recommendation: 'No action needed.', affectedElement: dc.location });
-            } else if (dist < 40) {
-              issues.push({ id: `i${++issueId}`, category: 'color', severity: 'minor', title: `${bc.role} color slightly off`, detected: dc.hex, brandRequirement: bc.hex, recommendation: `Replace ${dc.hex} with ${bc.hex} in ${dc.location}.`, affectedElement: dc.location });
-            } else {
-              issues.push({ id: `i${++issueId}`, category: 'color', severity: 'major', title: `Incorrect ${bc.role} color`, detected: dc.hex, brandRequirement: bc.hex, recommendation: `Change the ${dc.location} color from ${dc.hex} to ${bc.hex}.`, affectedElement: dc.location });
-            }
-            break;
-          }
-        }
-        if (!matched) {
-          issues.push({ id: `i${++issueId}`, category: 'color', severity: 'major', title: 'Unrecognized color in design', detected: dc.hex, brandRequirement: 'Not in brand palette', recommendation: `The color ${dc.hex} in ${dc.location} doesn't match any brand color. Replace it with a brand-approved color.`, affectedElement: dc.location });
-        }
+      if (!uploadData.success) {
+        throw new Error(uploadData.error || 'Failed to upload image');
       }
 
-      if (brand.headingFont) {
-        issues.push({ id: `i${++issueId}`, category: 'font', severity: 'recommendation', title: 'Verify heading font', detected: 'Visual check needed', brandRequirement: brand.headingFont, recommendation: `Ensure headings use "${brand.headingFont}". Current font could not be auto-detected from the image.`, affectedElement: 'All headings' });
+      const fileUrl = uploadData.data.fileUrl;
+
+      // Stage 2-4: Run social check via backend
+      setCurrentStage(1);
+      await new Promise(r => setTimeout(r, 500)); // Small delay for UX
+
+      const brandProfileId = localStorage.getItem('brand-profile-id');
+      if (!brandProfileId) {
+        throw new Error('No brand profile found. Please set up your brand profile first.');
       }
-      if (brand.bodyFont) {
-        issues.push({ id: `i${++issueId}`, category: 'font', severity: 'recommendation', title: 'Verify body font', detected: 'Visual check needed', brandRequirement: brand.bodyFont, recommendation: `Ensure body text uses "${brand.bodyFont}".`, affectedElement: 'Body text' });
+
+      setCurrentStage(2);
+      const scanRes = await apiFetch('/api/v1/scans/social', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brandProfileId,
+          fileUrl,
+          platform,
+        }),
+      });
+      const scanData = await scanRes.json();
+
+      if (!scanData.success) {
+        throw new Error(scanData.error || 'Scan failed');
       }
 
-      const passedCount = issues.filter(i => i.severity === 'passed').length;
-      const criticalCount = issues.filter(i => i.severity === 'critical').length;
-      const majorCount = issues.filter(i => i.severity === 'major').length;
-      const minorCount = issues.filter(i => i.severity === 'minor').length;
-      const total = issues.length || 1;
-      const overall = Math.max(0, Math.min(100, Math.round((passedCount / total) * 100 - (criticalCount * 20 + majorCount * 10 + minorCount * 3))));
+      setCurrentStage(3);
+      await new Promise(r => setTimeout(r, 500));
 
-      const scanId = 'scan-' + Date.now();
-      const scanData = {
-        id: scanId,
-        scanType: 'social',
-        status: 'completed',
-        overallScore: overall,
-        platform,
-        sourceFileUrl: preview,
-        sourceUrl: null,
-        createdAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        brandProfile: { name: brand.name },
-        detectedColors: detectedColors.map(c => ({ hex: c.hex, location: c.location })),
-        detectedFonts: detectedFonts.map(f => ({ family: f.family, element: f.element })),
-        scores: [
-          { category: 'color', score: Math.round(issues.filter(i => i.category === 'color' && i.severity === 'passed').length / Math.max(1, issues.filter(i => i.category === 'color').length) * 100), weight: 35 },
-          { category: 'font', score: 70, weight: 25 },
-          { category: 'logo', score: 80, weight: 20 },
-          { category: 'component', score: 80, weight: 20 },
-        ],
-        issues,
-      };
+      setCurrentStage(4);
+      await new Promise(r => setTimeout(r, 500));
 
-      localStorage.setItem(`scan-${scanId}`, JSON.stringify(scanData));
-      router.push(`/scans/${scanId}`);
-    } catch (err) {
-      setError('Failed to analyze the image. Please try a different file.');
+      // Navigate to scan result
+      router.push(`/scans/${scanData.data.id}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to analyze the image. Please try again.');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-[560px] mx-auto space-y-6">
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+                <Spinner className="h-4 w-4 text-[#FF5F45] animate-spin" weight="bold" />
+              </div>
+              <div className="dash-card-title">Analyzing brand compliance</div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 mb-6">
+            {STAGES.map((stage, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-lg ${i === currentStage ? 'bg-[#FF5F45]/5' : ''}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-medium ${
+                  i < currentStage ? 'bg-[#16A34A] text-white' :
+                  i === currentStage ? 'bg-[#FF5F45] text-white animate-pulse' :
+                  'bg-[#F0F0EE] text-[#8A8A85]'
+                }`}>
+                  {i < currentStage ? '✓' : i + 1}
+                </div>
+                <span className={`text-[13px] ${
+                  i === currentStage ? 'font-medium text-[#1A1918]' :
+                  i < currentStage ? 'text-[#16A34A]' :
+                  'text-[#8A8A85]'
+                }`}>
+                  {stage}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="progress-bar mb-4">
+            <div className="progress-bar-fill" style={{ width: `${((currentStage + 1) / STAGES.length) * 100}%` }} />
+          </div>
+
+          <button onClick={() => { setLoading(false); setError(null); }} className="btn-ghost text-[12px] w-full justify-center">
+            <X className="h-3.5 w-3.5" weight="bold" /> Cancel
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -186,7 +180,7 @@ export default function NewSocialCheckPage() {
             <p className="text-xs text-yellow-700 mt-1">Set up your brand profile first so checks can compare against your approved colors, fonts, and styles.</p>
           </div>
           <Button size="sm" variant="outline" asChild className="shrink-0 border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-            <a href="/brand/profile">Set up brand</a>
+            <a href="/brand/extract">Extract brand</a>
           </Button>
         </div>
       )}
@@ -248,7 +242,7 @@ export default function NewSocialCheckPage() {
       </div>
 
       <div className="flex gap-3">
-        <Button onClick={handleScan} disabled={!file || loading} className="gradient-accent text-white shadow-glass">
+        <Button onClick={handleScan} disabled={!file || loading || !hasBrand} className="gradient-accent text-white shadow-glass">
           {loading ? 'Analyzing...' : 'Run brand check'}{!loading && <ArrowRight className="ml-1.5 h-4 w-4" weight="bold" />}
         </Button>
         <Button variant="outline" onClick={() => router.push('/dashboard')}>Cancel</Button>
