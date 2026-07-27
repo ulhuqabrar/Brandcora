@@ -28,40 +28,31 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-8">
-      <aside className="w-56 shrink-0">
-        <div className="sticky top-6">
-          <div className="flex items-center gap-2 mb-6">
-            <GearSix className="h-5 w-5 text-muted-foreground" weight="bold" />
-            <h2 className="text-lg font-semibold">Settings</h2>
-          </div>
-          <nav className="space-y-1">
-            {settingsNav.map((item) => {
-              const isActive = pathname === item.to;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.to}
-                  href={item.to}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "text-accent bg-accent/10 font-bold"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" weight="bold" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </aside>
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight">Settings</h2>
+        <p className="text-[13px] text-[#8A8A85] mt-0.5">Manage your account and workspace</p>
+      </div>
 
-      <main className="flex-1 min-w-0">
+      <div className="sub-nav overflow-x-auto">
+        {settingsNav.map((item) => {
+          const isActive = pathname === item.to;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.to}
+              href={item.to}
+              className={cn('sub-nav-item', isActive && 'active')}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <div>
         {children}
-      </main>
+      </div>
     </div>
   );
 }
