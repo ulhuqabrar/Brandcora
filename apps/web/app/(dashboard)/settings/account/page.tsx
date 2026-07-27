@@ -11,18 +11,14 @@ import {
   Lock,
   ShieldCheck,
   Key,
-  GithubLogo,
-  GoogleLogo,
-  AppleLogo,
   CheckCircle,
   Warning,
-  Plus,
   Trash,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 export default function AccountSettingsPage() {
-  const { user, signOut, signInSocial } = useAuth();
+  const { user, signOut } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,12 +62,6 @@ export default function AccountSettingsPage() {
       setPasswordLoading(false);
     }
   }
-
-  const connectedAccounts = [
-    { provider: 'github', name: 'GitHub', icon: GithubLogo, connected: false },
-    { provider: 'google', name: 'Google', icon: GoogleLogo, connected: false },
-    { provider: 'apple', name: 'Apple', icon: AppleLogo, connected: false },
-  ];
 
   return (
     <div className="space-y-6">
@@ -194,48 +184,6 @@ export default function AccountSettingsPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Connected Accounts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5 text-muted-foreground" weight="bold" />
-            Connected Accounts
-          </CardTitle>
-          <CardDescription>Link your social accounts for easy sign-in.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 max-w-lg">
-            {connectedAccounts.map((account) => {
-              const Icon = account.icon;
-              return (
-                <div key={account.provider} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5" weight="bold" />
-                    <div>
-                      <p className="font-medium text-sm">{account.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {account.connected ? 'Connected' : 'Not connected'}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant={account.connected ? 'destructive' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      if (!account.connected) {
-                        signInSocial(account.provider as any, '/settings/account');
-                      }
-                    }}
-                  >
-                    {account.connected ? 'Disconnect' : 'Connect'}
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
         </CardContent>
       </Card>
 
