@@ -131,7 +131,7 @@ export default function AuthPage() {
           </div>
 
           {/* Form fields — fixed height container, only fields animate */}
-          <div className="relative h-[180px]">
+          <div className="relative h-[240px]">
             {/* Sign Up fields */}
             <form
               onSubmit={handleSubmit}
@@ -179,7 +179,7 @@ export default function AuthPage() {
           </div>
 
           {/* Divider — fixed */}
-          <div className="relative my-3">
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
