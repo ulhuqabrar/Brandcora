@@ -13,7 +13,7 @@ export default function AuthCompletePage() {
     if (isPending) return;
 
     if (session?.user) {
-      router.replace('/dashboard');
+      router.replace('/brand');
       router.refresh();
       return;
     }

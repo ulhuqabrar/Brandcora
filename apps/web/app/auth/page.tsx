@@ -23,7 +23,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace('/dashboard');
+      router.replace('/brand');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -62,7 +62,7 @@ export default function AuthPage() {
       }
       setAuthSuccess(true);
       await new Promise(r => setTimeout(r, 1200));
-      router.push('/dashboard');
+      router.push('/brand');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : mode === 'signin' ? 'Sign in failed' : 'Sign up failed');
     } finally {
