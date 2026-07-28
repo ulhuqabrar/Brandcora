@@ -79,6 +79,22 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+router.post('/change-password', async (req, res) => {
+  try {
+    const result = await auth.api.changePassword({
+      body: {
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword,
+      },
+      headers: toHeaders(req.headers as Record<string, string | string[] | undefined>),
+    });
+    res.json({ success: true, data: result });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Change password failed';
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
 router.get('/session', async (req, res) => {
   try {
     const session = await auth.api.getSession({

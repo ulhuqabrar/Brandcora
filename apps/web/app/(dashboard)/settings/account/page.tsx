@@ -42,7 +42,7 @@ export default function AccountSettingsPage() {
     }
     setPasswordLoading(true);
     try {
-      const res = await apiFetch('/api/auth/change-password', {
+      const res = await apiFetch('/api/v1/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),
