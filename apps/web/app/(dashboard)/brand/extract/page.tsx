@@ -196,7 +196,7 @@ export default function BrandExtractPage() {
         });
       }
 
-      router.push('/dashboard');
+      router.push('/brand');
     } catch (err: any) {
       setError(err.message || 'Failed to save brand profile');
     } finally {

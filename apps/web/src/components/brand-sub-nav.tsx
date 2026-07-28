@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const brandNav = [
-  { to: '/dashboard', label: 'Overview', icon: Fingerprint, exact: true },
+  { to: '/brand', label: 'Overview', icon: Fingerprint, exact: true },
   { to: '/brand/scan', label: 'Scan', icon: MagnifyingGlass },
   { to: '/brand/colors', label: 'Colors', icon: Palette },
   { to: '/brand/typography', label: 'Typography', icon: TextAa },
