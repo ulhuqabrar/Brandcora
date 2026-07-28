@@ -117,12 +117,16 @@ const TABLES = [
   `CREATE TABLE IF NOT EXISTS "brand_fonts" ("id" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"name" TEXT NOT NULL,"family" TEXT NOT NULL,"role" TEXT NOT NULL DEFAULT 'body',"weight" INTEGER NOT NULL DEFAULT 400,"url" TEXT,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "brand_fonts_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "brand_logos" ("id" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"fileUrl" TEXT NOT NULL,"storageKey" TEXT NOT NULL,"logoType" TEXT NOT NULL DEFAULT 'primary',"backgroundType" TEXT NOT NULL DEFAULT 'any',"width" INTEGER,"height" INTEGER,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "brand_logos_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "brand_rules" ("id" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"category" TEXT NOT NULL,"name" TEXT NOT NULL,"value" TEXT NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "brand_rules_pkey" PRIMARY KEY ("id"))`,
-  `CREATE TABLE IF NOT EXISTS "brand_gradients" ("id" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"name" TEXT NOT NULL,"role" TEXT NOT NULL DEFAULT 'additional',"gradientType" TEXT NOT NULL DEFAULT 'linear',"repeating" BOOLEAN NOT NULL DEFAULT false,"originalValue" TEXT NOT NULL,"normalizedValue" TEXT NOT NULL,"angle" DOUBLE PRECISION,"shape" TEXT,"position" TEXT,"stops" JSONB NOT NULL,"usageCount" INTEGER NOT NULL DEFAULT 0,"pageCount" INTEGER NOT NULL DEFAULT 0,"sourceType" TEXT NOT NULL DEFAULT 'detected',"cssVariableName" TEXT,"confidence" DOUBLE PRECISION NOT NULL DEFAULT 0.8,"isApproved" BOOLEAN NOT NULL DEFAULT false,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "brand_gradients_pkey" PRIMARY KEY ("id"))`,
+  `CREATE TABLE IF NOT EXISTS "brand_gradients" ("id" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"name" TEXT NOT NULL,"role" TEXT NOT NULL DEFAULT 'additional',"gradientType" TEXT NOT NULL DEFAULT 'linear',"repeating" BOOLEAN NOT NULL DEFAULT false,"originalValue" TEXT NOT NULL,"normalizedValue" TEXT NOT NULL,"angle" DOUBLE PRECISION,"shape" TEXT,"position" TEXT,"stops" JSONB NOT NULL,"usageCount" INTEGER NOT NULL DEFAULT 0,"pageCount" INTEGER NOT NULL DEFAULT 0,"sourceType" TEXT NOT NULL DEFAULT 'detected',"cssVariableName" TEXT,"confidence" DOUBLE PRECISION NOT NULL DEFAULT 0.8,"isApproved" BOOLEAN NOT NULL DEFAULT false,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "brand_gradients_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "scans" ("id" TEXT NOT NULL,"userId" TEXT NOT NULL,"brandProfileId" TEXT NOT NULL,"scanType" TEXT NOT NULL,"status" TEXT NOT NULL DEFAULT 'pending',"progress" INTEGER NOT NULL DEFAULT 0,"currentStage" TEXT,"pagesDiscovered" INTEGER NOT NULL DEFAULT 0,"pagesAnalyzed" INTEGER NOT NULL DEFAULT 0,"warnings" JSONB NOT NULL DEFAULT '[]'::jsonb,"sourceUrl" TEXT,"sourceFileUrl" TEXT,"platform" TEXT,"overallScore" DOUBLE PRECISION,"scoringVersion" TEXT NOT NULL DEFAULT '1.0',"startedAt" TIMESTAMP(3),"completedAt" TIMESTAMP(3),"failedAt" TIMESTAMP(3),"errorCode" TEXT,"errorMessage" TEXT,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "scans_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "scan_scores" ("id" TEXT NOT NULL,"scanId" TEXT NOT NULL,"category" TEXT NOT NULL,"score" DOUBLE PRECISION NOT NULL,"weight" DOUBLE PRECISION NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "scan_scores_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "scan_issues" ("id" TEXT NOT NULL,"scanId" TEXT NOT NULL,"category" TEXT NOT NULL,"severity" TEXT NOT NULL,"title" TEXT NOT NULL,"description" TEXT NOT NULL,"recommendation" TEXT,"metadataJson" JSONB,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "scan_issues_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "scan_pages" ("id" TEXT NOT NULL,"scanId" TEXT NOT NULL,"url" TEXT NOT NULL,"pageTitle" TEXT,"desktopScreenshotUrl" TEXT,"mobileScreenshotUrl" TEXT,"status" TEXT NOT NULL DEFAULT 'pending',"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "scan_pages_pkey" PRIMARY KEY ("id"))`,
   `CREATE TABLE IF NOT EXISTS "usage_records" ("id" TEXT NOT NULL,"userId" TEXT NOT NULL,"scanId" TEXT,"usageType" TEXT NOT NULL,"quantity" INTEGER NOT NULL DEFAULT 1,"billingPeriodStart" TIMESTAMP(3) NOT NULL,"billingPeriodEnd" TIMESTAMP(3) NOT NULL,"idempotencyKey" TEXT NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "usage_records_pkey" PRIMARY KEY ("id"))`,
+];
+
+const ALTERS = [
+  `ALTER TABLE "brand_gradients" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`,
 ];
 
 const INDEXES = [
@@ -170,6 +174,9 @@ async function ensureSchema() {
       await prisma.$executeRawUnsafe(sql);
     }
     for (const sql of INDEXES) {
+      await prisma.$executeRawUnsafe(sql);
+    }
+    for (const sql of ALTERS) {
       await prisma.$executeRawUnsafe(sql);
     }
     console.log('✅ Database schema verified');

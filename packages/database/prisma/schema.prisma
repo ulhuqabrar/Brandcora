@@ -156,6 +156,7 @@ model brand_gradients {
   confidence       Float    @default(0.8)
   isApproved       Boolean  @default(false)
   createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   brand_profiles   brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
