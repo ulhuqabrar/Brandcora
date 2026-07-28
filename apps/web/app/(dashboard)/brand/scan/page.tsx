@@ -129,7 +129,7 @@ export default function BrandScanPage() {
         if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
           if (pollRef.current) clearInterval(pollRef.current);
           setTimeout(() => {
-            router.push(`/brand/review?scanId=${scanId}`);
+            router.push('/brand');
           }, 1500);
         } else if (scan.status === 'failed' || scan.status === 'cancelled') {
           if (pollRef.current) clearInterval(pollRef.current);
@@ -187,7 +187,7 @@ export default function BrandScanPage() {
         pollScan(scan.id);
       } else if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
         setTimeout(() => {
-          router.push(`/brand/review?scanId=${scan.id}`);
+          router.push('/brand');
         }, 1500);
       }
     } catch (err: any) {
@@ -288,7 +288,7 @@ export default function BrandScanPage() {
                     {previousScan.overallScore != null && ` · Score: ${previousScan.overallScore}`}
                   </div>
                 </div>
-                <Link href={`/brand/review?scanId=${previousScan.id}`} className="btn-ghost text-[12px]">
+                <Link href="/brand" className="btn-ghost text-[12px]">
                   View results →
                 </Link>
               </div>

@@ -1,6 +1,7 @@
 import { prisma } from '@saas/database';
 import { calculateOverallScore, getWebsiteWeights, SCORING_VERSION } from './score-engine.js';
 import { validateUrl, normalizeUrl } from './url-validator.js';
+import { extractBrandFromHtml, saveExtractionToBrandProfile } from '../brand-extract/extractor.js';
 import type { IssueSeverity } from '@saas/shared';
 
 export interface WebsiteCheckResult {
@@ -25,7 +26,8 @@ export async function runWebsiteCheck(
   scanId: string,
   url: string,
   brandProfileId: string,
-  maxPages: number = 1
+  maxPages: number = 1,
+  userId?: string
 ): Promise<WebsiteCheckResult> {
   await prisma.scan.update({
     where: { id: scanId },
@@ -162,6 +164,31 @@ export async function runWebsiteCheck(
       });
     }
 
+    // ─── Brand Extraction ──────────────────────────────────────────────────────
+    // After compliance checks, extract brand identity and save to brand profile
+    await prisma.scan.update({
+      where: { id: scanId },
+      data: { progress: 97, currentStage: 'saving_results' },
+    });
+
+    try {
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(normalizedUrl);
+      } catch {
+        parsedUrl = new URL(url);
+      }
+      const baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
+
+      const extraction = await extractBrandFromHtml(pageResult.html, baseUrl, parsedUrl);
+      if (userId) {
+        await saveExtractionToBrandProfile(userId, brandProfileId, extraction);
+      }
+    } catch (extractionError: any) {
+      // Brand extraction failure should not fail the scan
+      console.warn('Brand extraction failed (scan still completed):', extractionError.message);
+    }
+
     await prisma.scan.update({
       where: { id: scanId },
       data: {
@@ -208,6 +235,7 @@ interface PageAnalysis {
   hasNav: boolean;
   hasFooter: boolean;
   textContent: string;
+  html: string;
 }
 
 async function analyzePage(url: string): Promise<PageAnalysis> {
@@ -246,6 +274,7 @@ async function analyzePage(url: string): Promise<PageAnalysis> {
     hasNav,
     hasFooter,
     textContent,
+    html,
   };
 }
 

@@ -54,7 +54,7 @@ export async function createWebsiteScan(
   return scan;
 }
 
-export async function executeWebsiteScan(scanId: string, maxPages: number = 1) {
+export async function executeWebsiteScan(scanId: string, maxPages: number = 1, userId?: string) {
   const scan = await prisma.scan.findUnique({
     where: { id: scanId },
     include: { brandProfile: true },
@@ -63,7 +63,7 @@ export async function executeWebsiteScan(scanId: string, maxPages: number = 1) {
   if (!scan) throw new Error('Scan not found');
   if (!scan.sourceUrl) throw new Error('No source URL');
 
-  return runWebsiteCheck(scanId, scan.sourceUrl, scan.brandProfileId, maxPages);
+  return runWebsiteCheck(scanId, scan.sourceUrl, scan.brandProfileId, maxPages, userId || scan.userId);
 }
 
 export async function getScan(scanId: string, userId: string) {
