@@ -1054,8 +1054,8 @@ function LibrarySection() {
 
             <div className="p-6 md:p-8">
               {activeTab === 'overview' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="md:col-span-2">
+                <div>
+                  <Card>
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm">Brand Overview</CardTitle>
@@ -1074,29 +1074,6 @@ function LibrarySection() {
                             <stat.icon className="w-4 h-4 text-brand-orange mb-2" />
                             <p className="text-xl font-bold text-graphite">{stat.value}</p>
                             <p className="text-[10px] text-foreground-muted">{stat.label}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Version History</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {[
-                          { version: 'v3.2', date: 'Today', changes: 'Updated primary color' },
-                          { version: 'v3.1', date: '3 days ago', changes: 'Added icon set' },
-                          { version: 'v3.0', date: '1 week ago', changes: 'Major brand refresh' },
-                          { version: 'v2.4', date: '2 weeks ago', changes: 'Typography update' },
-                        ].map(v => (
-                          <div key={v.version} className="flex items-start gap-3">
-                            <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-bold text-graphite">{v.version} <span className="font-normal text-foreground-muted">· {v.date}</span></p>
-                              <p className="text-[10px] text-foreground-muted">{v.changes}</p>
-                            </div>
                           </div>
                         ))}
                       </div>
@@ -1268,19 +1245,6 @@ function LibrarySection() {
                 </div>
               )}
 
-              <div className="mt-6 flex items-center gap-3">
-                <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Workspaces</span>
-                {['Brandcora', 'Client A', 'Client B'].map((brand, i) => (
-                  <Button
-                    key={brand}
-                    variant={i === 0 ? 'default' : 'outline'}
-                    size="sm"
-                    className={i === 0 ? 'gradient-accent text-white' : ''}
-                  >
-                    {brand}
-                  </Button>
-                ))}
-              </div>
             </div>
           </div>
         </RevealSection>
