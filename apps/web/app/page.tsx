@@ -80,7 +80,7 @@ function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center gap-7">
-            {['How it works', 'Extraction', 'Validation', 'Developers'].map(item => (
+            {['How it works', 'Extraction', 'Validation'].map(item => (
               <a key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`}
                 className="text-[13px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200">
                 {item}
@@ -226,21 +226,21 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
 
               {/* Main content area */}
               <div className="flex min-h-[400px]">
-                {/* Website preview — dark theme */}
-                <div className="flex-1 relative bg-[#0D1117] p-6 space-y-4">
+                {/* Website preview — white theme */}
+                <div className="flex-1 relative bg-white p-6 space-y-4">
                   {/* SEOContent.ai nav */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }}>
                         <span className="text-[#0D1117] text-[11px] font-bold">S</span>
                       </div>
-                      <span className="text-[11px] font-semibold text-white">seocontent</span>
+                      <span className="text-[11px] font-semibold text-graphite">seocontent</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="h-2 w-10 rounded-full bg-white/20" />
-                      <div className="h-2 w-12 rounded-full bg-white/20" />
-                      <div className="h-2 w-10 rounded-full bg-white/20" />
-                      <div className="h-2 w-14 rounded-full bg-white/20" />
+                      <div className="h-2 w-10 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-12 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-10 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-14 rounded-full bg-graphite/10" />
                       <div className="h-7 w-20 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }}>
                         <span className="text-[9px] font-semibold text-[#0D1117]">Get Started</span>
                       </div>
@@ -251,17 +251,17 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                   <div className="pt-6 space-y-3">
                     <div className="h-5 w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #40EDC3, #7FFBA9)' }} />
                     <div className="space-y-2">
-                      <div className="h-5 w-72 rounded bg-white/90" />
-                      <div className="h-5 w-56 rounded bg-white/90" />
+                      <div className="h-5 w-72 rounded bg-graphite/85" />
+                      <div className="h-5 w-56 rounded bg-graphite/85" />
                     </div>
-                    <div className="h-3 w-80 rounded-full bg-white/40 mt-2" />
-                    <div className="h-3 w-56 rounded-full bg-white/30" />
+                    <div className="h-3 w-80 rounded-full bg-graphite/20 mt-2" />
+                    <div className="h-3 w-56 rounded-full bg-graphite/15" />
                     <div className="flex gap-3 pt-3">
                       <div className="h-9 w-32 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }}>
                         <span className="text-[10px] font-semibold text-[#0D1117]">Get Started</span>
                       </div>
-                      <div className="h-9 w-28 rounded-full border border-white/30 flex items-center justify-center">
-                        <span className="text-[10px] font-medium text-white/80">Join Discord</span>
+                      <div className="h-9 w-28 rounded-full border border-graphite/20 flex items-center justify-center">
+                        <span className="text-[10px] font-medium text-graphite/70">Join Discord</span>
                       </div>
                     </div>
                   </div>
@@ -273,12 +273,12 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                       { label: 'Content Clusters', icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
                       { label: 'Multi-Language', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
                     ].map((card, i) => (
-                      <div key={i} className="rounded-xl border border-white/10 p-3 space-y-2">
+                      <div key={i} className="rounded-xl border border-border/40 p-3 space-y-2 bg-warm-offwhite/50">
                         <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.15), rgba(127,251,169,0.15))' }}>
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="url(#featureGrad)" strokeWidth="1.5"><path d={card.icon}/></svg>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-white/15" />
-                        <div className="h-1.5 w-3/4 rounded-full bg-white/10" />
+                        <div className="h-2 w-full rounded-full bg-graphite/10" />
+                        <div className="h-1.5 w-3/4 rounded-full bg-graphite/6" />
                       </div>
                     ))}
                   </div>
@@ -286,11 +286,11 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                   {/* Stats row */}
                   <div className="flex gap-3 pt-2">
                     {[1,2,3].map(i => (
-                      <div key={i} className="flex-1 h-14 rounded-xl border border-white/10 flex items-center px-3 gap-2.5">
+                      <div key={i} className="flex-1 h-14 rounded-xl border border-border/40 flex items-center px-3 gap-2.5 bg-warm-offwhite/50">
                         <div className="w-8 h-8 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.12), rgba(127,251,169,0.12))' }} />
                         <div className="space-y-1">
-                          <div className="h-2 w-16 rounded-full bg-white/15" />
-                          <div className="h-1.5 w-10 rounded-full bg-white/10" />
+                          <div className="h-2 w-16 rounded-full bg-graphite/10" />
+                          <div className="h-1.5 w-10 rounded-full bg-graphite/6" />
                         </div>
                       </div>
                     ))}
@@ -301,7 +301,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                 </div>
 
                 {/* Extraction panel */}
-                <div className="hidden md:flex w-[210px] shrink-0 border-l border-border/40 bg-[#FAFAF9] flex-col">
+                <div className="hidden md:flex w-[210px] shrink-0 border-l border-border/40 bg-warm-offwhite flex-col">
                   <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between">
                     <span className="text-[10px] font-semibold text-foreground-muted uppercase tracking-wider">Extracted</span>
                     <span className="text-[9px] font-mono text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded-full">Live</span>
@@ -516,19 +516,19 @@ function BrandExtractionSection() {
               </div>
 
               {/* Website content */}
-              <div className="relative bg-[#0D1117] min-h-[420px] p-6 space-y-4 overflow-hidden">
+              <div className="relative bg-white min-h-[420px] p-6 space-y-4 overflow-hidden">
                 {/* Nav */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }}>
                       <span className="text-[#0D1117] text-[11px] font-bold">S</span>
                     </div>
-                    <span className="text-[11px] font-semibold text-white">seocontent</span>
+                    <span className="text-[11px] font-semibold text-graphite">seocontent</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="h-2 w-10 rounded-full bg-white/20" />
-                    <div className="h-2 w-12 rounded-full bg-white/20" />
-                    <div className="h-2 w-10 rounded-full bg-white/20" />
+                    <div className="h-2 w-10 rounded-full bg-graphite/10" />
+                    <div className="h-2 w-12 rounded-full bg-graphite/10" />
+                    <div className="h-2 w-10 rounded-full bg-graphite/10" />
                     <div className="h-7 w-20 rounded-full" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }} />
                   </div>
                 </div>
@@ -537,24 +537,24 @@ function BrandExtractionSection() {
                 <div className="pt-4 space-y-3">
                   <div className="h-5 w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #40EDC3, #7FFBA9)' }} />
                   <div className="space-y-2">
-                    <div className="h-5 w-72 rounded bg-white/90" />
-                    <div className="h-5 w-56 rounded bg-white/90" />
+                    <div className="h-5 w-72 rounded bg-graphite/85" />
+                    <div className="h-5 w-56 rounded bg-graphite/85" />
                   </div>
-                  <div className="h-3 w-80 rounded-full bg-white/40 mt-2" />
-                  <div className="h-3 w-56 rounded-full bg-white/30" />
+                  <div className="h-3 w-80 rounded-full bg-graphite/20 mt-2" />
+                  <div className="h-3 w-56 rounded-full bg-graphite/15" />
                   <div className="flex gap-3 pt-2">
                     <div className="h-9 w-32 rounded-full" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }} />
-                    <div className="h-9 w-28 rounded-full border border-white/30" />
+                    <div className="h-9 w-28 rounded-full border border-graphite/20" />
                   </div>
                 </div>
 
                 {/* Cards */}
                 <div className="grid grid-cols-3 gap-3 pt-3">
                   {[0,1,2].map(i => (
-                    <div key={i} className="rounded-xl border border-white/10 p-3 space-y-2">
+                    <div key={i} className="rounded-xl border border-border/40 p-3 space-y-2 bg-warm-offwhite/50">
                       <div className="w-9 h-9 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.15), rgba(127,251,169,0.15))' }} />
-                      <div className="h-2 w-full rounded-full bg-white/15" />
-                      <div className="h-1.5 w-3/4 rounded-full bg-white/10" />
+                      <div className="h-2 w-full rounded-full bg-graphite/10" />
+                      <div className="h-1.5 w-3/4 rounded-full bg-graphite/6" />
                     </div>
                   ))}
                 </div>
@@ -562,24 +562,24 @@ function BrandExtractionSection() {
                 {/* Stats */}
                 <div className="flex gap-3 pt-2">
                   {[0,1,2].map(i => (
-                    <div key={i} className="flex-1 h-14 rounded-xl border border-white/10 flex items-center px-3 gap-2.5">
+                    <div key={i} className="flex-1 h-14 rounded-xl border border-border/40 flex items-center px-3 gap-2.5 bg-warm-offwhite/50">
                       <div className="w-8 h-8 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.12), rgba(127,251,169,0.12))' }} />
                       <div className="space-y-1">
-                        <div className="h-2 w-16 rounded-full bg-white/15" />
-                        <div className="h-1.5 w-10 rounded-full bg-white/10" />
+                        <div className="h-2 w-16 rounded-full bg-graphite/10" />
+                        <div className="h-1.5 w-10 rounded-full bg-graphite/6" />
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Footer */}
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                <div className="pt-4 border-t border-border/30 flex items-center justify-between">
                   <div className="flex gap-3">
-                    <div className="h-2 w-16 rounded-full bg-white/10" />
-                    <div className="h-2 w-20 rounded-full bg-white/10" />
-                    <div className="h-2 w-14 rounded-full bg-white/10" />
+                    <div className="h-2 w-16 rounded-full bg-graphite/10" />
+                    <div className="h-2 w-20 rounded-full bg-graphite/10" />
+                    <div className="h-2 w-14 rounded-full bg-graphite/10" />
                   </div>
-                  <div className="h-2 w-24 rounded-full bg-white/8" />
+                  <div className="h-2 w-24 rounded-full bg-graphite/6" />
                 </div>
 
                 {/* Scan line */}
@@ -593,7 +593,7 @@ function BrandExtractionSection() {
                       className="absolute border border-[#40EDC3]/60 rounded-md animate-[regionHighlight_0.6s_ease-out_forwards] opacity-0"
                       style={{ top: h.top, left: h.left, width: h.w, height: h.h, animationDelay: `${i * 150}ms` }}
                     >
-                      <span className="absolute -top-5 left-0 text-[8px] font-mono text-[#40EDC3] bg-[#0D1117]/80 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      <span className="absolute -top-5 left-0 text-[8px] font-mono text-[#40EDC3] bg-white/90 border border-border/30 px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm">
                         {h.label}
                       </span>
                     </div>
@@ -1382,13 +1382,18 @@ function ValidationSection() {
                   ))}
                 </CardContent>
               </Card>
+            </div>
+          </RevealSection>
+        </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Recommendations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+        {/* Recommendations — full width */}
+        <RevealSection delay={0.3}>
+          <Card className="mt-8">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="flex-1">
+                  <CardTitle className="text-sm mb-4">Recommendations</CardTitle>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {[
                       'Use approved display typeface for heading',
                       'Replace accent color with brand.primary.500',
@@ -1401,16 +1406,16 @@ function ValidationSection() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full gradient-accent text-white">
+                </div>
+                <div className="shrink-0">
+                  <Button className="gradient-accent text-white">
                     Apply suggested corrections
                   </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </RevealSection>
-        </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </RevealSection>
       </div>
     </section>
   );
