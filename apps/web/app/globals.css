@@ -120,6 +120,15 @@
 
   .gradient-hero {
     background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-peach) 48%, var(--brand-gold) 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
   }
 
   .gradient-border {
