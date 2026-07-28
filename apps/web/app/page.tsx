@@ -395,9 +395,6 @@ function TrustTaper() {
   return (
     <section className="py-14 bg-white border-b border-border/50">
       <div className="mx-auto max-w-[1280px] px-8 md:px-12">
-        <p className="text-center text-[12px] font-medium text-foreground-muted uppercase tracking-[0.15em] mb-8">
-          Trusted by teams building the future
-        </p>
         <div className="flex items-center justify-center gap-10 md:gap-14 flex-wrap">
           {partners.map(p => (
             <div key={p.name} className="flex items-center gap-2 opacity-30 hover:opacity-60 transition-opacity duration-300">
