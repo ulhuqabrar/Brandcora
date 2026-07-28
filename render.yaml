@@ -18,13 +18,13 @@ services:
         value: "10000"
 
       - key: WEB_APP_URL
-        sync: false
+        value: https://brandcora.vercel.app
 
       - key: API_BASE_URL
         sync: false
 
       - key: BETTER_AUTH_URL
-        sync: false
+        value: https://brandcora.vercel.app/api/auth
 
       - key: BETTER_AUTH_SECRET
         sync: false

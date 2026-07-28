@@ -36,6 +36,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowed = origin === env.WEB_APP_URL ||
+      origin === 'https://brandcora.vercel.app' ||
       /^https:\/\/brandcora-.*\.vercel\.app$/.test(origin);
     callback(null, allowed);
   },
