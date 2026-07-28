@@ -410,22 +410,83 @@ function TrustTaper() {
   );
 }
 
-/* ─── Live Scanning Section ─── */
-function ScanningSection() {
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = [
-    { num: '01', title: 'Brand assets', desc: 'Logos, marks, wordmarks, favicon, illustrations', detail: 'Primary logo, secondary variations, monogram, light/dark versions' },
-    { num: '02', title: 'Color system', desc: 'Primary, secondary, semantic, gradient tokens', detail: 'Usage frequency, contrast pairs, gradient definitions' },
-    { num: '03', title: 'Typography', desc: 'Font families, weights, sizes, line heights', detail: 'Heading hierarchy, body styles, letter spacing, transforms' },
-    { num: '04', title: 'Interface tokens', desc: 'Spacing, radius, shadows, borders', detail: 'Padding, margins, grid gaps, container widths' },
-    { num: '05', title: 'Components', desc: 'Buttons, forms, cards, navigation patterns', detail: 'Reusable interface elements with consistent styling' },
-    { num: '06', title: 'Layout behavior', desc: 'Grid systems, breakpoints, alignment patterns', detail: 'Responsive columns, container widths, alignment logic' },
+/* ─── Brand Extraction Section ─── */
+function BrandExtractionSection() {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [scanPhase, setScanPhase] = useState<'idle' | 'scanning' | 'done'>('idle');
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const categories = [
+    { num: '01', title: 'Brand assets', desc: 'Logos, marks, wordmarks, favicon, and illustrations' },
+    { num: '02', title: 'Color system', desc: 'Primary, secondary, semantic, and gradient tokens' },
+    { num: '03', title: 'Typography', desc: 'Font families, weights, sizes, and line heights' },
+    { num: '04', title: 'Interface tokens', desc: 'Spacing, radius, shadows, and borders' },
+    { num: '05', title: 'Components', desc: 'Buttons, forms, cards, and navigation patterns' },
+    { num: '06', title: 'Layout behavior', desc: 'Grid systems, breakpoints, and alignment patterns' },
   ];
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setScanPhase('done');
+      return;
+    }
+    setScanPhase('scanning');
+    const t = setTimeout(() => setScanPhase('done'), 1500);
+    return () => clearTimeout(t);
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (paused || scanPhase !== 'done' || prefersReducedMotion) return;
+    timerRef.current = setInterval(() => {
+      setActive(i => (i + 1) % 6);
+    }, 5000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [paused, scanPhase, prefersReducedMotion]);
+
+  function handleSelect(i: number) {
+    setActive(i);
+    setPaused(true);
+    setTimeout(() => setPaused(false), 12000);
+  }
+
+  const highlights: Record<number, { top: string; left: string; w: string; h: string; label: string }[]> = {
+    0: [
+      { top: '6%', left: '4%', w: '14%', h: '9%', label: 'Logo' },
+      { top: '6%', left: '20%', w: '12%', h: '5%', label: 'Favicon' },
+    ],
+    1: [
+      { top: '30%', left: '4%', w: '24%', h: '8%', label: 'Buttons' },
+      { top: '42%', left: '4%', w: '18%', h: '6%', label: 'Links' },
+      { top: '55%', left: '4%', w: '90%', h: '10%', label: 'Backgrounds' },
+    ],
+    2: [
+      { top: '18%', left: '4%', w: '40%', h: '10%', label: 'Headings' },
+      { top: '30%', left: '4%', w: '50%', h: '6%', label: 'Body text' },
+      { top: '38%', left: '4%', w: '30%', h: '5%', label: 'Labels' },
+    ],
+    3: [
+      { top: '55%', left: '4%', w: '90%', h: '14%', label: 'Spacing' },
+      { top: '72%', left: '4%', w: '45%', h: '10%', label: 'Radius' },
+      { top: '72%', left: '52%', w: '42%', h: '10%', label: 'Shadows' },
+    ],
+    4: [
+      { top: '30%', left: '4%', w: '24%', h: '8%', label: 'Buttons' },
+      { top: '42%', left: '4%', w: '40%', h: '10%', label: 'Cards' },
+      { top: '6%', left: '4%', w: '90%', h: '8%', label: 'Navigation' },
+    ],
+    5: [
+      { top: '4%', left: '4%', w: '92%', h: '88%', label: 'Grid' },
+    ],
+  };
 
   return (
     <section id="how-it-works" className="py-24 md:py-32 bg-white border-y border-border/50">
       <div className="mx-auto max-w-[1280px] px-8 md:px-12">
+        {/* Header */}
         <RevealSection>
+          <Badge variant="secondary" className="text-[11px] font-medium px-3 py-1 mb-4">Brand extraction</Badge>
           <h2 className="text-section font-bold text-graphite max-w-2xl">
             From website to brand system in seconds.
           </h2>
@@ -434,88 +495,302 @@ function ScanningSection() {
           </p>
         </RevealSection>
 
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        {/* Two-column layout */}
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+          {/* LEFT: Website preview */}
           <RevealSection className="lg:col-span-7">
-            <div className="relative rounded-2xl overflow-hidden border border-border/40 bg-warm-offwhite aspect-[4/3]">
-              <div className="absolute inset-0 construction-grid opacity-50" />
-              <div className="absolute inset-0 p-8">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg gradient-accent" />
-                    <div className="scan-region !relative !top-auto !left-auto" style={{ width: 80, height: 12 }}>
-                      <span className="scan-label">Logo</span>
+            <div className="relative rounded-2xl overflow-hidden border border-border/40 bg-white shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)]">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[#F8F7F5] border-b border-border/40">
+                <div className="flex gap-1.5">
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#FF5F5F]" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#FFBD2E]" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#27CA40]" />
+                </div>
+                <div className="flex-1 mx-4 h-7 flex items-center justify-center rounded-md bg-white border border-border/40">
+                  <svg className="w-3 h-3 mr-1.5 text-foreground-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <span className="text-[11px] font-mono text-foreground-muted">seocontent.ai</span>
+                </div>
+                <div className="w-16" />
+              </div>
+
+              {/* Website content */}
+              <div className="relative bg-[#0D1117] min-h-[420px] p-6 space-y-4 overflow-hidden">
+                {/* Nav */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }}>
+                      <span className="text-[#0D1117] text-[11px] font-bold">S</span>
                     </div>
+                    <span className="text-[11px] font-semibold text-white">seocontent</span>
                   </div>
-                  <div className="flex gap-2">
-                    {['#FF5F45', '#FF8A5B', '#F2B84B', '#1A1918', '#6B5CE7'].map((c) => (
-                      <div key={c} className="relative">
-                        <div className="w-10 h-10 rounded-lg border border-border/40" style={{ backgroundColor: c }} />
-                        <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-foreground-muted whitespace-nowrap">{c}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2 pt-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-6 w-40 rounded bg-graphite/15" />
-                      <span className="text-[9px] font-mono text-brand-orange">Display / 72px / 0.95</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-4 w-32 rounded bg-graphite/10" />
-                      <span className="text-[9px] font-mono text-brand-orange">Heading / 48px / 1.05</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-3 w-56 rounded bg-graphite/8" />
-                      <span className="text-[9px] font-mono text-brand-orange">Body / 18px / 1.5</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 pt-2">
-                    {[8, 16, 24, 32, 48, 64].map(v => (
-                      <div key={v} className="flex flex-col items-center">
-                        <div className="w-8 rounded bg-brand-orange/10" style={{ height: v / 2 }} />
-                        <span className="text-[7px] font-mono text-foreground-muted mt-1">{v}</span>
-                      </div>
-                    ))}
+                  <div className="flex items-center gap-4">
+                    <div className="h-2 w-10 rounded-full bg-white/20" />
+                    <div className="h-2 w-12 rounded-full bg-white/20" />
+                    <div className="h-2 w-10 rounded-full bg-white/20" />
+                    <div className="h-7 w-20 rounded-full" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }} />
                   </div>
                 </div>
+
+                {/* Hero */}
+                <div className="pt-4 space-y-3">
+                  <div className="h-5 w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #40EDC3, #7FFBA9)' }} />
+                  <div className="space-y-2">
+                    <div className="h-5 w-72 rounded bg-white/90" />
+                    <div className="h-5 w-56 rounded bg-white/90" />
+                  </div>
+                  <div className="h-3 w-80 rounded-full bg-white/40 mt-2" />
+                  <div className="h-3 w-56 rounded-full bg-white/30" />
+                  <div className="flex gap-3 pt-2">
+                    <div className="h-9 w-32 rounded-full" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)' }} />
+                    <div className="h-9 w-28 rounded-full border border-white/30" />
+                  </div>
+                </div>
+
+                {/* Cards */}
+                <div className="grid grid-cols-3 gap-3 pt-3">
+                  {[0,1,2].map(i => (
+                    <div key={i} className="rounded-xl border border-white/10 p-3 space-y-2">
+                      <div className="w-9 h-9 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.15), rgba(127,251,169,0.15))' }} />
+                      <div className="h-2 w-full rounded-full bg-white/15" />
+                      <div className="h-1.5 w-3/4 rounded-full bg-white/10" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Stats */}
+                <div className="flex gap-3 pt-2">
+                  {[0,1,2].map(i => (
+                    <div key={i} className="flex-1 h-14 rounded-xl border border-white/10 flex items-center px-3 gap-2.5">
+                      <div className="w-8 h-8 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(64,237,195,0.12), rgba(127,251,169,0.12))' }} />
+                      <div className="space-y-1">
+                        <div className="h-2 w-16 rounded-full bg-white/15" />
+                        <div className="h-1.5 w-10 rounded-full bg-white/10" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="flex gap-3">
+                    <div className="h-2 w-16 rounded-full bg-white/10" />
+                    <div className="h-2 w-20 rounded-full bg-white/10" />
+                    <div className="h-2 w-14 rounded-full bg-white/10" />
+                  </div>
+                  <div className="h-2 w-24 rounded-full bg-white/8" />
+                </div>
+
+                {/* Scan line */}
+                {scanPhase === 'scanning' && <div className="scan-line" style={{ animationDuration: '2s' }} />}
+
+                {/* Detection highlights */}
+                <div className="absolute inset-0 pointer-events-none transition-all duration-700">
+                  {(highlights[active] || []).map((h, i) => (
+                    <div
+                      key={`${active}-${i}`}
+                      className="absolute border border-[#40EDC3]/60 rounded-md animate-[regionHighlight_0.6s_ease-out_forwards] opacity-0"
+                      style={{ top: h.top, left: h.left, width: h.w, height: h.h, animationDelay: `${i * 150}ms` }}
+                    >
+                      <span className="absolute -top-5 left-0 text-[8px] font-mono text-[#40EDC3] bg-[#0D1117]/80 px-1.5 py-0.5 rounded whitespace-nowrap">
+                        {h.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Completion badge */}
+                {scanPhase === 'done' && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[#40EDC3]/10 border border-[#40EDC3]/30 rounded-full px-2.5 py-1 animate-[fadeIn_0.4s_ease-out]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#40EDC3] animate-pulse" />
+                    <span className="text-[9px] font-mono text-[#40EDC3]">Analyzing visible interface...</span>
+                  </div>
+                )}
               </div>
-              <div className="scan-line" style={{ animationDuration: '4s' }} />
             </div>
           </RevealSection>
 
-          <RevealSection delay={0.2} className="lg:col-span-5">
-            <div className="space-y-1">
-              {steps.map((step, i) => (
-                <button
-                  key={step.num}
-                  onClick={() => setActiveStep(i)}
-                  className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
-                    activeStep === i
-                      ? 'bg-warm-offwhite border border-border/40'
-                      : 'hover:bg-warm-offwhite/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <span className={`text-xs font-mono mt-0.5 ${activeStep === i ? 'text-brand-orange' : 'text-foreground-muted'}`}>
-                      {step.num}
-                    </span>
-                    <div className="flex-1">
-                      <h3 className={`text-sm font-bold ${activeStep === i ? 'text-graphite' : 'text-foreground-secondary'}`}>
-                        {step.title}
-                      </h3>
-                      <p className="text-xs text-foreground-muted mt-1">{step.desc}</p>
-                      {activeStep === i && (
-                        <p className="text-xs text-foreground-secondary mt-2 leading-relaxed">{step.detail}</p>
-                      )}
+          {/* RIGHT: Category cards */}
+          <RevealSection delay={0.15} className="lg:col-span-5">
+            <div className="space-y-2">
+              {categories.map((cat, i) => {
+                const isActive = active === i;
+                return (
+                  <button
+                    key={cat.num}
+                    onClick={() => handleSelect(i)}
+                    className={`w-full text-left p-4 rounded-xl transition-all duration-300 border ${
+                      isActive
+                        ? 'bg-warm-offwhite border-border/50 shadow-sm'
+                        : 'border-transparent hover:bg-warm-offwhite/40 hover:border-border/20'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className={`text-[11px] font-mono mt-0.5 tabular-nums ${isActive ? 'text-brand-orange font-bold' : 'text-foreground-muted'}`}>
+                        {cat.num}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`text-sm font-bold ${isActive ? 'text-graphite' : 'text-foreground-secondary'}`}>
+                          {cat.title}
+                        </h3>
+                        <p className="text-xs text-foreground-muted mt-0.5 leading-relaxed">{cat.desc}</p>
+
+                        {/* Expanded preview for active card */}
+                        {isActive && (
+                          <div className="mt-3 pt-3 border-t border-border/30 animate-[fadeIn_0.3s_ease-out]">
+                            {i === 0 && <BrandAssetsPreview />}
+                            {i === 1 && <ColorSystemPreview />}
+                            {i === 2 && <TypographyPreview />}
+                            {i === 3 && <InterfaceTokensPreview />}
+                            {i === 4 && <ComponentsPreview />}
+                            {i === 5 && <LayoutBehaviorPreview />}
+                          </div>
+                        )}
+                      </div>
+                      <ChevronRight className={`w-4 h-4 mt-0.5 transition-transform duration-300 ${isActive ? 'text-brand-orange rotate-90' : 'text-foreground-subtle'}`} />
                     </div>
-                    <ChevronRight className={`w-4 h-4 mt-0.5 transition-transform ${activeStep === i ? 'text-brand-orange rotate-90' : 'text-foreground-subtle'}`} />
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
+
+            {/* Status bar */}
+            <div className="mt-6 flex items-center gap-3">
+              <div className="flex-1 h-1 rounded-full bg-border/30 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${((active + 1) / 6) * 100}%`,
+                    background: 'linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B)',
+                  }}
+                />
+              </div>
+              <span className="text-[10px] font-mono text-foreground-muted tabular-nums">{active + 1}/6</span>
+            </div>
+            <p className="mt-3 text-[11px] text-foreground-muted">
+              {scanPhase === 'done'
+                ? 'Brand system generated — 6 categories organized from the visible website interface'
+                : 'Scanning website design language...'}
+            </p>
           </RevealSection>
         </div>
       </div>
     </section>
+  );
+}
+
+/* ─── Category Previews ─── */
+function BrandAssetsPreview() {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {[
+        { label: 'Primary', bg: 'bg-white', border: true },
+        { label: 'Mark', bg: 'bg-[#40EDC3]', text: 'text-[#0D1117]' },
+        { label: 'Light', bg: 'bg-white', border: true },
+        { label: 'Dark', bg: 'bg-[#0D1117]', text: 'text-white' },
+        { label: 'Favicon', bg: 'bg-white', border: true, small: true },
+        { label: 'Wordmark', bg: 'bg-white', border: true },
+      ].map(v => (
+        <div key={v.label} className={`${v.small ? 'h-7' : 'h-9'} rounded-lg ${v.bg} ${v.border ? 'border border-border/40' : ''} flex items-center justify-center`}>
+          <span className={`text-[8px] font-semibold ${v.text || 'text-foreground-muted'}`}>{v.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ColorSystemPreview() {
+  const colors = [
+    { hex: '#0D1117', name: 'surface.default' },
+    { hex: '#40EDC3', name: 'brand.primary' },
+    { hex: '#7FFBA9', name: 'brand.secondary' },
+    { hex: '#D3F89A', name: 'brand.accent' },
+    { hex: '#FFFFFF', name: 'text.primary' },
+    { hex: '#1A2332', name: 'surface.elevated' },
+  ];
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-1.5">
+        {colors.map(c => (
+          <div key={c.hex} className="w-7 h-7 rounded-md border border-black/5 cursor-pointer hover:scale-110 transition-transform" style={{ backgroundColor: c.hex }} title={c.name} />
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1 h-4 rounded" style={{ background: 'linear-gradient(90deg, #40EDC3, #7FFBA9, #D3F89A)' }} />
+        <div className="flex-1 h-4 rounded" style={{ background: 'linear-gradient(135deg, #0D1117, #1A2332)' }} />
+      </div>
+    </div>
+  );
+}
+
+function TypographyPreview() {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-[14px] font-bold text-graphite leading-tight">Inter Bold — 24px</div>
+      <div className="text-[11px] font-semibold text-graphite/70">Inter Semibold — 16px</div>
+      <div className="text-[10px] text-foreground-secondary leading-relaxed">Inter Regular — 14px / 1.5 line height</div>
+      <div className="text-[9px] font-mono text-foreground-muted">DM Sans — Labels & Captions</div>
+    </div>
+  );
+}
+
+function InterfaceTokensPreview() {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end gap-1">
+        {[4,8,12,16,24,32,48].map(v => (
+          <div key={v} className="w-3 rounded-sm" style={{ height: Math.min(v * 0.5, 24), background: 'linear-gradient(180deg, #40EDC3, #7FFBA9)' }} />
+        ))}
+      </div>
+      <div className="flex gap-1.5">
+        {[2,4,8,12].map(v => (
+          <div key={v} className="w-7 h-7 border border-[#40EDC3]/30 bg-[#40EDC3]/5" style={{ borderRadius: v }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ComponentsPreview() {
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <div className="h-7 px-3 rounded-lg text-[9px] font-semibold flex items-center" style={{ background: 'linear-gradient(135deg, #40EDC3, #7FFBA9)', color: '#0D1117' }}>Button</div>
+        <div className="h-7 px-3 rounded-lg border border-white/20 text-[9px] font-medium flex items-center text-white/70">Outline</div>
+        <div className="h-7 px-3 text-[9px] font-medium flex items-center text-[#40EDC3]">Text</div>
+      </div>
+      <div className="h-7 w-full rounded-lg border border-white/15 bg-white/5 flex items-center px-2.5">
+        <span className="text-[8px] text-white/30">Input field</span>
+      </div>
+      <div className="h-5 w-24 rounded-full bg-white/10 flex items-center px-2">
+        <span className="text-[7px] text-white/40">Badge</span>
+      </div>
+    </div>
+  );
+}
+
+function LayoutBehaviorPreview() {
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-1">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="flex-1 h-8 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+        ))}
+      </div>
+      <div className="flex gap-1">
+        <div className="flex-[2] h-8 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+        <div className="flex-1 h-8 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+      </div>
+      <div className="flex gap-1">
+        <div className="h-8 w-12 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+        <div className="h-8 flex-1 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+        <div className="h-8 w-12 rounded border border-[#40EDC3]/20 bg-[#40EDC3]/5" />
+      </div>
+      <div className="flex gap-2 text-[8px] font-mono text-foreground-muted">
+        <span>Desktop</span><span>·</span><span>Tablet</span><span>·</span><span>Mobile</span>
+      </div>
+    </div>
   );
 }
 
@@ -1371,7 +1646,7 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <TrustTaper />
-        <ScanningSection />
+        <BrandExtractionSection />
         <BrandSystemSection />
         <TokenSection />
         <LibrarySection />
