@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -11,12 +11,15 @@ export default function AuthPage() {
   const { isAuthenticated, isLoading, signIn, signUp, signInSocial } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
+  const [animDir, setAnimDir] = useState<'left' | 'right'>('right');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [animKey, setAnimKey] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -34,34 +37,21 @@ export default function AuthPage() {
 
   function toggleMode(newMode: 'signin' | 'signup') {
     if (mode === newMode) return;
+    setAnimDir(newMode === 'signin' ? 'left' : 'right');
     resetForm();
     setMode(newMode);
+    setAnimKey(k => k + 1);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     if (mode === 'signup') {
-      if (password.length < 8) {
-        setError('Password must be at least 8 characters');
-        return;
-      }
-      if (!/[A-Z]/.test(password)) {
-        setError('Password must contain at least one uppercase letter');
-        return;
-      }
-      if (!/[a-z]/.test(password)) {
-        setError('Password must contain at least one lowercase letter');
-        return;
-      }
-      if (!/[0-9]/.test(password)) {
-        setError('Password must contain at least one number');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
+      if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
+      if (!/[A-Z]/.test(password)) { setError('Password must contain at least one uppercase letter'); return; }
+      if (!/[a-z]/.test(password)) { setError('Password must contain at least one lowercase letter'); return; }
+      if (!/[0-9]/.test(password)) { setError('Password must contain at least one number'); return; }
+      if (password !== confirmPassword) { setError('Passwords do not match'); return; }
     }
     setSubmitting(true);
     try {
@@ -91,15 +81,20 @@ export default function AuthPage() {
             </Link>
           </div>
 
-          {/* Toggle — Sign Up on left, Sign In on right */}
-          <div className="flex rounded-full bg-muted p-1 mb-6">
+          {/* Toggle with sliding pill */}
+          <div className="relative flex rounded-full bg-muted p-1 mb-6">
+            <div
+              className="absolute top-1 bottom-1 rounded-full bg-background shadow-sm transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{
+                left: mode === 'signup' ? '4px' : '50%',
+                width: 'calc(50% - 4px)',
+              }}
+            />
             <button
               type="button"
               onClick={() => toggleMode('signup')}
-              className={`flex-1 rounded-full py-2 text-sm font-medium transition-all duration-300 ${
-                mode === 'signup'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+              className={`relative z-10 flex-1 rounded-full py-2 text-sm font-medium transition-colors duration-300 ${
+                mode === 'signup' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Sign Up
@@ -107,28 +102,22 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => toggleMode('signin')}
-              className={`flex-1 rounded-full py-2 text-sm font-medium transition-all duration-300 ${
-                mode === 'signin'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+              className={`relative z-10 flex-1 rounded-full py-2 text-sm font-medium transition-colors duration-300 ${
+                mode === 'signin' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Sign In
             </button>
           </div>
 
-          {/* Form container with transition */}
-          <div className="relative overflow-hidden">
-            <form
-              onSubmit={handleSubmit}
-              className={`transition-all duration-300 ease-in-out ${
-                mode === 'signin'
-                  ? 'translate-x-0 opacity-100'
-                  : 'translate-x-0 opacity-100'
-              }`}
+          {/* Form container with crossfade animation */}
+          <div className="relative overflow-hidden" ref={containerRef}>
+            <div
+              key={animKey}
+              className={`animate-form-swap-${animDir}`}
             >
               {mode === 'signin' ? (
-                <div className="animate-fade-slide-in">
+                <form onSubmit={handleSubmit}>
                   <div className="text-center mb-6">
                     <h1 className="text-xl font-semibold text-foreground">Sign in to your account</h1>
                     <p className="mt-1 text-sm text-muted-foreground">Enter your credentials to continue</p>
@@ -166,9 +155,9 @@ export default function AuthPage() {
                       {submitting ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </div>
-                </div>
+                </form>
               ) : (
-                <div className="animate-fade-slide-in">
+                <form onSubmit={handleSubmit}>
                   <div className="text-center mb-6">
                     <h1 className="text-xl font-semibold text-foreground">Create your account</h1>
                     <p className="mt-1 text-sm text-muted-foreground">Get started with your free account</p>
@@ -188,9 +177,9 @@ export default function AuthPage() {
                       {submitting ? 'Creating account...' : 'Create account'}
                     </Button>
                   </div>
-                </div>
+                </form>
               )}
-            </form>
+            </div>
           </div>
 
           <div className="relative my-6">
