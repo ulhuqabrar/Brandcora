@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export default function AuthPage() {
   const { isAuthenticated, isLoading, signIn, signUp, signInSocial } = useAuth();
@@ -122,35 +121,27 @@ export default function AuthPage() {
                   )}
 
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="bg-white"
-                      />
-                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-white"
+                    />
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Password</Label>
-                        <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                          Forgot password?
-                        </Link>
-                      </div>
                       <Input
-                        id="password"
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         className="bg-white"
                       />
+                      <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                        Forgot password?
+                      </Link>
                     </div>
 
                     <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
@@ -170,25 +161,10 @@ export default function AuthPage() {
                   )}
 
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input id="password" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <Input id="confirmPassword" type="password" placeholder="Repeat your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
-                    </div>
+                    <Input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
+                    <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
 
                     <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
                       {submitting ? 'Creating account...' : 'Create account'}
