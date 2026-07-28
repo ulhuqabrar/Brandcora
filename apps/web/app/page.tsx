@@ -613,66 +613,70 @@ function BrandExtractionSection() {
 
           {/* RIGHT: Category cards */}
           <RevealSection delay={0.15} className="lg:col-span-5">
-            <div className="space-y-2">
-              {categories.map((cat, i) => {
-                const isActive = active === i;
-                return (
-                  <button
-                    key={cat.num}
-                    onClick={() => handleSelect(i)}
-                    className={`w-full text-left p-4 rounded-xl transition-all duration-300 border ${
-                      isActive
-                        ? 'bg-warm-offwhite border-border/50 shadow-sm'
-                        : 'border-transparent hover:bg-warm-offwhite/40 hover:border-border/20'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className={`text-[11px] font-mono mt-0.5 tabular-nums ${isActive ? 'text-brand-orange font-bold' : 'text-foreground-muted'}`}>
-                        {cat.num}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`text-sm font-bold ${isActive ? 'text-graphite' : 'text-foreground-secondary'}`}>
-                          {cat.title}
-                        </h3>
-                        <p className="text-xs text-foreground-muted mt-0.5 leading-relaxed">{cat.desc}</p>
+            <div className="h-[480px] flex flex-col">
+              <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+                {categories.map((cat, i) => {
+                  const isActive = active === i;
+                  return (
+                    <button
+                      key={cat.num}
+                      onClick={() => handleSelect(i)}
+                      className={`w-full text-left p-4 rounded-xl transition-all duration-300 border ${
+                        isActive
+                          ? 'bg-warm-offwhite border-border/50 shadow-sm'
+                          : 'border-transparent hover:bg-warm-offwhite/40 hover:border-border/20'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`text-[11px] font-mono mt-0.5 tabular-nums ${isActive ? 'text-brand-orange font-bold' : 'text-foreground-muted'}`}>
+                          {cat.num}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`text-sm font-bold ${isActive ? 'text-graphite' : 'text-foreground-secondary'}`}>
+                            {cat.title}
+                          </h3>
+                          <p className="text-xs text-foreground-muted mt-0.5 leading-relaxed">{cat.desc}</p>
 
-                        {/* Expanded preview for active card */}
-                        {isActive && (
-                          <div className="mt-3 pt-3 border-t border-border/30 animate-[fadeIn_0.3s_ease-out]">
-                            {i === 0 && <BrandAssetsPreview />}
-                            {i === 1 && <ColorSystemPreview />}
-                            {i === 2 && <TypographyPreview />}
-                            {i === 3 && <InterfaceTokensPreview />}
-                            {i === 4 && <ComponentsPreview />}
-                            {i === 5 && <LayoutBehaviorPreview />}
-                          </div>
-                        )}
+                          {/* Expanded preview for active card */}
+                          {isActive && (
+                            <div className="mt-3 pt-3 border-t border-border/30 animate-[fadeIn_0.3s_ease-out]">
+                              {i === 0 && <BrandAssetsPreview />}
+                              {i === 1 && <ColorSystemPreview />}
+                              {i === 2 && <TypographyPreview />}
+                              {i === 3 && <InterfaceTokensPreview />}
+                              {i === 4 && <ComponentsPreview />}
+                              {i === 5 && <LayoutBehaviorPreview />}
+                            </div>
+                          )}
+                        </div>
+                        <ChevronRight className={`w-4 h-4 mt-0.5 transition-transform duration-300 ${isActive ? 'text-brand-orange rotate-90' : 'text-foreground-subtle'}`} />
                       </div>
-                      <ChevronRight className={`w-4 h-4 mt-0.5 transition-transform duration-300 ${isActive ? 'text-brand-orange rotate-90' : 'text-foreground-subtle'}`} />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Status bar */}
-            <div className="mt-6 flex items-center gap-3">
-              <div className="flex-1 h-1 rounded-full bg-border/30 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${((active + 1) / 6) * 100}%`,
-                    background: 'linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B)',
-                  }}
-                />
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-[10px] font-mono text-foreground-muted tabular-nums">{active + 1}/6</span>
+
+              {/* Status bar */}
+              <div className="mt-4 pt-4 border-t border-border/30">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-1 rounded-full bg-border/30 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${((active + 1) / 6) * 100}%`,
+                        background: 'linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B)',
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-foreground-muted tabular-nums">{active + 1}/6</span>
+                </div>
+                <p className="mt-2 text-[11px] text-foreground-muted">
+                  {scanPhase === 'done'
+                    ? 'Brand system generated — 6 categories organized from the visible website interface'
+                    : 'Scanning website design language...'}
+                </p>
+              </div>
             </div>
-            <p className="mt-3 text-[11px] text-foreground-muted">
-              {scanPhase === 'done'
-                ? 'Brand system generated — 6 categories organized from the visible website interface'
-                : 'Scanning website design language...'}
-            </p>
           </RevealSection>
         </div>
       </div>
