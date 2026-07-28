@@ -19,7 +19,7 @@ import { ProtectedRoute } from '@/lib/protected-route';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/brand', icon: Fingerprint, label: 'Brand Identity', locked: false },
+  { to: '/dashboard', icon: Fingerprint, label: 'Brand Identity', locked: false },
   { to: '/scans', icon: FileText, label: 'Reports', locked: false, count: 3 },
   { to: '/settings', icon: GearSix, label: 'Settings', locked: false },
 ];
@@ -34,7 +34,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const currentSection = pathname.startsWith('/brand')
+  const currentSection = pathname.startsWith('/dashboard')
+    ? 'Brand Identity'
+    : pathname.startsWith('/brand')
     ? 'Brand Identity'
     : pathname.startsWith('/scans')
     ? 'Reports'

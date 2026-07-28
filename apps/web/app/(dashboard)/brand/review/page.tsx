@@ -173,7 +173,7 @@ export default function BrandReviewPage() {
             <Link href="/scans/new" className="btn-primary">
               <MagnifyingGlass className="h-4 w-4" weight="bold" /> Create first report
             </Link>
-            <Link href="/brand" className="btn-secondary">
+              <Link href="/dashboard" className="btn-secondary">
               Explore brand identity
             </Link>
           </div>

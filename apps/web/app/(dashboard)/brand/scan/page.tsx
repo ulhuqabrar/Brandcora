@@ -215,7 +215,7 @@ export default function BrandScanPage() {
       {!isScanning ? (
         <div className="max-w-[560px]">
           <div className="flex items-center gap-3 mb-6">
-            <Link href="/brand" className="p-1.5 hover:bg-[#F5F5F3] rounded-lg transition-colors">
+            <Link href="/dashboard" className="p-1.5 hover:bg-[#F5F5F3] rounded-lg transition-colors">
               <ArrowLeft className="h-4 w-4 text-[#8A8A85]" weight="bold" />
             </Link>
             <div>
