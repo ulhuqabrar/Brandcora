@@ -123,7 +123,7 @@ export default function AuthPage() {
                   <div className="space-y-4">
                     <Input
                       type="email"
-                      placeholder="Email"
+                      placeholder="johndoe@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -133,7 +133,7 @@ export default function AuthPage() {
                     <div className="space-y-2">
                       <Input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Enter 8+ character password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -161,10 +161,10 @@ export default function AuthPage() {
                   )}
 
                   <div className="space-y-4">
-                    <Input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
-                    <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
+                    <Input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
+                    <Input type="email" placeholder="johndoe@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="Create 8+ character password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="Confirm 8+ character password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
 
                     <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
                       {submitting ? 'Creating account...' : 'Create account'}
