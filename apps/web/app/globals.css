@@ -538,6 +538,15 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-slide-in {
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
 @keyframes progressBar {
   from { width: 0%; }
   to { width: var(--target-width); }
