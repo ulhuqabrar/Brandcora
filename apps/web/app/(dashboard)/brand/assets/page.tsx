@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   CirclesFour,
   Download,
@@ -10,35 +10,16 @@ import {
   Spinner,
 } from '@phosphor-icons/react';
 import { apiFetch } from '@/lib/api';
-
-interface BrandLogo {
-  id: string;
-  fileUrl: string;
-  storageKey: string;
-  logoType: string | null;
-  backgroundType: string | null;
-  width: number | null;
-  height: number | null;
-}
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 export default function AssetsPage() {
-  const [logos, setLogos] = useState<BrandLogo[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setLogos(d.data.logos || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { profile, loading, refresh } = useBrandProfile();
+  const logos = profile?.logos || [];
 
   const handleDelete = async (id: string) => {
     try {
       await apiFetch(`/api/v1/brand-profile/logos/${id}`, { method: 'DELETE' });
-      setLogos(l => l.filter(x => x.id !== id));
+      refresh();
     } catch { /* ignore */ }
   };
 

@@ -1,35 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Copy,
   Spinner,
 } from '@phosphor-icons/react';
-import { apiFetch } from '@/lib/api';
-
-interface BrandFont {
-  id: string;
-  name: string;
-  family: string;
-  role: string | null;
-  weight: number | null;
-  url: string | null;
-}
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 export default function TypographyPage() {
-  const [fonts, setFonts] = useState<BrandFont[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading } = useBrandProfile();
+  const fonts = profile?.fonts || [];
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setFonts(d.data.fonts || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   const handleCopyCSS = () => {
     const css = fonts.map(f => `  --font-${f.role || f.name.toLowerCase().replace(/\s+/g, '-')}: '${f.family}', sans-serif;`).join('\n');

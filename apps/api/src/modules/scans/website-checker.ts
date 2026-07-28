@@ -186,6 +186,16 @@ export async function runWebsiteCheck(
       const extraction = await extractBrandFromHtml(pageResult.html, baseUrl, parsedUrl);
       console.log(`[EXTRACT] Extraction result: colors=${extraction.colors.length}, fonts=${extraction.fonts.length}, logos=${extraction.logos.length}, gradients=${extraction.gradients.length}`);
 
+      if (extraction.colors.length === 0 && extraction.fonts.length === 0) {
+        const warning = 'No brand colors or fonts could be extracted from this page. The page may use JavaScript-rendered content or have limited CSS.';
+        const currentWarnings = (await prisma.scan.findUnique({ where: { id: scanId }, select: { warnings: true } }))?.warnings || [];
+        await prisma.scan.update({
+          where: { id: scanId },
+          data: { warnings: [...(Array.isArray(currentWarnings) ? currentWarnings : []), warning] },
+        });
+        console.warn(`[EXTRACT] ${warning}`);
+      }
+
       if (userId) {
         await saveExtractionToBrandProfile(userId, brandProfileId, extraction);
         console.log(`[EXTRACT] Successfully saved extraction to brand profile ${brandProfileId}`);
@@ -194,6 +204,12 @@ export async function runWebsiteCheck(
       }
     } catch (extractionError: any) {
       console.error(`[EXTRACT] Brand extraction failed for scan ${scanId}:`, extractionError.message, extractionError.stack);
+      const warning = `Brand extraction failed: ${extractionError.message}`;
+      const currentWarnings = (await prisma.scan.findUnique({ where: { id: scanId }, select: { warnings: true } }))?.warnings || [];
+      await prisma.scan.update({
+        where: { id: scanId },
+        data: { warnings: [...(Array.isArray(currentWarnings) ? currentWarnings : []), warning] },
+      });
     }
 
     await prisma.scan.update({

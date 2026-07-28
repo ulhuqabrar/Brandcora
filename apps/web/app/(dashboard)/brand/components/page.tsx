@@ -1,36 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Spinner } from '@phosphor-icons/react';
-import { apiFetch } from '@/lib/api';
-
-interface BrandColor {
-  hexValue: string;
-}
-
-interface BrandFont {
-  family: string;
-}
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 export default function ComponentsPage() {
-  const [colors, setColors] = useState<BrandColor[]>([]);
-  const [fonts, setFonts] = useState<BrandFont[]>([]);
-  const [borderRadius, setBorderRadius] = useState(8);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) {
-          setColors(d.data.colors || []);
-          setFonts(d.data.fonts || []);
-          setBorderRadius(d.data.borderRadius ?? 8);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { profile, loading } = useBrandProfile();
+  const colors = profile?.colors || [];
+  const fonts = profile?.fonts || [];
+  const borderRadius = profile?.borderRadius ?? 8;
 
   const primaryColor = colors[0]?.hexValue || '#1A1918';
   const bodyFont = fonts.find(f => f.family.toLowerCase().includes('inter'))?.family || fonts[0]?.family || 'Inter';

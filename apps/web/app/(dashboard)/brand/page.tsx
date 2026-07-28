@@ -16,52 +16,7 @@ import {
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
-
-interface BrandColor {
-  id: string;
-  name: string;
-  hexValue: string;
-  role: string | null;
-}
-
-interface BrandFont {
-  id: string;
-  name: string;
-  family: string;
-  role: string | null;
-  weight: number | null;
-}
-
-interface BrandLogo {
-  id: string;
-  fileUrl: string;
-  logoType: string | null;
-  backgroundType: string | null;
-  width: number | null;
-  height: number | null;
-}
-
-interface BrandGradient {
-  id: string;
-  name: string;
-  originalValue: string;
-  normalizedValue: string;
-}
-
-interface BrandProfile {
-  id: string;
-  name: string;
-  description: string | null;
-  headingFont: string | null;
-  bodyFont: string | null;
-  buttonRadius: number | null;
-  borderRadius: number | null;
-  spacingPreference: string | null;
-  colors: BrandColor[];
-  fonts: BrandFont[];
-  logos: BrandLogo[];
-  gradients: BrandGradient[];
-}
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 interface UsageData {
   socialChecks: { used: number; limit: number | null; remaining: number | null };
@@ -76,7 +31,7 @@ interface ScanItem {
 }
 
 export default function BrandIdentityOverview() {
-  const [profile, setProfile] = useState<BrandProfile | null>(null);
+  const { profile, loading: profileLoading } = useBrandProfile();
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [scans, setScans] = useState<ScanItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,21 +39,18 @@ export default function BrandIdentityOverview() {
   useEffect(() => {
     async function load() {
       try {
-        const [profileRes, usageRes, scansRes] = await Promise.all([
-          apiFetch('/api/v1/brand-profile'),
+        const [usageRes, scansRes] = await Promise.all([
           apiFetch('/api/v1/usage'),
           apiFetch('/api/v1/scans?limit=5'),
         ]);
 
-        const profileData = await profileRes.json();
         const usageData = await usageRes.json();
         const scansData = await scansRes.json();
 
-        if (profileData.success) setProfile(profileData.data);
         if (usageData.success) setUsage(usageData.data);
         if (scansData.success) setScans(scansData.data.scans || []);
       } catch {
-        // Profile doesn't exist yet — that's ok
+        // Ignore
       } finally {
         setLoading(false);
       }
@@ -106,7 +58,9 @@ export default function BrandIdentityOverview() {
     load();
   }, []);
 
-  if (loading) {
+  const loadingState = profileLoading || loading;
+
+  if (loadingState) {
     return (
       <div className="space-y-6">
         <div className="dash-card flex items-center justify-center py-12">

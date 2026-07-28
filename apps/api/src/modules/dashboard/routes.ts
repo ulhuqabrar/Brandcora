@@ -19,12 +19,12 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
       where: { userId },
       include: {
         workspace: {
-          include: { subscription: true },
+          include: { subscriptions: true },
         },
       },
     });
 
-    const subscription = membership?.workspace?.subscription?.[0];
+    const subscription = membership?.workspace?.subscriptions?.[0];
     const planKey = subscription?.planKey || 'free';
 
     const now = new Date();

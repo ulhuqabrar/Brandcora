@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Copy,
   PencilSimple,
@@ -9,6 +9,7 @@ import {
   Trash,
 } from '@phosphor-icons/react';
 import { apiFetch } from '@/lib/api';
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 interface BrandColor {
   id: string;
@@ -25,23 +26,16 @@ interface BrandGradient {
 }
 
 export default function ColorsPage() {
-  const [colors, setColors] = useState<BrandColor[]>([]);
-  const [gradients, setGradients] = useState<BrandGradient[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading, refresh } = useBrandProfile();
+  const [colors, setColors] = useState(profile?.colors || []);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) {
-          setColors(d.data.colors || []);
-          setGradients(d.data.gradients || []);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  // Sync colors when profile loads
+  if (profile && colors.length === 0 && profile.colors.length > 0) {
+    setColors(profile.colors);
+  }
+
+  const gradients = profile?.gradients || [];
 
   const handleDeleteColor = async (id: string) => {
     try {

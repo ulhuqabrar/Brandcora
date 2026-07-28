@@ -6,6 +6,7 @@ import {
   Plus,
 } from '@phosphor-icons/react';
 import { BrandSubNav } from '@/components/brand-sub-nav';
+import { BrandProfileProvider } from '@/lib/brand-profile-context';
 
 export default function BrandLayout({
   children,
@@ -13,7 +14,8 @@ export default function BrandLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-6">
+    <BrandProfileProvider>
+      <div className="space-y-6">
       {/* Greeting - constant across all tabs */}
       <div className="flex items-start justify-between">
         <div>
@@ -40,5 +42,6 @@ export default function BrandLayout({
       {/* Page content - changes based on active tab */}
       {children}
     </div>
+    </BrandProfileProvider>
   );
 }

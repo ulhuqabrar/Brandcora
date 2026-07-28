@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Copy,
   Download,
@@ -9,7 +9,7 @@ import {
   Spinner,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-import { apiFetch } from '@/lib/api';
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 interface Token {
   name: string;
@@ -20,62 +20,54 @@ interface Token {
 }
 
 export default function TokensPage() {
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading } = useBrandProfile();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
 
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (!d.success) return;
-        const p = d.data;
-        const all: Token[] = [];
+  const tokens = useMemo(() => {
+    if (!profile) return [];
+    const all: Token[] = [];
 
-        (p.colors || []).forEach((c: any) => {
-          all.push({
-            name: `color.${c.name.toLowerCase().replace(/\s+/g, '-')}`,
-            value: c.hexValue,
-            preview: c.hexValue,
-            type: 'color',
-            status: 'approved',
-          });
-        });
+    (profile.colors || []).forEach((c: any) => {
+      all.push({
+        name: `color.${c.name.toLowerCase().replace(/\s+/g, '-')}`,
+        value: c.hexValue,
+        preview: c.hexValue,
+        type: 'color',
+        status: 'approved',
+      });
+    });
 
-        (p.fonts || []).forEach((f: any) => {
-          all.push({
-            name: `font.${f.role || f.name.toLowerCase().replace(/\s+/g, '-')}`,
-            value: f.family,
-            preview: '',
-            type: 'font',
-            status: 'approved',
-          });
-        });
+    (profile.fonts || []).forEach((f: any) => {
+      all.push({
+        name: `font.${f.role || f.name.toLowerCase().replace(/\s+/g, '-')}`,
+        value: f.family,
+        preview: '',
+        type: 'font',
+        status: 'approved',
+      });
+    });
 
-        all.push({
-          name: 'spacing.base',
-          value: p.spacingPreference || 'comfortable',
-          preview: '',
-          type: 'spacing',
-          status: 'approved',
-        });
+    all.push({
+      name: 'spacing.base',
+      value: profile.spacingPreference || 'comfortable',
+      preview: '',
+      type: 'spacing',
+      status: 'approved',
+    });
 
-        if (p.borderRadius != null) {
-          all.push({
-            name: 'radius.default',
-            value: `${p.borderRadius}px`,
-            preview: '',
-            type: 'radius',
-            status: 'approved',
-          });
-        }
+    if (profile.borderRadius != null) {
+      all.push({
+        name: 'radius.default',
+        value: `${profile.borderRadius}px`,
+        preview: '',
+        type: 'radius',
+        status: 'approved',
+      });
+    }
 
-        setTokens(all);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    return all;
+  }, [profile]);
 
   const filtered = tokens.filter(t => {
     if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;

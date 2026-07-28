@@ -24,14 +24,14 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res) => {
     data: {
       ...data,
       ownerId: req.userId!,
-      membership: {
+      memberships: {
         create: {
           userId: req.userId!,
           role: 'owner',
         },
       },
     },
-    include: { membership: true },
+    include: { memberships: true },
   });
 
   res.status(201).json({ success: true, data: workspace });
@@ -41,7 +41,7 @@ router.get('/:workspaceId', requireAuth, requireWorkspaceMember(), async (req: A
   const workspaceId = String(req.params.workspaceId);
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    include: { membership: { include: { user: true } } },
+    include: { memberships: { include: { user: true } } },
   });
   res.json({ success: true, data: workspace });
 });

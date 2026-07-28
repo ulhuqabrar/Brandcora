@@ -60,7 +60,7 @@ router.post('/checkout', requireAuth, async (req: AuthenticatedRequest, res) => 
           name: user?.name || `${user?.email || 'User'}'s Workspace`,
           slug,
           ownerId: userId,
-          membership: { create: { userId, role: 'owner' } },
+          memberships: { create: { userId, role: 'owner' } },
         },
       });
       membership = await prisma.membership.findFirst({
@@ -140,14 +140,14 @@ router.get('/portal', requireAuth, async (req: AuthenticatedRequest, res) => {
 router.get('/subscription', requireAuth, async (req: AuthenticatedRequest, res) => {
   const membership = await prisma.membership.findFirst({
     where: { userId: req.userId! },
-    include: { workspace: { include: { subscription: true } } },
+    include: { workspace: { include: { subscriptions: true } } },
   });
 
-  if (!membership?.workspace?.subscription) {
+  if (!membership?.workspace?.subscriptions?.[0]) {
     return res.json({ success: true, data: null });
   }
 
-  res.json({ success: true, data: membership.workspace.subscription });
+  res.json({ success: true, data: membership.workspace.subscriptions[0] });
 });
 
 export { router as billingRoutes };

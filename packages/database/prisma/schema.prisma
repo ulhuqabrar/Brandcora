@@ -8,8 +8,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model accounts {
-  id                    String    @id
+model Account {
+  id                    String    @id @default(cuid())
   accountId             String
   providerId            String
   userId                String
@@ -21,14 +21,15 @@ model accounts {
   scope                 String?
   password              String?
   createdAt             DateTime  @default(now())
-  updatedAt             DateTime
-  users                 users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([accountId, providerId])
+  @@map("accounts")
 }
 
-model audit_logs {
-  id          String      @id
+model AuditLog {
+  id          String      @id @default(cuid())
   userId      String
   workspaceId String?
   action      String
@@ -36,72 +37,77 @@ model audit_logs {
   entityId    String?
   metadata    Json?
   createdAt   DateTime    @default(now())
-  users       users       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspaces  workspaces? @relation(fields: [workspaceId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace?  @relation(fields: [workspaceId], references: [id])
 
   @@index([action])
   @@index([createdAt])
   @@index([userId])
   @@index([workspaceId])
+  @@map("audit_logs")
 }
 
-model billing_customers {
-  id               String      @id
+model BillingCustomer {
+  id               String      @id @default(cuid())
   userId           String      @unique
   workspaceId      String?     @unique
   stripeCustomerId String      @unique
   billingEmail     String?
   createdAt        DateTime    @default(now())
-  updatedAt        DateTime
-  users            users       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspaces       workspaces? @relation(fields: [workspaceId], references: [id])
+  updatedAt        DateTime    @updatedAt
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace        Workspace?  @relation(fields: [workspaceId], references: [id])
 
   @@index([stripeCustomerId])
+  @@map("billing_customers")
 }
 
-model brand_colors {
-  id             String         @id
+model BrandColor {
+  id             String       @id @default(cuid())
   brandProfileId String
   name           String
   hexValue       String
-  role           String         @default("additional")
-  createdAt      DateTime       @default(now())
-  brand_profiles brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  role           String       @default("additional")
+  createdAt      DateTime     @default(now())
+  brandProfile   BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
+  @@map("brand_colors")
 }
 
-model brand_fonts {
-  id             String         @id
+model BrandFont {
+  id             String       @id @default(cuid())
   brandProfileId String
   name           String
   family         String
-  role           String         @default("body")
-  weight         Int            @default(400)
+  role           String       @default("body")
+  weight         Int          @default(400)
   url            String?
-  createdAt      DateTime       @default(now())
-  brand_profiles brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  brandProfile   BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
+  @@map("brand_fonts")
 }
 
-model brand_logos {
-  id             String         @id
+model BrandLogo {
+  id             String       @id @default(cuid())
   brandProfileId String
   fileUrl        String
   storageKey     String
-  logoType       String         @default("primary")
-  backgroundType String         @default("any")
+  logoType       String       @default("primary")
+  backgroundType String       @default("any")
   width          Int?
   height         Int?
-  createdAt      DateTime       @default(now())
-  brand_profiles brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  brandProfile   BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
+  @@map("brand_logos")
 }
 
-model brand_profiles {
-  id                String         @id
+model BrandProfile {
+  id                String         @id @default(cuid())
   userId            String         @unique
   name              String
   description       String?
@@ -111,59 +117,62 @@ model brand_profiles {
   borderRadius      Int            @default(8)
   spacingPreference String?
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime
-  brand_colors      brand_colors[]
-  brand_fonts       brand_fonts[]
-  brand_logos       brand_logos[]
-  users             users          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brand_rules       brand_rules[]
-  brand_gradients   brand_gradients[]
-  scans             scans[]
+  updatedAt         DateTime       @updatedAt
+  colors            BrandColor[]
+  fonts             BrandFont[]
+  logos             BrandLogo[]
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rules             BrandRule[]
+  gradients         BrandGradient[]
+  scans             Scan[]
 
   @@index([userId])
+  @@map("brand_profiles")
 }
 
-model brand_rules {
-  id             String         @id
+model BrandRule {
+  id             String       @id @default(cuid())
   brandProfileId String
   category       String
   name           String
   value          String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime
-  brand_profiles brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  brandProfile   BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
+  @@map("brand_rules")
 }
 
-model brand_gradients {
-  id               String   @id
-  brandProfileId   String
-  name             String
-  role             String   @default("additional")
-  gradientType     String   @default("linear")
-  repeating        Boolean  @default(false)
-  originalValue    String
-  normalizedValue  String
-  angle            Float?
-  shape            String?
-  position         String?
-  stops            Json
-  usageCount       Int      @default(0)
-  pageCount        Int      @default(0)
-  sourceType       String   @default("detected")
-  cssVariableName  String?
-  confidence       Float    @default(0.8)
-  isApproved       Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  brand_profiles   brand_profiles @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+model BrandGradient {
+  id              String       @id @default(cuid())
+  brandProfileId  String
+  name            String
+  role            String       @default("additional")
+  gradientType    String       @default("linear")
+  repeating       Boolean      @default(false)
+  originalValue   String
+  normalizedValue String
+  angle           Float?
+  shape           String?
+  position        String?
+  stops           Json
+  usageCount      Int          @default(0)
+  pageCount       Int          @default(0)
+  sourceType      String       @default("detected")
+  cssVariableName String?
+  confidence      Float        @default(0.8)
+  isApproved      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  brandProfile    BrandProfile @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
 
   @@index([brandProfileId])
+  @@map("brand_gradients")
 }
 
-model invitations {
-  id          String     @id
+model Invitation {
+  id          String     @id @default(cuid())
   workspaceId String
   email       String
   role        String     @default("member")
@@ -173,42 +182,46 @@ model invitations {
   expiresAt   DateTime
   acceptedAt  DateTime?
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
-  users       users      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
-  workspaces  workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime   @updatedAt
+  invitedBy   User       @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([email])
   @@index([token])
   @@index([workspaceId])
+  @@map("invitations")
 }
 
-model memberships {
-  id          String     @id
+model Membership {
+  id          String     @id @default(cuid())
   userId      String
   workspaceId String
   role        String     @default("member")
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
-  users       users      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspaces  workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workspaceId])
   @@index([workspaceId])
+  @@map("memberships")
 }
 
-model profiles {
-  id                  String   @id
+model Profile {
+  id                  String   @id @default(cuid())
   authUserId          String   @unique
   displayName         String?
   avatar              String?
   onboardingCompleted Boolean  @default(false)
   createdAt           DateTime @default(now())
-  updatedAt           DateTime
-  users               users    @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
 }
 
-model scan_issues {
-  id             String   @id
+model ScanIssue {
+  id             String   @id @default(cuid())
   scanId         String
   category       String
   severity       String
@@ -217,14 +230,15 @@ model scan_issues {
   recommendation String?
   metadataJson   Json?
   createdAt      DateTime @default(now())
-  scans          scans    @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan           Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   @@index([scanId])
   @@index([severity])
+  @@map("scan_issues")
 }
 
-model scan_pages {
-  id                   String   @id
+model ScanPage {
+  id                   String   @id @default(cuid())
   scanId               String
   url                  String
   pageTitle            String?
@@ -232,25 +246,27 @@ model scan_pages {
   mobileScreenshotUrl  String?
   status               String   @default("pending")
   createdAt            DateTime @default(now())
-  scans                scans    @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan                 Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   @@index([scanId])
+  @@map("scan_pages")
 }
 
-model scan_scores {
-  id        String   @id
+model ScanScore {
+  id        String   @id @default(cuid())
   scanId    String
   category  String
   score     Float
   weight    Float
   createdAt DateTime @default(now())
-  scans     scans    @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
   @@index([scanId])
+  @@map("scan_scores")
 }
 
-model scans {
-  id              String          @id
+model Scan {
+  id              String          @id @default(cuid())
   userId          String
   brandProfileId  String
   scanType        String
@@ -271,35 +287,37 @@ model scans {
   pagesDiscovered Int             @default(0)
   pagesAnalyzed   Int             @default(0)
   warnings        Json            @default("[]")
-  scan_issues     scan_issues[]
-  scan_pages      scan_pages[]
-  scan_scores     scan_scores[]
-  brand_profiles  brand_profiles  @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
-  users           users           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  usage_records   usage_records[]
+  issues          ScanIssue[]
+  pages           ScanPage[]
+  scores          ScanScore[]
+  brandProfile    BrandProfile    @relation(fields: [brandProfileId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageRecords    UsageRecord[]
 
   @@index([brandProfileId])
   @@index([createdAt])
   @@index([status])
   @@index([userId])
+  @@map("scans")
 }
 
-model sessions {
-  id        String   @id
+model Session {
+  id        String   @id @default(cuid())
   expiresAt DateTime
   token     String   @unique
   ipAddress String?
   userAgent String?
   userId    String
   createdAt DateTime @default(now())
-  updatedAt DateTime
-  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("sessions")
 }
 
-model subscriptions {
-  id                   String     @id
+model Subscription {
+  id                   String     @id @default(cuid())
   workspaceId          String
   stripeSubscriptionId String     @unique
   stripeCustomerId     String
@@ -311,16 +329,17 @@ model subscriptions {
   currentPeriodEnd     DateTime
   cancelAtPeriodEnd    Boolean    @default(false)
   createdAt            DateTime   @default(now())
-  updatedAt            DateTime
-  workspaces           workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  updatedAt            DateTime   @updatedAt
+  workspace            Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
   @@index([workspaceId])
+  @@map("subscriptions")
 }
 
-model usage_records {
-  id                 String   @id
+model UsageRecord {
+  id                 String   @id @default(cuid())
   userId             String
   scanId             String?
   usageType          String
@@ -329,47 +348,51 @@ model usage_records {
   billingPeriodEnd   DateTime
   idempotencyKey     String   @unique
   createdAt          DateTime @default(now())
-  scans              scans?   @relation(fields: [scanId], references: [id])
-  users              users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scan               Scan?    @relation(fields: [scanId], references: [id])
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([billingPeriodStart])
   @@index([usageType])
   @@index([userId])
+  @@map("usage_records")
 }
 
-model users {
-  id                String             @id
+model User {
+  id                String             @id @default(cuid())
   name              String
   email             String             @unique
   emailVerified     Boolean            @default(false)
   image             String?
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime
-  accounts          accounts[]
-  audit_logs        audit_logs[]
-  billing_customers billing_customers?
-  brand_profiles    brand_profiles?
-  invitations       invitations[]
-  memberships       memberships[]
-  profiles          profiles?
-  scans             scans[]
-  sessions          sessions[]
-  usage_records     usage_records[]
+  updatedAt         DateTime           @updatedAt
+  accounts          Account[]
+  auditLogs         AuditLog[]
+  billingCustomer   BillingCustomer?
+  brandProfile      BrandProfile?
+  invitations       Invitation[]
+  memberships       Membership[]
+  profile           Profile?
+  scans             Scan[]
+  sessions          Session[]
+  usageRecords      UsageRecord[]
+
+  @@map("users")
 }
 
-model verifications {
-  id         String   @id
+model Verification {
+  id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
+  @@map("verifications")
 }
 
-model webhook_events {
-  id              String    @id
+model WebhookEvent {
+  id              String    @id @default(cuid())
   provider        String
   externalEventId String
   eventType       String
@@ -380,21 +403,23 @@ model webhook_events {
 
   @@unique([provider, externalEventId])
   @@index([status])
+  @@map("webhook_events")
 }
 
-model workspaces {
-  id                String             @id
+model Workspace {
+  id                String             @id @default(cuid())
   name              String
   slug              String             @unique
   ownerId           String
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime
-  audit_logs        audit_logs[]
-  billing_customers billing_customers?
-  invitations       invitations[]
-  memberships       memberships[]
-  subscriptions     subscriptions[]
+  updatedAt         DateTime           @updatedAt
+  auditLogs         AuditLog[]
+  billingCustomer   BillingCustomer?
+  invitations       Invitation[]
+  memberships       Membership[]
+  subscriptions     Subscription[]
 
   @@index([ownerId])
   @@index([slug])
+  @@map("workspaces")
 }

@@ -1,25 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   Copy,
   Spinner,
 } from '@phosphor-icons/react';
-import { apiFetch } from '@/lib/api';
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 export default function LayoutPage() {
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiFetch('/api/v1/brand-profile')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setProfile(d.data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { profile, loading } = useBrandProfile();
 
   const borderRadius = profile?.borderRadius ?? 8;
   const spacingPref = profile?.spacingPreference || 'comfortable';

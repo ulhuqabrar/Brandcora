@@ -54,12 +54,12 @@ async function getCurrentUsage(workspaceId: string, usageKey: string): Promise<n
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    include: { membership: true },
+    include: { memberships: true },
   });
 
   if (!workspace) return 0;
 
-  const userId = workspace.membership[0]?.userId;
+  const userId = workspace.memberships[0]?.userId;
   if (!userId) return 0;
 
   const usageType = usageKey === 'socialChecks' ? 'social_check' : 'website_scan';
