@@ -565,6 +565,45 @@
   animation: fadeCross 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes successPop {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  60% { transform: scale(1.05) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-success-pop {
+  animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes checkDraw {
+  from { stroke-dasharray: 24; stroke-dashoffset: 24; }
+  to { stroke-dasharray: 24; stroke-dashoffset: 0; }
+}
+
+.animate-check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkDraw 0.4s ease-out 0.2s forwards;
+}
+
+@keyframes dashboardFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-workspace {
+  animation: dashboardFadeIn 0.4s ease-out;
+}
+
 @keyframes progressBar {
   from { width: 0%; }
   to { width: var(--target-width); }

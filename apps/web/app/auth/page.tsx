@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [animKey, setAnimKey] = useState(0);
+  const [authSuccess, setAuthSuccess] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -59,6 +60,9 @@ export default function AuthPage() {
       } else {
         await signUp(name, email, password);
       }
+      setAuthSuccess(true);
+      await new Promise(r => setTimeout(r, 1200));
+      router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : mode === 'signin' ? 'Sign in failed' : 'Sign up failed');
     } finally {
@@ -66,13 +70,13 @@ export default function AuthPage() {
     }
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !authSuccess) {
     return null;
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 gradient-hero">
-      <div className="w-full max-w-sm">
+      <div className={`w-full max-w-sm transition-all duration-500 ${authSuccess ? 'scale-[0.97] opacity-0' : 'scale-100 opacity-100'}`}>
         <div className="glass-strong rounded-2xl p-8 shadow-elevated">
           {/* Logo — fixed */}
           <div className="text-center mb-6">
@@ -214,6 +218,21 @@ export default function AuthPage() {
           </p>
         </div>
       </div>
+
+      {/* Success overlay */}
+      {authSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center gradient-hero animate-fade-in">
+          <div className="text-center animate-success-pop">
+            <div className="w-16 h-16 rounded-full bg-[#16A34A]/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-[#16A34A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path className="animate-check-draw" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-foreground mb-1">Welcome to Brandcora</h2>
+            <p className="text-sm text-muted-foreground">Setting up your dashboard...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
