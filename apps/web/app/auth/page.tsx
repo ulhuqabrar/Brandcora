@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -19,7 +19,6 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [animKey, setAnimKey] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -75,13 +74,14 @@ export default function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 gradient-hero">
       <div className="w-full max-w-sm">
         <div className="glass-strong rounded-2xl p-8 shadow-elevated">
+          {/* Logo — fixed */}
           <div className="text-center mb-6">
             <Link href="/" className="flex justify-center">
               <img src="/logo.png" alt="Brandcora" className="h-10 w-auto" />
             </Link>
           </div>
 
-          {/* Toggle with sliding pill */}
+          {/* Toggle — fixed */}
           <div className="relative flex rounded-full bg-muted p-1 mb-6">
             <div
               className="absolute top-1 bottom-1 rounded-full bg-background shadow-sm transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
@@ -110,79 +110,72 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {/* Form container with crossfade animation */}
-          <div className="relative overflow-hidden" ref={containerRef}>
-            <div
-              key={animKey}
-              className={`animate-form-swap-${animDir}`}
+          {/* Title — fixed height, text crossfades */}
+          <div className="text-center mb-6 h-[52px] flex flex-col items-center justify-center">
+            <h1
+              key={`title-${animKey}`}
+              className="text-xl font-semibold text-foreground animate-fade-cross"
             >
-              {mode === 'signin' ? (
-                <form onSubmit={handleSubmit}>
-                  <div className="text-center mb-6">
-                    <h1 className="text-xl font-semibold text-foreground">Sign in to your account</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">Enter your credentials to continue</p>
-                  </div>
-
-                  {error && (
-                    <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-4">{error}</div>
-                  )}
-
-                  <div className="space-y-4">
-                    <Input
-                      type="email"
-                      placeholder="johndoe@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="bg-white"
-                    />
-
-                    <div className="space-y-2">
-                      <Input
-                        type="password"
-                        placeholder="Enter 8+ character password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="bg-white"
-                      />
-                      <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
-
-                    <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
-                      {submitting ? 'Signing in...' : 'Sign In'}
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <form onSubmit={handleSubmit}>
-                  <div className="text-center mb-6">
-                    <h1 className="text-xl font-semibold text-foreground">Create your account</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">Get started with your free account</p>
-                  </div>
-
-                  {error && (
-                    <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-4">{error}</div>
-                  )}
-
-                  <div className="space-y-4">
-                    <Input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
-                    <Input type="email" placeholder="johndoe@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="8+ chars, A-Z, a-z, 0-9" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
-
-                    <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
-                      {submitting ? 'Creating account...' : 'Create account'}
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </div>
+              {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
+            </h1>
+            <p
+              key={`sub-${animKey}`}
+              className="mt-1 text-sm text-muted-foreground animate-fade-cross"
+            >
+              {mode === 'signin' ? 'Enter your credentials to continue' : 'Get started with your free account'}
+            </p>
           </div>
 
-          <div className="relative my-6">
+          {/* Form fields — fixed height container, only fields animate */}
+          <div className="relative h-[220px]">
+            {/* Sign Up fields */}
+            <form
+              onSubmit={handleSubmit}
+              className={`absolute inset-0 transition-opacity duration-300 ${
+                mode === 'signup' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              {error && mode === 'signup' && (
+                <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-3">{error}</div>
+              )}
+              <div className="space-y-3">
+                <Input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                <Input type="email" placeholder="johndoe@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                <Input type="password" placeholder="8+ chars, A-Z, a-z, 0-9" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                <Input type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                <Button type="submit" className="w-full gradient-accent text-white shadow-glass h-10 text-[13px]" disabled={submitting || isLoading}>
+                  {submitting ? 'Creating account...' : 'Create account'}
+                </Button>
+              </div>
+            </form>
+
+            {/* Sign In fields */}
+            <form
+              onSubmit={handleSubmit}
+              className={`absolute inset-0 transition-opacity duration-300 ${
+                mode === 'signin' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              {error && mode === 'signin' && (
+                <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive font-medium mb-3">{error}</div>
+              )}
+              <div className="space-y-3">
+                <Input type="email" placeholder="johndoe@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                <div className="space-y-1.5">
+                  <Input type="password" placeholder="Enter 8+ character password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white h-10 text-[13px]" />
+                  <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Button type="submit" className="w-full gradient-accent text-white shadow-glass h-10 text-[13px]" disabled={submitting || isLoading}>
+                  {submitting ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Divider — fixed */}
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
@@ -191,6 +184,7 @@ export default function AuthPage() {
             </div>
           </div>
 
+          {/* Google button — fixed */}
           <Button
             type="button"
             variant="outline"
@@ -214,7 +208,8 @@ export default function AuthPage() {
             Continue with Google
           </Button>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          {/* Footer — fixed */}
+          <p className="mt-5 text-center text-xs text-muted-foreground">
             No credit card required. 5 free campaigns per month.
           </p>
         </div>

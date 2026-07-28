@@ -556,6 +556,15 @@
   animation: fadeSlideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes fadeCross {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-cross {
+  animation: fadeCross 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @keyframes progressBar {
   from { width: 0%; }
   to { width: var(--target-width); }
