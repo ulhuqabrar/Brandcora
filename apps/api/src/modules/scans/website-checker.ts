@@ -180,13 +180,20 @@ export async function runWebsiteCheck(
       }
       const baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
 
+      console.log(`[EXTRACT] Starting extraction for scan ${scanId}, userId=${userId}, brandProfileId=${brandProfileId}`);
+      console.log(`[EXTRACT] HTML length: ${pageResult.html?.length || 0}`);
+
       const extraction = await extractBrandFromHtml(pageResult.html, baseUrl, parsedUrl);
+      console.log(`[EXTRACT] Extraction result: colors=${extraction.colors.length}, fonts=${extraction.fonts.length}, logos=${extraction.logos.length}, gradients=${extraction.gradients.length}`);
+
       if (userId) {
         await saveExtractionToBrandProfile(userId, brandProfileId, extraction);
+        console.log(`[EXTRACT] Successfully saved extraction to brand profile ${brandProfileId}`);
+      } else {
+        console.warn(`[EXTRACT] No userId provided — extraction NOT saved`);
       }
     } catch (extractionError: any) {
-      // Brand extraction failure should not fail the scan
-      console.warn('Brand extraction failed (scan still completed):', extractionError.message);
+      console.error(`[EXTRACT] Brand extraction failed for scan ${scanId}:`, extractionError.message, extractionError.stack);
     }
 
     await prisma.scan.update({
@@ -239,14 +246,20 @@ interface PageAnalysis {
 }
 
 async function analyzePage(url: string): Promise<PageAnalysis> {
+  console.log(`[ANALYZE] Fetching URL: ${url}`);
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'BrandGuard/1.0 (brand-consistency-checker)',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
     },
     signal: AbortSignal.timeout(15000),
+    redirect: 'follow',
   });
 
+  console.log(`[ANALYZE] Response status: ${response.status}, content-type: ${response.headers.get('content-type')}`);
   const html = await response.text();
+  console.log(`[ANALYZE] HTML length: ${html.length}, first 200 chars: ${html.substring(0, 200)}`);
 
   const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
   const title = titleMatch ? titleMatch[1].trim() : null;

@@ -206,6 +206,7 @@ export async function extractBrandFromHtml(
 
   // 1. Colors
   const rawColors = extractColorsFromCss(allCss + ' ' + html);
+  console.log(`[EXTRACTOR] Raw colors found: ${rawColors.length}, CSS length: ${allCss.length}, HTML length: ${html.length}`);
   const colorCounts: Record<string, number> = {};
   for (const c of rawColors) {
     const similar = Object.keys(colorCounts).find(existing => colorDistance(existing, c) < 30);
@@ -439,6 +440,9 @@ export async function saveExtractionToBrandProfile(
   brandProfileId: string,
   extraction: ExtractionResult
 ): Promise<void> {
+  console.log(`[SAVE] Saving extraction to brand profile ${brandProfileId} for user ${userId}`);
+  console.log(`[SAVE] Data: colors=${extraction.colors.length}, fonts=${extraction.fonts.length}, logos=${extraction.logos.length}, gradients=${extraction.gradients.length}`);
+
   // Update brand profile name if we got a better one
   if (extraction.brandName) {
     await (prisma as any).brandProfile.update({
@@ -545,4 +549,6 @@ export async function saveExtractionToBrandProfile(
       });
     }
   });
+
+  console.log(`[SAVE] Transaction completed successfully for brand profile ${brandProfileId}`);
 }
