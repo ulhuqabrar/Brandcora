@@ -41,9 +41,27 @@ export default function AuthPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (mode === 'signup' && password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    if (mode === 'signup') {
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError('Password must contain at least one uppercase letter');
+        return;
+      }
+      if (!/[a-z]/.test(password)) {
+        setError('Password must contain at least one lowercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(password)) {
+        setError('Password must contain at least one number');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
     }
     setSubmitting(true);
     try {
@@ -163,8 +181,8 @@ export default function AuthPage() {
                   <div className="space-y-4">
                     <Input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white" />
                     <Input type="email" placeholder="johndoe@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="Create 8+ character password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
-                    <Input type="password" placeholder="Confirm 8+ character password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="8+ chars, A-Z, a-z, 0-9" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white" />
+                    <Input type="password" placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white" />
 
                     <Button type="submit" className="w-full gradient-accent text-white shadow-glass" disabled={submitting || isLoading}>
                       {submitting ? 'Creating account...' : 'Create account'}
