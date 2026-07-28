@@ -209,51 +209,81 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
 
           {/* Right column — 7 cols: product visual */}
           <div className="lg:col-span-7">
-            <div className="relative rounded-2xl overflow-hidden border border-border/50 bg-white">
+            <div className="relative rounded-2xl overflow-hidden border border-border/50 bg-white shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
               {/* Browser chrome */}
-              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-warm-offwhite border-b border-border/40">
+              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[#F8F7F5] border-b border-border/40">
                 <div className="flex gap-1.5">
                   <div className="w-[10px] h-[10px] rounded-full bg-[#FF5F5F]" />
                   <div className="w-[10px] h-[10px] rounded-full bg-[#FFBD2E]" />
                   <div className="w-[10px] h-[10px] rounded-full bg-[#27CA40]" />
                 </div>
                 <div className="flex-1 mx-4 h-7 flex items-center justify-center rounded-md bg-white border border-border/40">
+                  <svg className="w-3 h-3 mr-1.5 text-foreground-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                   <span className="text-[11px] font-mono text-foreground-muted">yourbrand.com</span>
                 </div>
+                <div className="w-16" />
               </div>
 
               {/* Main content area */}
-              <div className="flex">
+              <div className="flex min-h-[400px]">
                 {/* Website preview */}
-                <div className="flex-1 relative min-h-[320px] md:min-h-[380px] p-5 space-y-3">
-                  {/* Nav */}
+                <div className="flex-1 relative p-6 space-y-4">
+                  {/* Fake website nav */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-md bg-graphite" />
-                      <div className="h-2.5 w-16 rounded bg-graphite/15" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg gradient-accent flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold">B</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-2 w-20 rounded-full bg-graphite/20" />
+                      </div>
                     </div>
-                    <div className="flex gap-2.5">
-                      <div className="h-2 w-10 rounded bg-graphite/8" />
-                      <div className="h-2 w-10 rounded bg-graphite/8" />
-                      <div className="h-2 w-10 rounded bg-graphite/8" />
+                    <div className="flex items-center gap-5">
+                      <div className="h-2 w-12 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-14 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-10 rounded-full bg-graphite/10" />
+                      <div className="h-7 w-20 rounded-full bg-graphite/10" />
                     </div>
                   </div>
 
-                  {/* Hero content */}
-                  <div className="space-y-2 pt-3">
-                    <div className="h-4 w-40 rounded bg-graphite/12" />
-                    <div className="h-4 w-28 rounded bg-graphite/8" />
-                    <div className="h-2 w-52 rounded bg-graphite/6 mt-1" />
-                    <div className="h-2 w-36 rounded bg-graphite/5" />
+                  {/* Hero content area */}
+                  <div className="pt-4 space-y-3">
+                    <div className="h-5 w-56 rounded-md bg-graphite/15" />
+                    <div className="h-5 w-40 rounded-md bg-graphite/10" />
+                    <div className="h-3 w-72 rounded-full bg-graphite/6 mt-2" />
+                    <div className="h-3 w-48 rounded-full bg-graphite/5" />
+                    <div className="flex gap-2.5 pt-2">
+                      <div className="h-8 w-28 rounded-full gradient-accent opacity-90" />
+                      <div className="h-8 w-24 rounded-full border border-graphite/10" />
+                    </div>
                   </div>
 
-                  {/* Grid cards */}
-                  <div className="grid grid-cols-3 gap-2.5 pt-3">
+                  {/* Feature grid */}
+                  <div className="grid grid-cols-3 gap-3 pt-3">
+                    {[
+                      { color: 'from-orange-400/20 to-amber-300/20', icon: 'gradient-accent' },
+                      { color: 'from-violet-400/20 to-purple-300/20', icon: 'bg-violet-500' },
+                      { color: 'from-emerald-400/20 to-teal-300/20', icon: 'bg-emerald-500' },
+                    ].map((card, i) => (
+                      <div key={i} className="rounded-xl border border-border/30 p-3 space-y-2">
+                        <div className={`w-9 h-9 rounded-lg ${card.icon} flex items-center justify-center`}>
+                          <div className="w-4 h-4 rounded bg-white/40" />
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-graphite/8" />
+                        <div className="h-1.5 w-3/4 rounded-full bg-graphite/5" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="flex gap-4 pt-2">
                     {[1,2,3].map(i => (
-                      <div key={i} className="rounded-lg border border-border/30 p-2.5 space-y-1.5">
-                        <div className="h-10 rounded bg-lavender-soft" />
-                        <div className="h-1.5 w-full rounded bg-graphite/6" />
-                        <div className="h-1.5 w-2/3 rounded bg-graphite/4" />
+                      <div key={i} className="flex-1 h-14 rounded-xl bg-graphite/[0.03] border border-border/20 flex items-center px-3 gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-graphite/5" />
+                        <div className="space-y-1">
+                          <div className="h-2 w-16 rounded-full bg-graphite/10" />
+                          <div className="h-1.5 w-10 rounded-full bg-graphite/6" />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -264,52 +294,61 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                   {/* Detection regions — appear during scan */}
                   {!scanComplete && (
                     <>
-                      <div className="scan-region" style={{ top: '6%', left: '3%', width: '18%', height: '10%' }}>
+                      <div className="scan-region" style={{ top: '5%', left: '4%', width: '12%', height: '8%' }}>
                         <span className="scan-label">Logo</span>
                       </div>
-                      <div className="scan-region" style={{ top: '24%', left: '3%', width: '35%', height: '14%' }}>
+                      <div className="scan-region" style={{ top: '22%', left: '4%', width: '30%', height: '12%' }}>
                         <span className="scan-label">Typeface</span>
                       </div>
-                      <div className="scan-region" style={{ top: '18%', right: '3%', width: '22%', height: '8%' }}>
+                      <div className="scan-region" style={{ top: '15%', right: '4%', width: '20%', height: '7%' }}>
                         <span className="scan-label">6 colors</span>
+                      </div>
+                      <div className="scan-region" style={{ top: '55%', left: '4%', width: '90%', height: '16%' }}>
+                        <span className="scan-label">Components</span>
                       </div>
                     </>
                   )}
                 </div>
 
                 {/* Extraction panel */}
-                <div className="hidden md:flex w-[200px] shrink-0 border-l border-border/40 bg-warm-offwhite/50 flex-col">
-                  <div className="px-4 py-3 border-b border-border/30">
-                    <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Extracted</span>
+                <div className="hidden md:flex w-[210px] shrink-0 border-l border-border/40 bg-[#FAFAF9] flex-col">
+                  <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-foreground-muted uppercase tracking-wider">Extracted</span>
+                    <span className="text-[9px] font-mono text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded-full">Live</span>
                   </div>
 
-                  <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                  <div className="flex-1 p-4 space-y-5 overflow-y-auto">
                     {/* Colors */}
                     <div>
-                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Colors</span>
-                      <div className="mt-2 flex gap-1.5">
+                      <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Colors</span>
+                      <div className="mt-2.5 flex gap-1.5">
                         {['#FF5F45','#FF8A5B','#F2B84B','#1A1918','#FAF8F5','#6B5CE7'].map(c => (
-                          <div key={c} className="w-5 h-5 rounded border border-border/40" style={{ backgroundColor: c }} title={c} />
+                          <div key={c} className="w-6 h-6 rounded-lg border border-black/5 shadow-sm cursor-pointer hover:scale-110 transition-transform" style={{ backgroundColor: c }} title={c} />
                         ))}
                       </div>
                     </div>
 
                     {/* Typefaces */}
                     <div>
-                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Typefaces</span>
-                      <div className="mt-2 space-y-1">
-                        <div className="text-[11px] font-semibold text-graphite">Manrope</div>
-                        <div className="text-[10px] text-foreground-muted">IBM Plex Mono</div>
+                      <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Typefaces</span>
+                      <div className="mt-2.5 space-y-1.5">
+                        <div className="text-[12px] font-bold text-graphite leading-tight">Manrope</div>
+                        <div className="text-[10px] text-foreground-muted font-mono">IBM Plex Mono</div>
                       </div>
                     </div>
 
                     {/* Logo variants */}
                     <div>
-                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Logos</span>
-                      <div className="mt-2 grid grid-cols-2 gap-1.5">
-                        {['Full','Mark','Light','Dark'].map(v => (
-                          <div key={v} className="h-8 rounded bg-white border border-border/30 flex items-center justify-center">
-                            <span className="text-[8px] font-mono text-foreground-muted">{v}</span>
+                      <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Logos</span>
+                      <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                        {[
+                          { label: 'Full', bg: 'bg-white', border: true },
+                          { label: 'Mark', bg: 'gradient-accent', text: 'text-white' },
+                          { label: 'Light', bg: 'bg-white', border: true },
+                          { label: 'Dark', bg: 'bg-graphite', text: 'text-white' },
+                        ].map(v => (
+                          <div key={v.label} className={`h-9 rounded-lg ${v.bg} ${v.border ? 'border border-border/40' : ''} flex items-center justify-center`}>
+                            <span className={`text-[9px] font-semibold ${v.text || 'text-foreground-muted'}`}>{v.label}</span>
                           </div>
                         ))}
                       </div>
@@ -317,27 +356,30 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
 
                     {/* Spacing */}
                     <div>
-                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Spacing</span>
-                      <div className="mt-2 flex items-end gap-1">
+                      <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Spacing</span>
+                      <div className="mt-2.5 flex items-end gap-1">
                         {[4,8,12,16,24,32,48,64].map(v => (
-                          <div key={v} className="w-3 rounded-sm bg-brand-orange/15" style={{ height: Math.min(v * 0.4, 32) }} />
+                          <div key={v} className="w-3.5 rounded-sm bg-brand-orange/15 hover:bg-brand-orange/30 transition-colors" style={{ height: Math.min(v * 0.4, 32) }} />
                         ))}
                       </div>
                     </div>
 
                     {/* Radius */}
                     <div>
-                      <span className="text-[9px] font-mono text-foreground-muted uppercase tracking-wider">Radius</span>
-                      <div className="mt-2 flex gap-1.5">
+                      <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Radius</span>
+                      <div className="mt-2.5 flex gap-1.5">
                         {[4,8,12,16].map(v => (
-                          <div key={v} className="w-7 h-7 border border-brand-orange/30" style={{ borderRadius: v }} />
+                          <div key={v} className="w-8 h-8 border border-brand-orange/30 bg-brand-orange/5" style={{ borderRadius: v }} />
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="px-4 py-3 border-t border-border/30">
-                    <span className="text-[9px] font-mono text-foreground-muted">128 tokens found</span>
+                  <div className="px-4 py-3 border-t border-border/30 bg-white/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono text-foreground-muted">128 tokens</span>
+                      <span className="text-[9px] font-mono text-brand-orange font-semibold">Export JSON</span>
+                    </div>
                   </div>
                 </div>
               </div>
