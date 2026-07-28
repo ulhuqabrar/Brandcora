@@ -381,6 +381,54 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
   );
 }
 
+/* ─── Trust Taper ─── */
+function TrustTaper() {
+  const partners = [
+    { name: 'Vercel', logo: 'V' },
+    { name: 'Stripe', logo: 'S' },
+    { name: 'Notion', logo: 'N' },
+    { name: 'Figma', logo: 'F' },
+    { name: 'Linear', logo: 'L' },
+    { name: 'Supabase', logo: 'SB' },
+  ];
+
+  return (
+    <section className="py-14 bg-white border-b border-border/50">
+      <div className="mx-auto max-w-[1280px] px-8 md:px-12">
+        <p className="text-center text-[12px] font-medium text-foreground-muted uppercase tracking-[0.15em] mb-8">
+          Trusted by teams building the future
+        </p>
+        <div className="flex items-center justify-center gap-10 md:gap-14 flex-wrap">
+          {partners.map(p => (
+            <div key={p.name} className="flex items-center gap-2 opacity-30 hover:opacity-60 transition-opacity duration-300">
+              <div className="w-8 h-8 rounded-lg bg-graphite/8 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-graphite/60">{p.logo}</span>
+              </div>
+              <span className="text-[14px] font-semibold text-graphite/50 tracking-tight">{p.name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-border/30">
+          <div className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            SOC 2 Compliant
+          </div>
+          <div className="w-px h-4 bg-border/40" />
+          <div className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            GDPR Ready
+          </div>
+          <div className="w-px h-4 bg-border/40" />
+          <div className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            99.9% Uptime
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Live Scanning Section ─── */
 function ScanningSection() {
   const [activeStep, setActiveStep] = useState(0);
@@ -1341,6 +1389,7 @@ export default function LandingPage() {
       <Navigation />
       <main>
         <HeroSection />
+        <TrustTaper />
         <ScanningSection />
         <BrandSystemSection />
         <TokenSection />
