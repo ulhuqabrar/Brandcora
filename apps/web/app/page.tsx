@@ -219,7 +219,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                 </div>
                 <div className="flex-1 mx-4 h-7 flex items-center justify-center rounded-md bg-white border border-border/40">
                   <svg className="w-3 h-3 mr-1.5 text-foreground-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  <span className="text-[11px] font-mono text-foreground-muted">yourbrand.com</span>
+                  <span className="text-[11px] font-mono text-foreground-muted">seocontent.ai</span>
                 </div>
                 <div className="w-16" />
               </div>
@@ -228,42 +228,41 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
               <div className="flex min-h-[400px]">
                 {/* Website preview */}
                 <div className="flex-1 relative p-6 space-y-4">
-                  {/* Fake website nav */}
+                  {/* SEOContent.ai nav */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg gradient-accent flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold">B</span>
+                      <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold">S</span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="h-2 w-20 rounded-full bg-graphite/20" />
-                      </div>
+                      <span className="text-[11px] font-semibold text-graphite">SEO Content AI</span>
                     </div>
-                    <div className="flex items-center gap-5">
-                      <div className="h-2 w-12 rounded-full bg-graphite/10" />
-                      <div className="h-2 w-14 rounded-full bg-graphite/10" />
+                    <div className="flex items-center gap-4">
                       <div className="h-2 w-10 rounded-full bg-graphite/10" />
-                      <div className="h-7 w-20 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-12 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-10 rounded-full bg-graphite/10" />
+                      <div className="h-2 w-14 rounded-full bg-graphite/10" />
+                      <div className="h-7 w-20 rounded-full gradient-accent opacity-90" />
                     </div>
                   </div>
 
-                  {/* Hero content area */}
-                  <div className="pt-4 space-y-3">
-                    <div className="h-5 w-56 rounded-md bg-graphite/15" />
-                    <div className="h-5 w-40 rounded-md bg-graphite/10" />
-                    <div className="h-3 w-72 rounded-full bg-graphite/6 mt-2" />
-                    <div className="h-3 w-48 rounded-full bg-graphite/5" />
+                  {/* Hero headline area */}
+                  <div className="pt-3 space-y-3">
+                    <div className="h-5 w-64 rounded-md bg-graphite/15" />
+                    <div className="h-5 w-48 rounded-md bg-graphite/12" />
+                    <div className="h-3 w-80 rounded-full bg-graphite/6 mt-2" />
+                    <div className="h-3 w-56 rounded-full bg-graphite/5" />
                     <div className="flex gap-2.5 pt-2">
                       <div className="h-8 w-28 rounded-full gradient-accent opacity-90" />
                       <div className="h-8 w-24 rounded-full border border-graphite/10" />
                     </div>
                   </div>
 
-                  {/* Feature grid */}
+                  {/* Feature cards — SEOContent features */}
                   <div className="grid grid-cols-3 gap-3 pt-3">
                     {[
-                      { color: 'from-orange-400/20 to-amber-300/20', icon: 'gradient-accent' },
-                      { color: 'from-violet-400/20 to-purple-300/20', icon: 'bg-violet-500' },
-                      { color: 'from-emerald-400/20 to-teal-300/20', icon: 'bg-emerald-500' },
+                      { label: 'Bulk Content', color: 'from-indigo-400/20 to-violet-300/20', icon: 'bg-indigo-500' },
+                      { label: 'Content Clusters', color: 'from-emerald-400/20 to-teal-300/20', icon: 'bg-emerald-500' },
+                      { label: 'Multi-Language', color: 'from-amber-400/20 to-orange-300/20', icon: 'bg-amber-500' },
                     ].map((card, i) => (
                       <div key={i} className="rounded-xl border border-border/30 p-3 space-y-2">
                         <div className={`w-9 h-9 rounded-lg ${card.icon} flex items-center justify-center`}>
@@ -294,16 +293,16 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                   {/* Detection regions — appear during scan */}
                   {!scanComplete && (
                     <>
-                      <div className="scan-region" style={{ top: '5%', left: '4%', width: '12%', height: '8%' }}>
+                      <div className="scan-region" style={{ top: '4%', left: '3%', width: '14%', height: '8%' }}>
                         <span className="scan-label">Logo</span>
                       </div>
-                      <div className="scan-region" style={{ top: '22%', left: '4%', width: '30%', height: '12%' }}>
+                      <div className="scan-region" style={{ top: '20%', left: '3%', width: '32%', height: '13%' }}>
                         <span className="scan-label">Typeface</span>
                       </div>
-                      <div className="scan-region" style={{ top: '15%', right: '4%', width: '20%', height: '7%' }}>
-                        <span className="scan-label">6 colors</span>
+                      <div className="scan-region" style={{ top: '14%', right: '3%', width: '18%', height: '6%' }}>
+                        <span className="scan-label">5 colors</span>
                       </div>
-                      <div className="scan-region" style={{ top: '55%', left: '4%', width: '90%', height: '16%' }}>
+                      <div className="scan-region" style={{ top: '52%', left: '3%', width: '92%', height: '14%' }}>
                         <span className="scan-label">Components</span>
                       </div>
                     </>
@@ -322,7 +321,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                     <div>
                       <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Colors</span>
                       <div className="mt-2.5 flex gap-1.5">
-                        {['#FF5F45','#FF8A5B','#F2B84B','#1A1918','#FAF8F5','#6B5CE7'].map(c => (
+                        {['#4F46E5','#7C3AED','#10B981','#1A1918','#FFFFFF'].map(c => (
                           <div key={c} className="w-6 h-6 rounded-lg border border-black/5 shadow-sm cursor-pointer hover:scale-110 transition-transform" style={{ backgroundColor: c }} title={c} />
                         ))}
                       </div>
@@ -332,8 +331,8 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                     <div>
                       <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Typefaces</span>
                       <div className="mt-2.5 space-y-1.5">
-                        <div className="text-[12px] font-bold text-graphite leading-tight">Manrope</div>
-                        <div className="text-[10px] text-foreground-muted font-mono">IBM Plex Mono</div>
+                        <div className="text-[12px] font-bold text-graphite leading-tight">Inter</div>
+                        <div className="text-[10px] text-foreground-muted font-mono">JetBrains Mono</div>
                       </div>
                     </div>
 
@@ -343,7 +342,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                       <div className="mt-2.5 grid grid-cols-2 gap-1.5">
                         {[
                           { label: 'Full', bg: 'bg-white', border: true },
-                          { label: 'Mark', bg: 'gradient-accent', text: 'text-white' },
+                          { label: 'Mark', bg: 'bg-[#4F46E5]', text: 'text-white' },
                           { label: 'Light', bg: 'bg-white', border: true },
                           { label: 'Dark', bg: 'bg-graphite', text: 'text-white' },
                         ].map(v => (
@@ -359,7 +358,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                       <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Spacing</span>
                       <div className="mt-2.5 flex items-end gap-1">
                         {[4,8,12,16,24,32,48,64].map(v => (
-                          <div key={v} className="w-3.5 rounded-sm bg-brand-orange/15 hover:bg-brand-orange/30 transition-colors" style={{ height: Math.min(v * 0.4, 32) }} />
+                          <div key={v} className="w-3.5 rounded-sm bg-[#4F46E5]/15 hover:bg-[#4F46E5]/30 transition-colors" style={{ height: Math.min(v * 0.4, 32) }} />
                         ))}
                       </div>
                     </div>
@@ -369,7 +368,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
                       <span className="text-[9px] font-semibold text-foreground-muted uppercase tracking-wider">Radius</span>
                       <div className="mt-2.5 flex gap-1.5">
                         {[4,8,12,16].map(v => (
-                          <div key={v} className="w-8 h-8 border border-brand-orange/30 bg-brand-orange/5" style={{ borderRadius: v }} />
+                          <div key={v} className="w-8 h-8 border border-[#4F46E5]/30 bg-[#4F46E5]/5" style={{ borderRadius: v }} />
                         ))}
                       </div>
                     </div>
@@ -377,7 +376,7 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
 
                   <div className="px-4 py-3 border-t border-border/30 bg-white/60">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-mono text-foreground-muted">128 tokens</span>
+                      <span className="text-[9px] font-mono text-foreground-muted">96 tokens</span>
                       <span className="text-[9px] font-mono text-brand-orange font-semibold">Export JSON</span>
                     </div>
                   </div>
