@@ -11,7 +11,6 @@ import {
   Ruler,
   Stack,
   ListChecks,
-  GitBranch,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +23,6 @@ const brandNav = [
   { to: '/brand/layout', label: 'Layout', icon: Ruler },
   { to: '/brand/components', label: 'Components', icon: Stack },
   { to: '/brand/tokens', label: 'Tokens', icon: ListChecks },
-  { to: '/brand/versions', label: 'Versions', icon: GitBranch },
 ];
 
 export function BrandSubNav() {
