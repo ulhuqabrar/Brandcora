@@ -1053,56 +1053,220 @@ function LibrarySection() {
             </div>
 
             <div className="p-6 md:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Brand Overview</CardTitle>
-                      <Badge variant="outline" className="text-[9px] font-mono">Last scanned 2h ago</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { label: 'Logos', value: '6', icon: Square },
-                        { label: 'Colors', value: '14', icon: Palette },
-                        { label: 'Fonts', value: '3', icon: Type },
-                        { label: 'Tokens', value: '128', icon: Layers },
-                      ].map(stat => (
-                        <div key={stat.label} className="p-3 rounded-lg bg-warm-offwhite border border-border/30">
-                          <stat.icon className="w-4 h-4 text-brand-orange mb-2" />
-                          <p className="text-xl font-bold text-graphite">{stat.value}</p>
-                          <p className="text-[10px] text-foreground-muted">{stat.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Version History</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {[
-                        { version: 'v3.2', date: 'Today', changes: 'Updated primary color' },
-                        { version: 'v3.1', date: '3 days ago', changes: 'Added icon set' },
-                        { version: 'v3.0', date: '1 week ago', changes: 'Major brand refresh' },
-                        { version: 'v2.4', date: '2 weeks ago', changes: 'Typography update' },
-                      ].map(v => (
-                        <div key={v.version} className="flex items-start gap-3">
-                          <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />
-                          <div>
-                            <p className="text-xs font-bold text-graphite">{v.version} <span className="font-normal text-foreground-muted">· {v.date}</span></p>
-                            <p className="text-[10px] text-foreground-muted">{v.changes}</p>
+              {activeTab === 'overview' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm">Brand Overview</CardTitle>
+                        <Badge variant="outline" className="text-[9px] font-mono">Last scanned 2h ago</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { label: 'Logos', value: '6', icon: Square },
+                          { label: 'Colors', value: '14', icon: Palette },
+                          { label: 'Fonts', value: '3', icon: Type },
+                          { label: 'Tokens', value: '128', icon: Layers },
+                        ].map(stat => (
+                          <div key={stat.label} className="p-3 rounded-lg bg-warm-offwhite border border-border/30">
+                            <stat.icon className="w-4 h-4 text-brand-orange mb-2" />
+                            <p className="text-xl font-bold text-graphite">{stat.value}</p>
+                            <p className="text-[10px] text-foreground-muted">{stat.label}</p>
                           </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Version History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {[
+                          { version: 'v3.2', date: 'Today', changes: 'Updated primary color' },
+                          { version: 'v3.1', date: '3 days ago', changes: 'Added icon set' },
+                          { version: 'v3.0', date: '1 week ago', changes: 'Major brand refresh' },
+                          { version: 'v2.4', date: '2 weeks ago', changes: 'Typography update' },
+                        ].map(v => (
+                          <div key={v.version} className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />
+                            <div>
+                              <p className="text-xs font-bold text-graphite">{v.version} <span className="font-normal text-foreground-muted">· {v.date}</span></p>
+                              <p className="text-[10px] text-foreground-muted">{v.changes}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {activeTab === 'logos' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      { label: 'Primary', bg: 'bg-white', border: true, size: 'h-16' },
+                      { label: 'Secondary', bg: 'bg-[#0D1117]', text: 'text-white', size: 'h-16' },
+                      { label: 'Monogram', bg: 'gradient-accent', text: 'text-white', size: 'h-16' },
+                      { label: 'Favicon', bg: 'bg-white', border: true, size: 'h-12', small: true },
+                      { label: 'Light', bg: 'bg-warm-offwhite', border: true, size: 'h-16' },
+                      { label: 'Dark', bg: 'bg-graphite', text: 'text-white', size: 'h-16' },
+                    ].map(v => (
+                      <div key={v.label} className={`rounded-xl border border-border/40 ${v.bg} ${v.size} flex items-center justify-center`}>
+                        <span className={`text-sm font-bold ${v.text || 'text-graphite'}`}>{v.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-mono text-foreground-muted">6 logo variations exported · SVG + PNG formats</p>
+                </div>
+              )}
+
+              {activeTab === 'colors' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {[
+                      { hex: '#FF5F45', name: 'brand-primary', pct: '32%' },
+                      { hex: '#FF8A5B', name: 'brand-secondary', pct: '18%' },
+                      { hex: '#F2B84B', name: 'brand-accent', pct: '12%' },
+                      { hex: '#1A1918', name: 'surface-dark', pct: '24%' },
+                      { hex: '#FAF8F5', name: 'surface-light', pct: '8%' },
+                      { hex: '#6B5CE7', name: 'interactive-focus', pct: '6%' },
+                      { hex: '#16A34A', name: 'status-success', pct: '—' },
+                      { hex: '#F59E0B', name: 'status-warning', pct: '—' },
+                      { hex: '#EF4444', name: 'status-error', pct: '—' },
+                      { hex: '#0EA5E9', name: 'info-link', pct: '—' },
+                    ].map(c => (
+                      <div key={c.hex} className="rounded-xl border border-border/40 overflow-hidden">
+                        <div className="h-16 w-full" style={{ backgroundColor: c.hex }} />
+                        <div className="p-2.5">
+                          <p className="text-[10px] font-mono text-graphite">{c.name}</p>
+                          <p className="text-[9px] font-mono text-foreground-muted">{c.hex} · {c.pct}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1 h-8 rounded-lg" style={{ background: 'linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B)' }} />
+                    <div className="flex-1 h-8 rounded-lg" style={{ background: 'linear-gradient(135deg, #6B5CE7, #A78BFA)' }} />
+                    <div className="flex-1 h-8 rounded-lg" style={{ background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)' }} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'typography' && (
+                <div className="space-y-4">
+                  {[
+                    { role: 'Display', sample: 'Brand System', font: 'Manrope', weight: '800', size: '48px', lh: '0.95' },
+                    { role: 'Heading', sample: 'Visual Identity', font: 'Manrope', weight: '700', size: '32px', lh: '1.1' },
+                    { role: 'Body', sample: 'The platform analyzes visible design language across your website.', font: 'Manrope', weight: '400', size: '16px', lh: '1.5' },
+                    { role: 'Label', sample: 'DESIGN TOKEN', font: 'IBM Plex Mono', weight: '500', size: '12px', lh: '1.4' },
+                    { role: 'Caption', sample: 'Last scanned 2 hours ago', font: 'IBM Plex Mono', weight: '400', size: '11px', lh: '1.4' },
+                  ].map(t => (
+                    <div key={t.role} className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-6 py-3 border-b border-border/30 last:border-0">
+                      <span className="md:w-20 shrink-0 text-[10px] font-mono text-brand-orange">{t.role}</span>
+                      <div className="flex-1" style={{ fontSize: Math.min(parseInt(t.size), 40), fontWeight: t.weight, lineHeight: t.lh, fontFamily: t.font }}>
+                        <span className="text-graphite">{t.sample}</span>
+                      </div>
+                      <div className="md:w-40 shrink-0 flex gap-1.5">
+                        <Badge variant="secondary" className="text-[8px] font-mono px-1.5 py-0">{t.font}</Badge>
+                        <Badge variant="secondary" className="text-[8px] font-mono px-1.5 py-0">{t.weight}</Badge>
+                        <Badge variant="secondary" className="text-[8px] font-mono px-1.5 py-0">{t.size}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'icons' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-6 md:grid-cols-10 gap-3">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <div key={i} className="aspect-square rounded-lg border border-border/30 bg-warm-offwhite flex items-center justify-center hover:border-brand-orange/40 transition-colors">
+                        <div className="w-5 h-5 rounded bg-graphite/10" />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-mono text-foreground-muted">20 icons · SVG format · 24×24 baseline grid</p>
+                </div>
+              )}
+
+              {activeTab === 'components' && (
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Buttons</p>
+                    <div className="flex flex-wrap gap-3">
+                      <Button size="sm" className="gradient-accent text-white">Primary</Button>
+                      <Button size="sm" variant="outline">Secondary</Button>
+                      <Button size="sm" variant="ghost">Ghost</Button>
+                      <Button size="sm" variant="link">Link</Button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Form Elements</p>
+                    <div className="flex flex-wrap gap-3 items-center">
+                      <Input placeholder="Input field" className="w-48 h-9 text-xs" />
+                      <select className="h-9 px-3 rounded-md border border-border/60 bg-white text-xs text-graphite">
+                        <option>Select</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Badges</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="gradient-accent text-white">Default</Badge>
+                      <Badge variant="secondary">Secondary</Badge>
+                      <Badge variant="outline">Outline</Badge>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'tokens' && (
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Spacing Scale</p>
+                    <div className="flex items-end gap-2">
+                      {[4,8,12,16,24,32,48,64].map(v => (
+                        <div key={v} className="flex flex-col items-center gap-1">
+                          <div className="w-6 rounded-sm bg-brand-orange/20" style={{ height: v * 0.5 }} />
+                          <span className="text-[8px] font-mono text-foreground-muted">{v}</span>
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Radius Scale</p>
+                    <div className="flex gap-3">
+                      {[0,4,8,12,16,9999].map(v => (
+                        <div key={v} className="flex flex-col items-center gap-1.5">
+                          <div className="w-10 h-10 border border-brand-orange/30 bg-brand-orange/5" style={{ borderRadius: v }} />
+                          <span className="text-[8px] font-mono text-foreground-muted">{v === 9999 ? 'full' : v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider mb-3">Shadows</p>
+                    <div className="flex gap-4">
+                      {[
+                        { label: 'sm', shadow: '0 1px 2px rgba(0,0,0,0.05)' },
+                        { label: 'md', shadow: '0 4px 6px -1px rgba(0,0,0,0.07)' },
+                        { label: 'lg', shadow: '0 10px 15px -3px rgba(0,0,0,0.08)' },
+                        { label: 'xl', shadow: '0 20px 25px -5px rgba(0,0,0,0.1)' },
+                      ].map(s => (
+                        <div key={s.label} className="flex flex-col items-center gap-1.5">
+                          <div className="w-16 h-12 rounded-lg bg-white border border-border/20" style={{ boxShadow: s.shadow }} />
+                          <span className="text-[8px] font-mono text-foreground-muted">{s.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 flex items-center gap-3">
                 <span className="text-[10px] font-mono text-foreground-muted uppercase tracking-wider">Workspaces</span>
