@@ -298,24 +298,6 @@ className="shrink-0 h-12 px-6 gradient-accent text-white"
 
                   {/* Scan line */}
                   {!scanComplete && <div className="scan-line" style={{ animationDuration: '2.5s' }} />}
-
-                  {/* Detection regions — appear during scan */}
-                  {!scanComplete && (
-                    <>
-                      <div className="scan-region" style={{ top: '4%', left: '3%', width: '14%', height: '8%' }}>
-                        <span className="scan-label">Logo</span>
-                      </div>
-                      <div className="scan-region" style={{ top: '20%', left: '3%', width: '32%', height: '13%' }}>
-                        <span className="scan-label">Typeface</span>
-                      </div>
-                      <div className="scan-region" style={{ top: '14%', right: '3%', width: '18%', height: '6%' }}>
-                        <span className="scan-label">5 colors</span>
-                      </div>
-                      <div className="scan-region" style={{ top: '52%', left: '3%', width: '92%', height: '14%' }}>
-                        <span className="scan-label">Components</span>
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 {/* Extraction panel */}
