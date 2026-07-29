@@ -170,6 +170,8 @@ export default function BrandScanPage() {
 
         if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
           if (pollRef.current) clearInterval(pollRef.current);
+          // Refresh brand profile data after extraction
+          window.dispatchEvent(new Event('brand-profile-refresh'));
           setTimeout(() => {
             router.push(`/brand/review?scanId=${scanId}`);
           }, 1500);
@@ -228,6 +230,8 @@ export default function BrandScanPage() {
       if (scan.status !== 'completed' && scan.status !== 'completed_with_warnings' && scan.status !== 'failed') {
         pollScan(scan.id);
       } else if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
+        // Refresh brand profile data after extraction
+        window.dispatchEvent(new Event('brand-profile-refresh'));
         setTimeout(() => {
           router.push(`/brand/review?scanId=${scan.id}`);
         }, 1500);

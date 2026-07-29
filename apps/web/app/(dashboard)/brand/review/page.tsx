@@ -16,9 +16,13 @@ import {
   TextAa,
   CirclesFour,
   Spinner,
+  Stack,
+  Ruler,
+  ListChecks,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
+import { useBrandProfile } from '@/lib/brand-profile-context';
 
 interface ScanIssue {
   id: string;
@@ -53,6 +57,7 @@ export default function BrandReviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scanId = searchParams.get('scanId');
+  const { profile, refresh: refreshProfile } = useBrandProfile();
 
   const [scan, setScan] = useState<ScanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,7 +90,9 @@ export default function BrandReviewPage() {
 
   useEffect(() => {
     fetchScan();
-  }, [fetchScan]);
+    // Refresh brand profile when review page loads
+    refreshProfile();
+  }, [fetchScan, refreshProfile]);
 
   const handleApprove = async () => {
     if (!scan) return;
@@ -194,6 +201,12 @@ export default function BrandReviewPage() {
 
   const overallScore = scan?.overallScore ?? 0;
 
+  // Get extracted data from brand profile
+  const colors = profile?.colors || [];
+  const fonts = profile?.fonts || [];
+  const logos = profile?.logos || [];
+  const gradients = profile?.gradients || [];
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -249,10 +262,10 @@ export default function BrandReviewPage() {
         </div>
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label: 'Colors', count: colorIssues.length, icon: Palette, color: '#FF5F45' },
-            { label: 'Fonts', count: typographyIssues.length, icon: TextAa, color: '#FF8A5B' },
-            { label: 'Logos', count: logoIssues.length, icon: CirclesFour, color: '#F2B84B' },
-            { label: 'Issues', count: scan?.issues.length || 0, icon: Warning, color: '#D97706' },
+            { label: 'Colors', count: colors.length, icon: Palette, color: '#FF5F45' },
+            { label: 'Fonts', count: fonts.length, icon: TextAa, color: '#FF8A5B' },
+            { label: 'Logos', count: logos.length, icon: CirclesFour, color: '#F2B84B' },
+            { label: 'Gradients', count: gradients.length, icon: Stack, color: '#8B5CF6' },
           ].map((card) => (
             <div key={card.label} className="flex items-center gap-3 p-3 rounded-lg border border-[#F0F0EE]">
               <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: `${card.color}15` }}>
@@ -268,70 +281,117 @@ export default function BrandReviewPage() {
       </div>
 
       {/* Detected Colors */}
-      {colorIssues.length > 0 && (
+      {colors.length > 0 && (
         <div className="dash-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
                 <Palette className="h-4 w-4 text-[#FF5F45]" weight="bold" />
               </div>
-              <div className="dash-card-title">Colors detected</div>
+              <div className="dash-card-title">Colors extracted</div>
             </div>
             <Link href="/brand/colors" className="btn-ghost text-[12px]">
               View all →
             </Link>
           </div>
-          <div className="space-y-1.5">
-            {colorIssues.slice(0, 5).map((issue) => {
-              const hexMatch = issue.description.match(/#[0-9A-Fa-f]{6}/);
-              return (
-                <div key={issue.id} className="color-swatch">
-                  {hexMatch && <div className="color-swatch-preview" style={{ backgroundColor: hexMatch[0] }} />}
-                  <div className="color-swatch-info">
-                    <div className="color-swatch-name">{issue.title}</div>
-                    <div className="color-swatch-hex">{hexMatch?.[0] || 'N/A'}</div>
-                  </div>
-                  <span className={cn(
-                    'text-[11px] font-medium',
-                    issue.severity === 'critical' ? 'text-[#DC2626]' :
-                    issue.severity === 'major' ? 'text-[#F59E0B]' : 'text-[#16A34A]'
-                  )}>
-                    {issue.severity}
-                  </span>
+          <div className="grid grid-cols-2 gap-2">
+            {colors.slice(0, 6).map((c) => (
+              <div key={c.id} className="color-swatch">
+                <div className="color-swatch-preview" style={{ backgroundColor: c.hexValue }} />
+                <div className="color-swatch-info">
+                  <div className="color-swatch-name">{c.name}</div>
+                  <div className="color-swatch-hex">{c.hexValue}</div>
                 </div>
-              );
-            })}
+                {c.role && <span className="text-[11px] font-mono text-[#8A8A85]">{c.role}</span>}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Detected Typography */}
-      {typographyIssues.length > 0 && (
+      {fonts.length > 0 && (
         <div className="dash-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-md bg-[#FF8A5B]/10 flex items-center justify-center">
                 <TextAa className="h-4 w-4 text-[#FF8A5B]" weight="bold" />
               </div>
-              <div className="dash-card-title">Typography detected</div>
+              <div className="dash-card-title">Typography extracted</div>
             </div>
             <Link href="/brand/typography" className="btn-ghost text-[12px]">
               View all →
             </Link>
           </div>
           <div className="space-y-2">
-            {typographyIssues.slice(0, 3).map((issue) => (
-              <div key={issue.id} className="type-specimen">
+            {fonts.slice(0, 3).map((f) => (
+              <div key={f.id} className="type-specimen">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="type-specimen-name">{issue.title}</span>
-                  <span className={cn(
-                    'text-[11px] font-medium',
-                    issue.severity === 'major' ? 'text-[#F59E0B]' : 'text-[#16A34A]'
-                  )}>
-                    {issue.severity}
-                  </span>
+                  <span className="type-specimen-name">{f.name}</span>
+                  <span className="text-[11px] text-[#8A8A85]">{f.role || 'Body'}</span>
                 </div>
-                <p className="text-[12px] text-[#8A8A85]">{issue.description}</p>
+                <div className="type-specimen-sample" style={{ fontFamily: f.family }}>
+                  The quick brown fox jumps
+                </div>
+                <div className="type-specimen-meta">Weight {f.weight || 400}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Detected Logos */}
+      {logos.length > 0 && (
+        <div className="dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#F2B84B]/10 flex items-center justify-center">
+                <CirclesFour className="h-4 w-4 text-[#F2B84B]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Logos extracted</div>
+            </div>
+            <Link href="/brand/assets" className="btn-ghost text-[12px]">
+              View all →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {logos.slice(0, 3).map((l) => (
+              <div key={l.id} className="p-2 rounded-lg border border-[#F0F0EE]">
+                <div
+                  className="h-24 rounded-lg mb-2 flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: l.backgroundType === 'dark' ? '#1A1918' : '#FAFAF9' }}
+                >
+                  <img src={l.fileUrl} alt={l.logoType || 'Logo'} className="max-h-full max-w-full object-contain" />
+                </div>
+                <div className="text-[12px] font-medium text-[#3D3D3A]">{l.logoType || 'Logo'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Detected Gradients */}
+      {gradients.length > 0 && (
+        <div className="dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#8B5CF6]/10 flex items-center justify-center">
+                <Stack className="h-4 w-4 text-[#8B5CF6]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Gradients extracted</div>
+            </div>
+            <Link href="/brand/colors" className="btn-ghost text-[12px]">
+              View all →
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {gradients.slice(0, 3).map((g) => (
+              <div key={g.id} className="flex items-center gap-3 p-2 rounded-lg border border-[#F0F0EE]">
+                <div className="w-20 h-8 rounded-md" style={{ background: g.normalizedValue }} />
+                <div className="flex-1">
+                  <div className="text-[12px] font-medium text-[#3D3D3A]">{g.name}</div>
+                  <div className="text-[11px] font-mono text-[#8A8A85] truncate">{g.originalValue}</div>
+                </div>
               </div>
             ))}
           </div>

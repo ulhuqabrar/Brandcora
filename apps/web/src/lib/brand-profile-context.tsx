@@ -65,6 +65,13 @@ export function BrandProfileProvider({ children }: { children: ReactNode }) {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Listen for custom event to refresh profile
+  useEffect(() => {
+    const handleRefresh = () => fetchProfile();
+    window.addEventListener('brand-profile-refresh', handleRefresh);
+    return () => window.removeEventListener('brand-profile-refresh', handleRefresh);
+  }, [fetchProfile]);
+
   return (
     <BrandProfileContext.Provider value={{ profile, loading, error, refresh: fetchProfile }}>
       {children}

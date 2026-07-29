@@ -182,9 +182,12 @@ export async function runWebsiteCheck(
 
       console.log(`[EXTRACT] Starting extraction for scan ${scanId}, userId=${userId}, brandProfileId=${brandProfileId}`);
       console.log(`[EXTRACT] HTML length: ${pageResult.html?.length || 0}`);
+      console.log(`[EXTRACT] HTML first 500 chars: ${pageResult.html?.substring(0, 500) || 'empty'}`);
 
       const extraction = await extractBrandFromHtml(pageResult.html, baseUrl, parsedUrl);
       console.log(`[EXTRACT] Extraction result: colors=${extraction.colors.length}, fonts=${extraction.fonts.length}, logos=${extraction.logos.length}, gradients=${extraction.gradients.length}`);
+      console.log(`[EXTRACT] Colors found: ${JSON.stringify(extraction.colors.map(c => ({ name: c.name, hex: c.hex, role: c.role })))}`);
+      console.log(`[EXTRACT] Fonts found: ${JSON.stringify(extraction.fonts.map(f => ({ name: f.name, family: f.family, role: f.role })))}`);
 
       if (extraction.colors.length === 0 && extraction.fonts.length === 0) {
         const warning = 'No brand colors or fonts could be extracted from this page. The page may use JavaScript-rendered content or have limited CSS.';
