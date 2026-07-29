@@ -63,7 +63,6 @@ export default function BrandReviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [approving, setApproving] = useState(false);
-  const [approved, setApproved] = useState(false);
 
   const fetchScan = useCallback(async () => {
     if (!scanId) {
@@ -108,7 +107,8 @@ export default function BrandReviewPage() {
         throw new Error(data.error || 'Failed to approve');
       }
 
-      setApproved(true);
+      // Redirect to overview after approval
+      router.push('/brand');
     } catch (err: any) {
       setError(err.message || 'Failed to approve brand identity');
     } finally {
@@ -158,32 +158,6 @@ export default function BrandReviewPage() {
           <Link href="/brand/scan" className="btn-primary">
             <MagnifyingGlass className="h-4 w-4" weight="bold" /> Start a scan
           </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (approved) {
-    return (
-      <div className="space-y-5">
-        <div className="dash-card max-w-[480px] mx-auto text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-[#16A34A]/10 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-8 w-8 text-[#16A34A]" weight="bold" />
-          </div>
-          <h2 className="text-[20px] font-bold text-[#1A1918] tracking-tight mb-2">
-            Brand identity ready
-          </h2>
-          <p className="text-[13px] text-[#8A8A85] mb-6 max-w-[320px] mx-auto">
-            Your brand identity has been saved. You can now analyze creative assets against it.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <Link href="/scans/new" className="btn-primary">
-              <MagnifyingGlass className="h-4 w-4" weight="bold" /> Create first report
-            </Link>
-            <Link href="/brand" className="btn-secondary">
-              Explore brand identity
-            </Link>
-          </div>
         </div>
       </div>
     );
