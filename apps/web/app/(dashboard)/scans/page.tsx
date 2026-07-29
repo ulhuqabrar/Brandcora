@@ -137,16 +137,16 @@ export default function ReportsPage() {
 
       {/* Filter Tabs + Search */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-1 bg-[#F5F5F3] rounded-lg p-1">
+        <div className="flex items-center gap-0">
           {FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => { setActiveFilter(tab.key); setPage(1); }}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all',
+                'flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium transition-all border-b-2',
                 activeFilter === tab.key
-                  ? 'bg-white text-[#1A1918] shadow-sm'
-                  : 'text-[#8A8A85] hover:text-[#3D3D3A]'
+                  ? 'text-[#1A1918] border-[#1A1918]'
+                  : 'text-[#8A8A85] hover:text-[#3D3D3A] border-transparent'
               )}
             >
               {tab.key === 'website' && <Globe className="h-3 w-3" weight="bold" />}
