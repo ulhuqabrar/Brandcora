@@ -486,47 +486,6 @@ export default function BrandIdentityOverview() {
           </div>
         </div>
       </div>
-
-      {/* Recent Scans */}
-      {scans.length > 0 && (
-        <div className="dash-card">
-          <div className="dash-card-header">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
-                <FileText className="h-4 w-4 text-[#FF5F45]" weight="bold" />
-              </div>
-              <div className="dash-card-title">Recent scans</div>
-            </div>
-            <Link href="/scans" className="btn-ghost text-[12px]">
-              View all <ArrowRight className="h-3 w-3" weight="bold" />
-            </Link>
-          </div>
-          <div className="space-y-1.5">
-            {scans.map((scan) => (
-              <Link
-                key={scan.id}
-                href={`/brand/review?scanId=${scan.id}`}
-                className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE] hover:bg-[#FAFAF9] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-2 h-2 rounded-full',
-                    scan.status === 'completed' ? 'bg-[#16A34A]' :
-                    scan.status === 'failed' ? 'bg-[#DC2626]' : 'bg-[#F59E0B]'
-                  )} />
-                  <span className="text-[12px] text-[#3D3D3A]">{scan.id.slice(0, 8)}...</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {scan.overallScore != null && (
-                    <span className="text-[12px] font-medium text-[#3D3D3A]">{Math.round(scan.overallScore)}%</span>
-                  )}
-                  <span className="text-[11px] text-[#8A8A85]">{getTimeAgo(new Date(scan.createdAt))}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
