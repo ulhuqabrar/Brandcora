@@ -171,7 +171,7 @@ export default function BrandScanPage() {
         if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
           if (pollRef.current) clearInterval(pollRef.current);
           setTimeout(() => {
-            router.push('/brand');
+            router.push(`/brand/review?scanId=${scanId}`);
           }, 1500);
         } else if (scan.status === 'failed' || scan.status === 'cancelled') {
           if (pollRef.current) clearInterval(pollRef.current);
@@ -229,7 +229,7 @@ export default function BrandScanPage() {
         pollScan(scan.id);
       } else if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
         setTimeout(() => {
-          router.push('/brand');
+          router.push(`/brand/review?scanId=${scan.id}`);
         }, 1500);
       }
     } catch (err: any) {

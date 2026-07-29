@@ -13,6 +13,8 @@ import {
   ArrowRight,
   Spinner,
   Plus,
+  ListChecks,
+  FileText,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
@@ -292,6 +294,9 @@ export default function BrandIdentityOverview() {
               </div>
               <div className="dash-card-title">Logos &amp; assets</div>
             </div>
+            <Link href="/brand/assets" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
           </div>
           {logos.length === 0 ? (
             <p className="text-[13px] text-[#8A8A85] py-4">No logos uploaded yet.</p>
@@ -324,6 +329,9 @@ export default function BrandIdentityOverview() {
               </div>
               <div className="dash-card-title">Spacing &amp; radius</div>
             </div>
+            <Link href="/brand/layout" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
           </div>
           <div className="space-y-4">
             <div>
@@ -342,11 +350,97 @@ export default function BrandIdentityOverview() {
         </div>
       </div>
 
+      {/* Fourth Row: Components / Tokens */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Components (6 cols) */}
+        <div className="col-span-6 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#16A34A]/10 flex items-center justify-center">
+                <Stack className="h-4 w-4 text-[#16A34A]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Components</div>
+            </div>
+            <Link href="/brand/components" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+              <span className="text-[12px] text-[#3D3D3A]">Primary button</span>
+              <div
+                className="h-6 px-3 rounded flex items-center justify-center text-white text-[10px] font-medium"
+                style={{ backgroundColor: colors[0]?.hexValue || '#1A1918' }}
+              >
+                Button
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+              <span className="text-[12px] text-[#3D3D3A]">Secondary button</span>
+              <div
+                className="h-6 px-3 rounded border border-[#E8E8E6] flex items-center justify-center text-[10px] font-medium text-[#3D3D3A]"
+              >
+                Button
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+              <span className="text-[12px] text-[#3D3D3A]">Input field</span>
+              <div className="h-6 px-2 rounded border border-[#E8E8E6] flex items-center text-[10px] text-[#8A8A85]">
+                Placeholder
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tokens (6 cols) */}
+        <div className="col-span-6 dash-card">
+          <div className="dash-card-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#8B5CF6]/10 flex items-center justify-center">
+                <ListChecks className="h-4 w-4 text-[#8B5CF6]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Design tokens</div>
+            </div>
+            <Link href="/brand/tokens" className="btn-ghost text-[12px]">
+              View all <ArrowRight className="h-3 w-3" weight="bold" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {colors.slice(0, 2).map((c) => (
+              <div key={c.id} className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+                <span className="font-mono text-[11px] text-[#3D3D3A]">color.{c.name.toLowerCase().replace(/\s+/g, '-')}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded border border-[#E8E8E6]" style={{ backgroundColor: c.hexValue }} />
+                  <span className="font-mono text-[11px] text-[#8A8A85]">{c.hexValue}</span>
+                </div>
+              </div>
+            ))}
+            {fonts.slice(0, 1).map((f) => (
+              <div key={f.id} className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+                <span className="font-mono text-[11px] text-[#3D3D3A]">font.{f.role || f.name.toLowerCase().replace(/\s+/g, '-')}</span>
+                <span className="font-mono text-[11px] text-[#8A8A85]">{f.family}</span>
+              </div>
+            ))}
+            {profile.borderRadius != null && (
+              <div className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE]">
+                <span className="font-mono text-[11px] text-[#3D3D3A]">radius.default</span>
+                <span className="font-mono text-[11px] text-[#8A8A85]">{profile.borderRadius}px</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Recent Scans */}
       {scans.length > 0 && (
         <div className="dash-card">
           <div className="dash-card-header">
-            <div className="dash-card-title">Recent scans</div>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#FF5F45]/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-[#FF5F45]" weight="bold" />
+              </div>
+              <div className="dash-card-title">Recent scans</div>
+            </div>
             <Link href="/scans" className="btn-ghost text-[12px]">
               View all <ArrowRight className="h-3 w-3" weight="bold" />
             </Link>
@@ -355,7 +449,7 @@ export default function BrandIdentityOverview() {
             {scans.map((scan) => (
               <Link
                 key={scan.id}
-                href={`/scans/${scan.id}`}
+                href={`/brand/review?scanId=${scan.id}`}
                 className="flex items-center justify-between p-2 rounded-lg border border-[#F0F0EE] hover:bg-[#FAFAF9] transition-colors"
               >
                 <div className="flex items-center gap-3">
