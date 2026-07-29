@@ -10,6 +10,16 @@ import {
   X,
   Warning,
   Spinner,
+  Link as LinkIcon,
+  FileText,
+  Palette,
+  TextAa,
+  Ruler,
+  SquaresFour,
+  CircleNotch,
+  FloppyDisk,
+  Globe,
+  Image,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
@@ -37,6 +47,32 @@ const STAGE_ORDER = [
   'extracting_components', 'generating_tokens', 'saving_results',
   'completed', 'completed_with_warnings', 'failed', 'cancelled',
 ];
+
+const STAGE_ICONS: Record<string, React.ComponentType<any>> = {
+  queued: CircleNotch,
+  connecting: LinkIcon,
+  crawling: Globe,
+  extracting_assets: Image,
+  extracting_colors: Palette,
+  extracting_typography: TextAa,
+  extracting_layout: Ruler,
+  extracting_components: SquaresFour,
+  generating_tokens: FileText,
+  saving_results: FloppyDisk,
+};
+
+const STAGE_DESCRIPTIONS: Record<string, string> = {
+  queued: 'Waiting to start...',
+  connecting: 'Establishing connection...',
+  crawling: 'Discovering pages...',
+  extracting_assets: 'Finding visual assets...',
+  extracting_colors: 'Analyzing color palette...',
+  extracting_typography: 'Identifying fonts...',
+  extracting_layout: 'Measuring spacing...',
+  extracting_components: 'Detecting UI elements...',
+  generating_tokens: 'Building tokens...',
+  saving_results: 'Finalizing...',
+};
 
 interface ScanData {
   id: string;
@@ -76,6 +112,7 @@ export default function BrandScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanData, setScanData] = useState<ScanData | null>(null);
   const [previousScan, setPreviousScan] = useState<ScanData | null>(null);
+  const [previousStage, setPreviousStage] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef(false);
 
@@ -124,7 +161,12 @@ export default function BrandScanPage() {
         if (!data.success) return;
 
         const scan = data.data;
-        setScanData(prev => prev ? { ...prev, ...scan } : scan);
+        setScanData(prev => {
+          if (prev && prev.currentStage !== scan.currentStage) {
+            setPreviousStage(prev.currentStage);
+          }
+          return prev ? { ...prev, ...scan } : scan;
+        });
 
         if (scan.status === 'completed' || scan.status === 'completed_with_warnings') {
           if (pollRef.current) clearInterval(pollRef.current);
@@ -209,6 +251,10 @@ export default function BrandScanPage() {
   const currentStageIndex = scanData?.currentStage
     ? STAGE_ORDER.indexOf(scanData.currentStage)
     : 0;
+
+  const isStageEntering = (key: string) => {
+    return scanData?.currentStage === key && previousStage !== key;
+  };
 
   return (
     <div className="space-y-5">
@@ -319,13 +365,16 @@ export default function BrandScanPage() {
                 const stageIdx = STAGE_ORDER.indexOf(key);
                 const isCompleted = scanData && currentStageIndex > stageIdx;
                 const isActive = scanData?.currentStage === key;
+                const Icon = STAGE_ICONS[key] || CircleNotch;
+                const description = STAGE_DESCRIPTIONS[key];
 
                 return (
                   <div
                     key={key}
                     className={cn(
                       'scan-stage',
-                      isCompleted ? 'completed' : isActive ? 'active' : ''
+                      isCompleted ? 'completed' : isActive ? 'active' : '',
+                      isStageEntering(key) && 'entering'
                     )}
                   >
                     <div
@@ -342,20 +391,27 @@ export default function BrandScanPage() {
                         i + 1
                       )}
                     </div>
-                    <span
-                      className={cn(
-                        'text-[13px]',
-                        isActive
-                          ? 'font-medium text-[#1A1918]'
-                          : isCompleted
-                          ? 'text-[#16A34A]'
-                          : 'text-[#8A8A85]'
+                    <div className="flex-1">
+                      <span
+                        className={cn(
+                          'text-[13px]',
+                          isActive
+                            ? 'font-medium text-[#1A1918]'
+                            : isCompleted
+                            ? 'text-[#16A34A]'
+                            : 'text-[#8A8A85]'
+                        )}
+                      >
+                        {label}
+                      </span>
+                      {isActive && description && (
+                        <div className="scan-stage-description">
+                          {description}
+                        </div>
                       )}
-                    >
-                      {label}
-                    </span>
+                    </div>
                     {isActive && scanData && (
-                      <span className="text-[11px] text-[#8A8A85] ml-auto">
+                      <span className="text-[11px] text-[#8A8A85]">
                         {scanData.pagesAnalyzed} of {scanData.pagesDiscovered || '?'} pages
                       </span>
                     )}

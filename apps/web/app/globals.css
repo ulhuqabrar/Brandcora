@@ -1123,13 +1123,37 @@
   background: #F0F0EE;
   border-radius: 2px;
   overflow: hidden;
+  position: relative;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: #FF5F45;
+  background: linear-gradient(90deg, #FF5F45, #FF8A5B, #F2B84B);
+  background-size: 200% 100%;
   border-radius: 2px;
   transition: width 0.3s ease;
+  animation: progressGradient 2s linear infinite;
+}
+
+@keyframes progressGradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: progressShine 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* ─── Scan Stage Indicator ─── */
@@ -1139,15 +1163,46 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 8px;
-  transition: background 0.15s ease;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
 }
 
 .scan-stage.active {
   background: #FFFBEB;
+  animation: stagePulse 2s ease-in-out infinite;
 }
 
 .scan-stage.completed {
   background: #F0FDF4;
+  animation: stageComplete 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scan-stage.entering {
+  animation: stageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stagePulse {
+  0%, 100% { background: #FFFBEB; }
+  50% { background: #FFF7E0; }
+}
+
+@keyframes stageComplete {
+  0% { background: #FFFBEB; }
+  50% { background: #DCFCE7; }
+  100% { background: #F0FDF4; }
+}
+
+@keyframes stageEnter {
+  0% { 
+    opacity: 0; 
+    transform: translateX(-8px);
+    background: transparent;
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateX(0);
+    background: #FFFBEB;
+  }
 }
 
 .scan-stage-number {
@@ -1160,21 +1215,75 @@
   font-size: 11px;
   font-weight: 600;
   flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .scan-stage-number.active {
   background: #FF5F45;
   color: white;
+  animation: numberGlow 1.5s ease-in-out infinite;
 }
 
 .scan-stage-number.completed {
   background: #16A34A;
   color: white;
+  animation: numberPop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes numberGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 95, 69, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 95, 69, 0); }
+}
+
+@keyframes numberPop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .scan-stage-number.pending {
   background: #F0F0EE;
   color: #8A8A85;
+}
+
+.scan-stage-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-stage-icon.active {
+  animation: iconSpin 1.5s linear infinite;
+}
+
+@keyframes iconSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.scan-stage-icon.completed {
+  animation: iconCheck 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes iconCheck {
+  0% { transform: scale(0) rotate(-45deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.scan-stage-description {
+  font-size: 11px;
+  color: #8A8A85;
+  margin-left: auto;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scan-stage.active .scan-stage-description {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* ─── Issue Row ─── */
