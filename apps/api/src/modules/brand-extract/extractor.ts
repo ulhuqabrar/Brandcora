@@ -91,20 +91,35 @@ function colorDistance(c1: string, c2: string): number {
 
 function extractColorsFromCss(css: string): string[] {
   const colors: string[] = [];
+  
+  // Extract hex colors (3, 4, 6, 8 digit)
   const hexPattern = /#([0-9a-fA-F]{3,8})\b/g;
   let match;
   while ((match = hexPattern.exec(css)) !== null) {
     const hex = '#' + match[1];
-    if (hex.length >= 4 && hex.length <= 7 && !hex.includes('ffffff') && !hex.includes('000000')) {
+    // Only skip pure black and white
+    if (hex.toLowerCase() !== '#000000' && hex.toLowerCase() !== '#ffffff' && 
+        hex.toLowerCase() !== '#fff' && hex.toLowerCase() !== '#000') {
       colors.push(hexFromColor(hex));
     }
   }
-  const rgbPattern = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+  
+  // Extract rgb() colors
+  const rgbPattern = /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g;
   while ((match = rgbPattern.exec(css)) !== null) {
     const hex = '#' + [match[1], match[2], match[3]].map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
     colors.push(hex);
   }
-  const hslPattern = /hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/g;
+  
+  // Extract rgba() colors
+  const rgbaPattern = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)/g;
+  while ((match = rgbaPattern.exec(css)) !== null) {
+    const hex = '#' + [match[1], match[2], match[3]].map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+    colors.push(hex);
+  }
+  
+  // Extract HSL colors
+  const hslPattern = /hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/g;
   while ((match = hslPattern.exec(css)) !== null) {
     const h = parseInt(match[1]) / 360, s = parseInt(match[2]) / 100, l = parseInt(match[3]) / 100;
     const a = s * Math.min(l, 1 - l);
@@ -115,74 +130,260 @@ function extractColorsFromCss(css: string): string[] {
     const hex = '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
     colors.push(hex);
   }
+  
+  // Extract HSLA colors
+  const hslaPattern = /hsla\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*[\d.]+\s*\)/g;
+  while ((match = hslaPattern.exec(css)) !== null) {
+    const h = parseInt(match[1]) / 360, s = parseInt(match[2]) / 100, l = parseInt(match[3]) / 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) => {
+      const k = (n + h * 12) % 12;
+      return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    };
+    const hex = '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+    colors.push(hex);
+  }
+  
+  // Extract CSS custom properties with color values
+  const cssVarPattern = /--[\w-]+:\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\))/gi;
+  while ((match = cssVarPattern.exec(css)) !== null) {
+    const value = match[1];
+    if (value.startsWith('#')) {
+      colors.push(hexFromColor(value));
+    }
+  }
+  
   return colors;
 }
 
 function extractFontsFromHtml(html: string): string[] {
   const fonts: string[] = [];
-  const googleFontsMatch = html.match(/fonts\.googleapis\.com\/css2\?family=([^&"']+)/);
-  if (googleFontsMatch) {
-    const familyParam = decodeURIComponent(googleFontsMatch[1]);
+  
+  // Google Fonts - css2 format
+  const googleFontsCss2Match = html.match(/fonts\.googleapis\.com\/css2\?family=([^&"']+)/);
+  if (googleFontsCss2Match) {
+    const familyParam = decodeURIComponent(googleFontsCss2Match[1]);
     familyParam.split('|').forEach(f => {
       const name = f.split(':')[0].replace(/\+/g, ' ');
       if (name) fonts.push(name);
     });
   }
-  const fontFamilyPattern = /font-family\s*:\s*['"]?([^'";}\n]+)['"]?/g;
+  
+  // Google Fonts - css format
+  const googleFontsCssMatch = html.match(/fonts\.googleapis\.com\/css\?family=([^&"']+)/);
+  if (googleFontsCssMatch) {
+    const familyParam = decodeURIComponent(googleFontsCssMatch[1]);
+    familyParam.split('|').forEach(f => {
+      const name = f.split(':')[0].replace(/\+/g, ' ');
+      if (name) fonts.push(name);
+    });
+  }
+  
+  // Adobe Fonts / Typekit
+  const typekitMatch = html.match(/use\.typekit\.net\/([^"']+)/);
+  if (typekitMatch) {
+    fonts.push('Typekit');
+  }
+  
+  // font-family declarations in CSS
+  const fontFamilyPattern = /font-family\s*:\s*['"]?([^'";}\n]+)['"]?/gi;
   let match;
   while ((match = fontFamilyPattern.exec(html)) !== null) {
-    const family = match[1].split(',')[0].trim().replace(/['"]/g, '');
-    if (family && !family.startsWith('var(') && family.length > 1) {
+    const value = match[1];
+    const families = value.split(',');
+    for (const family of families) {
+      const trimmed = family.trim().replace(/['"]/g, '');
+      // Skip system fonts and CSS variables
+      if (trimmed && !trimmed.startsWith('var(') && !trimmed.startsWith('-') && 
+          !['inherit', 'initial', 'unset', 'revert'].includes(trimmed.toLowerCase()) &&
+          trimmed.length > 1 && trimmed.length < 50) {
+        fonts.push(trimmed);
+      }
+    }
+  }
+  
+  // @font-face declarations
+  const fontFacePattern = /@font-face\s*{[^}]*font-family\s*:\s*['"]?([^'";}\n]+)['"]?/gi;
+  while ((match = fontFacePattern.exec(html)) !== null) {
+    const family = match[1].trim().replace(/['"]/g, '');
+    if (family && family.length > 1) {
       fonts.push(family);
     }
   }
-  return [...new Set(fonts)];
+  
+  // Link tags with font预加载
+  const fontPreloadPattern = /<link[^>]*href=["']([^"']+\.(woff2?|ttf|otf|eot))["']/gi;
+  while ((match = fontPreloadPattern.exec(html)) !== null) {
+    const url = match[1];
+    // Extract font name from filename
+    const filename = url.split('/').pop()?.split('.')[0];
+    if (filename) {
+      const name = filename.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      fonts.push(name);
+    }
+  }
+  
+  return [...new Set(fonts)].slice(0, 10);
 }
 
 function extractLogos(html: string, baseUrl: string): LogoInfo[] {
   const logos: LogoInfo[] = [];
-  const logoPatterns = [
-    { pattern: /<img[^>]*(?:alt|title|class|id|src)[^"]*["'][^"']*(?:logo|brand|header)[^"']*["'][^>]*src=["']([^"']+)["']/gi, location: 'img-tag', confidence: 'high' as const },
-    { pattern: /<img[^>]*src=["']([^"']+)["'][^>]*(?:alt|title|class|id)[^"]*["'][^"']*(?:logo|brand|header)[^"']*["']/gi, location: 'img-tag', confidence: 'high' as const },
-    { pattern: /<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["']/gi, location: 'favicon', confidence: 'medium' as const },
-    { pattern: /<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["']/gi, location: 'favicon', confidence: 'medium' as const },
-    { pattern: /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/gi, location: 'og-image', confidence: 'medium' as const },
+  const seenUrls = new Set<string>();
+  
+  const addLogo = (url: string, type: string, confidence: 'high' | 'medium' | 'low', location: string) => {
+    if (!seenUrls.has(url)) {
+      seenUrls.add(url);
+      logos.push({ url, type, confidence, location });
+    }
+  };
+  
+  // Favicon / icon
+  const iconPatterns = [
+    /<link[^>]*rel=["'](?:shortcut\s+)?icon["'][^>]*href=["']([^"']+)["']/gi,
+    /<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:shortcut\s+)?icon["']/gi,
+    /<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/gi,
+    /<link[^>]*href=["']([^"']+)["'][^>]*rel=["']apple-touch-icon["']/gi,
   ];
-  for (const { pattern, location, confidence } of logoPatterns) {
+  for (const pattern of iconPatterns) {
     let match;
     while ((match = pattern.exec(html)) !== null) {
       let url = match[1];
       if (url.startsWith('//')) url = 'https:' + url;
       else if (url.startsWith('/')) url = baseUrl + url;
       else if (!url.startsWith('http')) url = baseUrl + '/' + url;
-      logos.push({ url, type: location, confidence, location });
+      addLogo(url, 'favicon', 'high', 'head');
     }
   }
-  const headerMatch = html.match(/<header[^>]*>([\s\S]*?)<\/header>/i);
-  if (headerMatch) {
-    const headerImgPattern = /<img[^>]*src=["']([^"']+)["']/gi;
+  
+  // Open Graph image
+  const ogPatterns = [
+    /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/gi,
+    /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/gi,
+    /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/gi,
+  ];
+  for (const pattern of ogPatterns) {
     let match;
-    while ((match = headerImgPattern.exec(headerMatch[1])) !== null) {
+    while ((match = pattern.exec(html)) !== null) {
       let url = match[1];
       if (url.startsWith('//')) url = 'https:' + url;
       else if (url.startsWith('/')) url = baseUrl + url;
       else if (!url.startsWith('http')) url = baseUrl + '/' + url;
-      if (!logos.find(l => l.url === url)) {
-        logos.push({ url, type: 'header-image', confidence: 'low', location: 'header' });
+      addLogo(url, 'social-image', 'medium', 'meta');
+    }
+  }
+  
+  // Images with logo/brand in attributes
+  const logoImgPatterns = [
+    // alt, title, class, id containing logo/brand
+    /<img[^>]*(?:alt|title|class|id)=["'][^"']*(?:logo|brand|header-logo|site-logo|main-logo)[^"']*["'][^>]*src=["']([^"']+)["']/gi,
+    /<img[^>]*src=["']([^"']+)["'][^>]*(?:alt|title|class|id)=["'][^"']*(?:logo|brand|header-logo|site-logo|main-logo)[^"']*["']/gi,
+    // src containing logo/brand
+    /<img[^>]*src=["']([^"']*(?:logo|brand)[^"']*)["']/gi,
+  ];
+  for (const pattern of logoImgPatterns) {
+    let match;
+    while ((match = pattern.exec(html)) !== null) {
+      let url = match[1];
+      if (url.startsWith('//')) url = 'https:' + url;
+      else if (url.startsWith('/')) url = baseUrl + url;
+      else if (!url.startsWith('http')) url = baseUrl + '/' + url;
+      addLogo(url, 'logo', 'high', 'img');
+    }
+  }
+  
+  // SVG logos (inline)
+  const svgLogoPattern = /<svg[^>]*(?:class|id|aria-label|role)=["'][^"']*(?:logo|brand|icon)[^"']*["'][^>]*>/gi;
+  if (svgLogoPattern.test(html)) {
+    // Found SVG logo indicator
+    addLogo('inline-svg-logo', 'svg', 'medium', 'inline');
+  }
+  
+  // Header/nav images
+  const headerPatterns = [
+    /<header[^>]*>([\s\S]*?)<\/header>/gi,
+    /<nav[^>]*>([\s\S]*?)<\/nav>/gi,
+  ];
+  for (const pattern of headerPatterns) {
+    const headerMatch = pattern.exec(html);
+    if (headerMatch) {
+      const imgPattern = /<img[^>]*src=["']([^"']+)["']/gi;
+      let match;
+      while ((match = imgPattern.exec(headerMatch[1])) !== null) {
+        let url = match[1];
+        if (url.startsWith('//')) url = 'https:' + url;
+        else if (url.startsWith('/')) url = baseUrl + url;
+        else if (!url.startsWith('http')) url = baseUrl + '/' + url;
+        addLogo(url, 'header-image', 'low', 'header');
       }
     }
   }
+  
+  // Any remaining images in the page that could be logos (small images in top section)
+  const allImgPattern = /<img[^>]*src=["']([^"']+)["'][^>]*(?:width|height)=["'](?:1[0-9]{2}|[2-9][0-9]{2})["']/gi;
+  let match;
+  while ((match = allImgPattern.exec(html)) !== null) {
+    let url = match[1];
+    if (url.startsWith('//')) url = 'https:' + url;
+    else if (url.startsWith('/')) url = baseUrl + url;
+    else if (!url.startsWith('http')) url = baseUrl + '/' + url;
+    // Skip common non-logo images
+    if (!url.match(/\.(gif|mp4|webm|ogg)/i)) {
+      addLogo(url, 'possible-logo', 'low', 'body');
+    }
+  }
+  
   return logos;
 }
 
 function extractSpacing(html: string): string[] {
-  const spacingPattern = /(?:margin|padding|gap)\s*:\s*(\d+(?:px|rem|em))/g;
+  const spacingPattern = /(?:margin|padding|gap|row-gap|column-gap)\s*:\s*(\d+(?:px|rem|em|pt))/gi;
   const values: string[] = [];
   let match;
   while ((match = spacingPattern.exec(html)) !== null) {
+    const val = match[1];
+    // Filter out 0 values
+    if (val !== '0px' && val !== '0rem' && val !== '0em') {
+      values.push(val);
+    }
+  }
+  
+  // Also extract from shorthand properties
+  const shorthandPattern = /(?:margin|padding)\s*:\s*([\d.]+(?:px|rem|em|pt)(?:\s+[\d.]+(?:px|rem|em|pt)){0,3})/gi;
+  while ((match = shorthandPattern.exec(html)) !== null) {
+    const parts = match[1].split(/\s+/);
+    for (const part of parts) {
+      if (part !== '0px' && part !== '0rem' && part !== '0em') {
+        values.push(part);
+      }
+    }
+  }
+  
+  // Deduplicate, sort, and take top 10
+  const unique = [...new Set(values)];
+  return unique.sort((a, b) => parseFloat(a) - parseFloat(b)).slice(0, 10);
+}
+
+function extractBorderRadius(html: string): string[] {
+  const radiusPattern = /border-radius\s*:\s*([\d.]+(?:px|rem|em|%)(?:\s+[\d.]+(?:px|rem|em|%)){0,3})/gi;
+  const values: string[] = [];
+  let match;
+  while ((match = radiusPattern.exec(html)) !== null) {
+    const parts = match[1].split(/\s+/);
+    for (const part of parts) {
+      if (part !== '0px' && part !== '0rem' && part !== '0em' && part !== '0%') {
+        values.push(part);
+      }
+    }
+  }
+  
+  // Extract from CSS variables
+  const cssVarRadius = /--[\w-]*(?:radius|rounded)[^:]*:\s*([\d.]+(?:px|rem|em|%))/gi;
+  while ((match = cssVarRadius.exec(html)) !== null) {
     values.push(match[1]);
   }
-  return [...new Set(values)].sort((a, b) => parseFloat(a) - parseFloat(b)).slice(0, 8);
+  
+  const unique = [...new Set(values)];
+  return unique.sort((a, b) => parseFloat(a) - parseFloat(b));
 }
 
 // ─── Main Extraction ──────────────────────────────────────────────────────────
@@ -251,23 +452,21 @@ export async function extractBrandFromHtml(
   if (!brandName) brandName = parsedUrl.hostname.replace('www.', '');
 
   // 5. Border radius
-  const radiusPattern = /border-radius\s*:\s*(\d+(?:px|rem|em|%))/g;
-  const radii: string[] = [];
-  let rMatch;
-  while ((rMatch = radiusPattern.exec(allCss)) !== null) {
-    radii.push(rMatch[1]);
-  }
-  const borderRadius = radii.length > 0 ? radii.sort()[Math.floor(radii.length / 2)] : '8px';
+  const allBorderRadius = extractBorderRadius(allCss + ' ' + html);
+  const borderRadius = allBorderRadius.length > 0 ? allBorderRadius[Math.floor(allBorderRadius.length / 2)] : '8px';
 
   // 6. Spacing
-  const spacing = extractSpacing(allCss);
+  const spacing = extractSpacing(allCss + ' ' + html);
 
   // 7. Shadows
-  const shadowPattern = /box-shadow\s*:\s*([^;]+)/g;
+  const shadowPattern = /box-shadow\s*:\s*([^;}\n]+)/g;
   const shadows: string[] = [];
   let sMatch;
   while ((sMatch = shadowPattern.exec(allCss)) !== null) {
-    shadows.push(sMatch[1].trim());
+    const value = sMatch[1].trim();
+    if (value !== 'none' && value.length > 5) {
+      shadows.push(value);
+    }
   }
 
   // 8. Gradients
