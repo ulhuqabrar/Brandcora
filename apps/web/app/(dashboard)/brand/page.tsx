@@ -15,6 +15,7 @@ import {
   Plus,
   ListChecks,
   FileText,
+  PencilSimple,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
@@ -33,10 +34,13 @@ interface ScanItem {
 }
 
 export default function BrandIdentityOverview() {
-  const { profile, loading: profileLoading } = useBrandProfile();
+  const { profile, loading: profileLoading, refresh } = useBrandProfile();
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [scans, setScans] = useState<ScanItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [brandName, setBrandName] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -61,6 +65,24 @@ export default function BrandIdentityOverview() {
   }, []);
 
   const loadingState = profileLoading || loading;
+
+  const handleSaveName = async () => {
+    if (!brandName.trim()) return;
+    setSavingName(true);
+    try {
+      await apiFetch('/api/v1/brand-profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: brandName.trim() }),
+      });
+      await refresh();
+      setEditingName(false);
+    } catch {
+      // ignore
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   if (loadingState) {
     return (
@@ -126,7 +148,41 @@ export default function BrandIdentityOverview() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[12px] text-[#8A8A85]">Brand</span>
-              <span className="text-[13px] font-semibold text-[#1A1918]">{profile.name}</span>
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    className="input-compact h-7 text-[13px] w-32"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveName();
+                      if (e.key === 'Escape') setEditingName(false);
+                    }}
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    disabled={savingName}
+                    className="text-[11px] text-[#16A34A] font-medium hover:underline"
+                  >
+                    {savingName ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-semibold text-[#1A1918]">{profile.name}</span>
+                  <button
+                    onClick={() => {
+                      setBrandName(profile.name);
+                      setEditingName(true);
+                    }}
+                    className="p-1 hover:bg-[#F5F5F3] rounded"
+                  >
+                    <PencilSimple className="h-3 w-3 text-[#8A8A85]" weight="bold" />
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[12px] text-[#8A8A85]">Status</span>
