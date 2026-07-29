@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Fingerprint,
-  MagnifyingGlass,
   Palette,
   TextAa,
   CirclesFour,
@@ -16,7 +15,6 @@ import { cn } from '@/lib/utils';
 
 const brandNav = [
   { to: '/brand', label: 'Overview', icon: Fingerprint, exact: true },
-  { to: '/brand/scan', label: 'Scan', icon: MagnifyingGlass },
   { to: '/brand/colors', label: 'Colors', icon: Palette },
   { to: '/brand/typography', label: 'Typography', icon: TextAa },
   { to: '/brand/assets', label: 'Assets', icon: CirclesFour },
